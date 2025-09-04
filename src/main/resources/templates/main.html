@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>농산물 - GreenHub</title>
+    <link rel="stylesheet" href="/css/header.css">
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/css/footer.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- 헤더 include -->
+    <div th:replace="common/header :: header"></div>
+
+    <!-- 메인 배너 -->
+    <section class="main-banner">
+        <div class="banner-content">
+            <img src="/images/쌀.jpg" alt="쌀밭 배너" class="banner-image">
+        </div>
+    </section>
+
+    <!-- 메인 컨텐츠 (검색바 + 카테고리 + 추천 요리) -->
+    <section class="main-content-section">
+        <div class="container">
+            <div class="content-wrapper">
+                <!-- 왼쪽: 검색바와 상품 카테고리 -->
+                <div class="left-content">
+                    <!-- 검색바 -->
+                    <div class="search-section">
+                        <div class="search-bar">
+                            <input type="text" placeholder="검색어를 입력하세요" class="search-input">
+                            <button class="search-btn">
+                                <img src="/images/돋보기 아이콘.png" alt="검색" class="search-icon">
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- 상품 카테고리 -->
+                    <div class="categories-section">
+                        <div class="category-row">
+                            <div class="category-item">
+                                <img src="/images/사과.jpg" alt="농산물" class="category-image">
+                                <span class="category-label">농산물</span>
+                            </div>
+                            <div class="category-item">
+                                <img src="/images/고기.webp" alt="축산물" class="category-image">
+                                <span class="category-label">축산물</span>
+                            </div>
+                            <div class="category-item">
+                                <img src="/images/생선.jpg" alt="수산물" class="category-image">
+                                <span class="category-label">수산물</span>
+                            </div>
+                            <div class="category-item">
+                                <img src="/images/가공식품.webp" alt="가공식품" class="category-image">
+                                <span class="category-label">가공식품</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 오른쪽: 오늘의 추천 특산품 요리 -->
+                <div class="recommended-recipe">
+                    <h3 class="recipe-title">오늘의 추천 특산품 요리</h3>
+                    <div class="recipe-content">
+                        <img src="/images/요리.jpg" alt="전복무스비" class="recipe-image">
+                        <div class="recipe-info">
+                            <h4 class="recipe-name">전복무스비</h4>
+                            <p class="recipe-description">완도산 전복을 메인으로 활용한 요리!</p>
+                            <p class="recipe-subtitle">간단하게 만들 수 있어서 인기만점</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 제철상품 섹션 -->
+    <section class="seasonal-products">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">제철상품 왔어요</h2>
+                <div class="truck-icon">
+                    <img src="/images/그냥 트럭.png" alt="트럭" class="truck-img">
+                    <img src="/images/뿡뿡 아이콘.png" alt="뿡뿡" class="truck-sound">
+                    <img src="/images/뿡뿡 아이콘.png" alt="뿡뿡" class="truck-sound">
+                    <img src="/images/뿡뿡 아이콘.png" alt="뿡뿡" class="truck-sound">
+                </div>
+            </div>
+            <div class="products-grid">
+                <div class="product-item">
+                    <img src="/images/제철 사과.jpg" alt="문경 사과" class="product-image">
+                    <div class="product-info">
+                        <div class="product-catchphrase">문경이좋아</div>
+                        <span class="season-badge">[지금이 제철]</span>
+                        <h4 class="product-name">문경 사과</h4>
+                        <p class="product-description">문경에서 유명한 사과</p>
+                        <p class="product-subtitle">지금이 딱 제철!</p>
+                        <p class="product-action">맛이 좋은 지금 데려가보세요</p>
+                    </div>
+                </div>
+                <div class="product-item">
+                    <img src="/images/제철 돼지.jpg" alt="고흥 돼지" class="product-image">
+                    <div class="product-info">
+                        <div class="product-catchphrase">꿀꿀</div>
+                        <span class="season-badge">[지금이 제철]</span>
+                        <h4 class="product-name">고흥 돼지</h4>
+                        <p class="product-description">좋은 품질만 선별하는 고흥에서</p>
+                        <p class="product-subtitle">맛좋은 돼지고기가 가득</p>
+                        <p class="product-action">남녀노소 누구나 좋아할거에요</p>
+                    </div>
+                </div>
+                <div class="product-item">
+                    <img src="/images/제철 천도복숭아.jpg" alt="경산 복숭아" class="product-image">
+                    <div class="product-info">
+                        <div class="product-catchphrase">달디단복숭</div>
+                        <span class="season-badge">[지금이 제철]</span>
+                        <h4 class="product-name">경산 복숭아</h4>
+                        <p class="product-description">새콤달콤 복숭아</p>
+                        <p class="product-subtitle">제철 끝물에 다들 즐겨야죠?</p>
+                        <p class="product-action">침이 그냥 고입니다</p>
+                    </div>
+                </div>
+                <div class="product-item">
+                    <img src="/images/제철 당근.jpg" alt="구좌 당근" class="product-image">
+                    <div class="product-info">
+                        <div class="product-catchphrase">당근당근</div>
+                        <span class="season-badge">[지금이 제철]</span>
+                        <h4 class="product-name">구좌 당근</h4>
+                        <p class="product-description">제주도 말들 조차 즐겨먹는!</p>
+                        <p class="product-subtitle">눈에 좋고 몸에 좋고 좋은 거 투성이</p>
+                        <p class="product-action">당근으로 건강챙기세요</p>
+                    </div>
+                </div>
+                <div class="product-item">
+                    <img src="/images/제철 마늘.jpg" alt="의성 마늘" class="product-image">
+                    <div class="product-info">
+                        <div class="product-catchphrase">의성마늘군</div>
+                        <span class="season-badge">[지금이 제철]</span>
+                        <h4 class="product-name">의성 마늘</h4>
+                        <p class="product-description">한국인에게 필수 음식</p>
+                        <p class="product-subtitle">마늘이 빠질 수 없죠</p>
+                        <p class="product-action">의성 마늘 말이 필요 없습니다</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- 요리법 섹션 -->
+    <section class="recipes-section">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">다양한 요리법 왔어요</h2>
+                <div class="truck-icon">
+                    <img src="/images/그냥 트럭.png" alt="트럭" class="truck-img">
+                    <img src="/images/뿡뿡 아이콘.png" alt="뿡뿡" class="truck-sound">
+                    <img src="/images/뿡뿡 아이콘.png" alt="뿡뿡" class="truck-sound">
+                    <img src="/images/뿡뿡 아이콘.png" alt="뿡뿡" class="truck-sound">
+                </div>
+            </div>
+            <div class="recipes-grid">
+                <div class="recipe-item">
+                    <img src="/images/감자전.jpg" alt="감자전" class="recipe-image">
+                    <div class="recipe-info">
+                        <h4 class="recipe-name">강원도 감자로 만드는 감자전</h4>
+                    </div>
+                </div>
+                <div class="recipe-item">
+                    <img src="/images/굴비찜.jpg" alt="굴비찜" class="recipe-image">
+                    <div class="recipe-info">
+                        <h4 class="recipe-name">전라도 굴비로 굴비찜 완성</h4>
+                    </div>
+                </div>
+                <div class="recipe-item">
+                    <img src="/images/애플파이.jpg" alt="애플파이" class="recipe-image">
+                    <div class="recipe-info">
+                        <h4 class="recipe-name">안동 사과로 예쁜 애플파이 만들기</h4>
+                    </div>
+                </div>
+                <div class="recipe-item">
+                    <img src="/images/표고버섯밥.jpg" alt="표고버섯밥" class="recipe-image">
+                    <div class="recipe-info">
+                        <h4 class="recipe-name">충청도의 명물 표고버섯으로 건강한 밥</h4>
+                    </div>
+                </div>
+                <div class="recipe-item">
+                    <img src="/images/포도잼.jpg" alt="포도잼" class="recipe-image">
+                    <div class="recipe-info">
+                        <h4 class="recipe-name">경기도 포도잼 레시피</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 푸터 include -->
+    <div th:replace="common/footer :: footer"></div>
+
+    <script src="/js/main.js"></script>
+</body>
+</html>
