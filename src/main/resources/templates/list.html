@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>제철 특산품 - GreenHub</title>
+    <link rel="stylesheet" href="/css/list.css">
+</head>
+<body>
+    <!-- 상단 네비게이션 -->
+    <header class="header">
+        <div class="nav-container">
+            <div class="logo">
+                <img src="/images/로고 트럭.png" alt="GreenHub 로고" class="logo-img">
+            </div>
+            <nav class="nav-menu">
+                <a href="#" class="nav-link">지역별 특산품</a>
+                <a href="#" class="nav-link">인기 특산품</a>
+                <a href="#" class="nav-link active">제철특산품</a>
+                <a href="#" class="nav-link">요리법</a>
+                <a href="#" class="nav-link">공지</a>
+            </nav>
+            <div class="auth-buttons">
+                <button class="btn-login">로그인</button>
+                <button class="btn-signup">회원가입</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- 메인 컨텐츠 -->
+    <main class="main-content">
+        <!-- 배너 섹션 -->
+        <section class="banner-section">
+            <div class="banner-content">
+                <div class="banner-title">
+                    <img src="/images/과일 트럭.png" alt="제철 특산품" class="banner-icon">
+                    <h1>제철 특산품</h1>
+                </div>
+                <div class="search-container">
+                    <input type="text" placeholder="검색어를 입력하세요" class="search-input">
+                    <button class="search-btn">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <path d="m21 21-4.35-4.35"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 컨텐츠 영역 -->
+        <div class="content-wrapper">
+            <!-- 상품 목록 -->
+            <section class="products-section">
+                <div class="product-card">
+                    <div class="product-image">
+                        <img src="/images/제철 사과.jpg" alt="문경 사과">
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-title">[지금이 제철] 문경 사과</h3>
+                        <p class="product-description">문경에서 유명한 사과 지금이 딱 제철! 맛이 좋은 지급 데려가보세요</p>
+                        <div class="product-prices">
+                            <span class="price">1kg 9,900</span>
+                            <span class="price">2kg 15,000</span>
+                            <span class="price">3kg 23,000</span>
+                        </div>
+                        <div class="company-info">
+                            <h4>업체 문의</h4>
+                            <p>053-555-444</p>
+                            <p>monkyeon@naver.com</p>
+                            <p>문경이좋아</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="product-card">
+                    <div class="product-image">
+                        <img src="/images/제철 돼지.jpg" alt="고흥 돼지">
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-title">[지금이 제철] 고흥 돼지</h3>
+                        <p class="product-description">좋은 품질만 선별하는 고흥에서 맛좋은 돼지고기가 가득 남녀노소 누구나 좋아할거에요</p>
+                        <div class="product-prices">
+                            <span class="price">1kg 9,900</span>
+                            <span class="price">2kg 15,000</span>
+                            <span class="price">3kg 23,000</span>
+                        </div>
+                        <div class="company-info">
+                            <h4>업체 문의</h4>
+                            <p>051-4449-4854</p>
+                            <p>kuku@gmail.com</p>
+                            <p>꿀꿀</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="product-card">
+                    <div class="product-image">
+                        <img src="/images/제철 천도복숭아.jpg" alt="경산 복숭아">
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-title">[지금이 제철] 경산 복숭아</h3>
+                        <p class="product-description">새콤달콤 복숭아 제철 끝물에 다들 즐거야죠? 짐이 그냥 고입니다</p>
+                        <div class="product-prices">
+                            <span class="price">1kg 9,900</span>
+                            <span class="price">2kg 15,000</span>
+                            <span class="price">3kg 23,000</span>
+                        </div>
+                        <div class="company-info">
+                            <h4>업체 문의</h4>
+                            <p>053-546-7875</p>
+                            <p>bobokbok@naver.com</p>
+                            <p>달디단복송</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 지도 섹션 -->
+            <aside class="map-section">
+                <div class="map-container">
+                    <img src="/images/한국 지도.svg" alt="한국 지도" class="korea-map">
+                </div>
+            </aside>
+        </div>
+    </main>
+
+    <script src="/js/list.js"></script>
+</body>
+</html>
