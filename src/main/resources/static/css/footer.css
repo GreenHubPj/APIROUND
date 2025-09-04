@@ -1,0 +1,109 @@
+/* 푸터 스타일 */
+
+/* 푸터 */
+.footer {
+    background-color: #ffefbf7d;
+    color: white;
+    padding: 40px 0 20px;
+    margin-top: 60px;
+}
+.brand-text{
+    color:green;
+}
+
+.footer-content {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    gap: 40px;
+    margin-bottom: 30px;
+}
+
+.footer-section {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.footer-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: white;
+    margin-bottom: 10px;
+}
+
+.footer-description {
+    font-size: 14px;
+    color: #26596f;
+    line-height: 1.6;
+}
+
+.footer-subtitle {
+    font-size: 16px;
+    font-weight: 600;
+    color: black;
+    margin-bottom: 10px;
+}
+
+.footer-text {
+    font-size: 14px;
+    color: #26596f;
+    margin: 5px 0;
+}
+
+.footer-link {
+    font-size: 14px;
+    color: #26596f;
+    text-decoration: none;
+    margin: 5px 0;
+    transition: color 0.3s ease;
+}
+
+.footer-link:hover {
+    color: #ff6b35;
+}
+
+.footer-bottom {
+    border-top: 1px solid #444;
+    padding-top: 20px;
+    text-align: center;
+}
+
+.footer-copyright {
+    font-size: 12px;
+    color: #999;
+}
+
+/* 푸터 반응형 디자인 */
+@media (max-width: 768px) {
+    .footer-content {
+        grid-template-columns: 1fr;
+        gap: 30px;
+        text-align: center;
+    }
+    
+    .footer-section {
+        align-items: center;
+    }
+    
+    .footer {
+        padding: 30px 0 15px;
+    }
+}
+
+@media (max-width: 480px) {
+    .footer {
+        padding: 25px 0 15px;
+    }
+    
+    .footer-content {
+        gap: 25px;
+    }
+    
+    .footer-title {
+        font-size: 20px;
+    }
+    
+    .footer-subtitle {
+        font-size: 14px;
+    }
+}
