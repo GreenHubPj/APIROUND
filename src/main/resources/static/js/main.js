@@ -130,11 +130,15 @@ document.addEventListener('DOMContentLoaded', function() {
             modal.innerHTML = `
                 <div class="modal-content">
                     <div id="modal-step1" class="modal-step">
-                        <p class="modal-title">오늘 뭐먹지? 🍽️</p>
-                        <button class="modal-btn" id="start-recommend">랜덤 추천 받기</button>
+                        <p class="modal-title">오늘 뭐먹지?</p>
+                        <p class="modal-subtitle">전국 지역 특산품으로 만드는 특별한 레시피를 추천해드립니다.</p>
+                        <button class="modal-btn" id="start-recommend">
+                            <span class="dice-icon">🎲</span>
+                            랜덤 추천 받기
+                        </button>
                     </div>
                     <div id="modal-step2" class="modal-step hidden">
-                        <p class="modal-title">추천 중입니다... ⏳</p>
+                        <p class="modal-title">⏳ 추천 중입니다  ⏳</p>
                         <div class="loading-spinner"></div>
                     </div>
                     <div id="modal-step3" class="modal-step hidden">
@@ -187,13 +191,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     opacity: 1;
                 }
                 .modal-content {
-                    background: #fff;
-                    padding: 30px;
-                    border-radius: 15px;
+                    background: linear-gradient(135deg, #ffeaa7 0%, #fab1a0 100%);
+                    padding: 40px;
+                    border-radius: 20px;
                     text-align: center;
                     width: auto;
                     transform: scale(0.8);
                     transition: transform 0.3s ease;
+                    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
                 }
                 .recommend-modal:not(.hidden) .modal-content {
                     transform: scale(1);
@@ -203,17 +208,46 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 .modal-btn {
                     margin: 8px;
-                    padding: 10px 20px;
-                    background-color: #FF914D;
+                    padding: 15px 30px;
+                    background: linear-gradient(135deg, #ff6b35 0%, #e55a2b 100%);
                     color: white;
                     border: none;
-                    border-radius: 8px;
+                    border-radius: 50px;
                     cursor: pointer;
                     transition: all 0.3s ease;
+                    font-size: 1rem;
+                    font-weight: 600;
+                    box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3);
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    margin: 20px auto;
                 }
                 .modal-btn:hover {
-                    background-color: #ff7c2a;
-                    transform: translateY(-2px);
+                    transform: translateY(-3px);
+                    box-shadow: 0 6px 20px rgba(255, 107, 53, 0.4);
+                }
+                .modal-title {
+                    font-size: 2.5rem;
+                    font-weight: 800;
+                    color: #2c5530;
+                    margin-bottom: 15px;
+                    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                }
+                .modal-step2 .modal-title {
+                    font-size: 1.5rem;
+                    font-weight: 600;
+                    font-family: 'Noto Sans KR', 'Malgun Gothic', sans-serif;
+                    color: #555;
+                }
+                .modal-subtitle {
+                    font-size: 1.1rem;
+                    color: #666;
+                    margin-bottom: 30px;
+                    line-height: 1.5;
+                }
+                .dice-icon {
+                    font-size: 1.2rem;
                 }
                 .modal-result-title {
                     font-size: 22px;
