@@ -138,9 +138,29 @@ document.addEventListener('DOMContentLoaded', function() {
                         <div class="loading-spinner"></div>
                     </div>
                     <div id="modal-step3" class="modal-step hidden">
-                        <h4 id="menu-name" class="modal-result-title"></h4>
-                        <p id="menu-region" class="modal-result-text"></p>
-                        <p id="menu-ingredients" class="modal-result-text"></p>
+                        <div class="recommendation-card">
+                            <h2 id="menu-name" class="dish-name"></h2>
+                            
+                            <div class="origin-tag">
+                                <span class="location-icon">📍</span>
+                                <span id="menu-region" class="origin-text"></span>
+                            </div>
+                            
+                            <div class="ingredients-section">
+                                <h3 class="ingredients-title">
+                                    <span class="ingredients-icon">⚫</span>
+                                    주요 재료
+                                </h3>
+                                <div id="menu-ingredients" class="ingredients-tags"></div>
+                            </div>
+                            
+                            <p id="menu-description" class="dish-description"></p>
+                            
+                            <div class="action-buttons">
+                                <button class="action-btn recipe-btn">레시피 보기</button>
+                                <button class="action-btn shopping-btn">장보기 리스트</button>
+                            </div>
+                        </div>
                         <button class="modal-btn" id="retry-btn">다시 추천</button>
                         <button class="modal-btn" id="close-btn">닫기</button>
                     </div>
@@ -171,7 +191,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     padding: 30px;
                     border-radius: 15px;
                     text-align: center;
-                    width: 300px;
+                    width: auto;
                     transform: scale(0.8);
                     transition: transform 0.3s ease;
                 }
@@ -219,6 +239,104 @@ document.addEventListener('DOMContentLoaded', function() {
                     0% { transform: rotate(0deg); }
                     100% { transform: rotate(360deg); }
                 }
+                .recommendation-card {
+                    background: linear-gradient(135deg, #ff9a8b 0%, #FCC38B 50%, #fecfef 100%);
+                    padding: 30px;
+                    border-radius: 20px;
+                    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+                    margin-bottom: 20px;
+                    text-align: center;
+                    width:500px;
+                }
+                .dish-name {
+                    font-size: 1.5rem;
+                    font-weight: 700;
+                    color: #2c5530;
+                    margin-bottom: 15px;
+                }
+                .origin-tag {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 8px;
+                    background: rgba(255, 255, 255, 0.8);
+                    padding: 8px 16px;
+                    border-radius: 20px;
+                    border: 2px solid #ff6b35;
+                    margin-bottom: 20px;
+                    font-size: 0.9rem;
+                    font-weight: 600;
+                    color: #2c5530;
+                }
+                .location-icon {
+                    color: #e74c3c;
+                    font-size: 1rem;
+                }
+                .ingredients-section {
+                    margin-bottom: 20px;
+                }
+                .ingredients-title {
+                    font-size: 1.1rem;
+                    font-weight: 600;
+                    color: #2c5530;
+                    margin-bottom: 12px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 8px;
+                }
+                .ingredients-icon {
+                    font-size: 1.2rem;
+                }
+                .ingredients-tags {
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 8px;
+                    justify-content: center;
+                }
+                .ingredient-tag {
+                    background: rgba(255, 255, 255, 0.9);
+                    color: #2c5530;
+                    padding: 6px 12px;
+                    border-radius: 15px;
+                    font-size: 0.85rem;
+                    font-weight: 500;
+                    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+                }
+                .dish-description {
+                    font-size: 0.95rem;
+                    color: #555;
+                    line-height: 1.5;
+                    margin-bottom: 20px;
+                    background: rgba(255, 255, 255, 0.7);
+                    padding: 15px;
+                    border-radius: 12px;
+                    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+                }
+                .action-buttons {
+                    display: flex;
+                    gap: 12px;
+                    justify-content: center;
+                    flex-wrap: wrap;
+                }
+                .action-btn {
+                    background: rgba(255, 255, 255, 0.9);
+                    color: #2c5530;
+                    border: none;
+                    padding: 10px 20px;
+                    border-radius: 20px;
+                    font-size: 0.9rem;
+                    font-weight: 600;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+                    min-width: 100px;
+                }
+                .action-btn:hover {
+                    background: #ff6b35;
+                    color: white;
+                    transform: translateY(-2px);
+                    box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+                }
             `;
             document.head.appendChild(style);
 
@@ -237,14 +355,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // 랜덤 추천 데이터
             const recommendations = [
-                { name: "김치찌개", region: "전라도", ingredients: "김치, 돼지고기, 두부, 대파" },
-                { name: "된장찌개", region: "경기도", ingredients: "된장, 두부, 호박, 양파" },
-                { name: "불고기", region: "서울", ingredients: "소고기, 양파, 당근, 버섯" },
-                { name: "비빔밥", region: "전라도", ingredients: "밥, 나물, 고추장, 계란" },
-                { name: "갈비탕", region: "경기도", ingredients: "갈비, 무, 대파, 마늘" },
-                { name: "해물파전", region: "부산", ingredients: "전복, 새우, 파, 밀가루" },
-                { name: "닭볶음탕", region: "경상도", ingredients: "닭고기, 감자, 당근, 양파" },
-                { name: "순두부찌개", region: "충청도", ingredients: "순두부, 해물, 김치, 대파" }
+                { name: "제주 흑돼지 양념구이", region: "제주특별자치도 특산품", ingredients: ["제주흑돼지", "깻잎", "마늘", "소금"], description: "제주의 청정 자연에서 키운 흑돼지의 고소하고 담백한 맛을 즐겨보세요." },
+                { name: "전라도 김치찌개", region: "전라도 특산품", ingredients: ["김치", "돼지고기", "두부", "대파"], description: "전라도의 깊은 맛 김치로 끓인 시원하고 얼큰한 찌개입니다." },
+                { name: "경기도 된장찌개", region: "경기도 특산품", ingredients: ["된장", "두부", "호박", "양파"], description: "경기도의 전통 된장으로 끓인 구수하고 진한 찌개입니다." },
+                { name: "서울 불고기", region: "서울 특산품", ingredients: ["소고기", "양파", "당근", "버섯"], description: "서울의 대표적인 고기 요리로 달콤하고 부드러운 맛이 일품입니다." },
+                { name: "전라도 비빔밥", region: "전라도 특산품", ingredients: ["밥", "나물", "고추장", "계란"], description: "전라도의 다양한 나물과 고추장으로 만든 건강한 한 끼 식사입니다." },
+                { name: "부산 해물파전", region: "부산 특산품", ingredients: ["전복", "새우", "파", "밀가루"], description: "부산의 신선한 해산물로 만든 바삭하고 고소한 파전입니다." },
+                { name: "경상도 닭볶음탕", region: "경상도 특산품", ingredients: ["닭고기", "감자", "당근", "양파"], description: "경상도의 매콤달콤한 양념으로 끓인 든든한 닭볶음탕입니다." },
+                { name: "충청도 순두부찌개", region: "충청도 특산품", ingredients: ["순두부", "해물", "김치", "대파"], description: "충청도의 부드러운 순두부로 끓인 얼큰하고 시원한 찌개입니다." }
             ];
 
             const getRecommendation = () => {
@@ -254,8 +372,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 setTimeout(() => {
                     const randomItem = recommendations[Math.floor(Math.random() * recommendations.length)];
                     document.getElementById('menu-name').innerText = randomItem.name;
-                    document.getElementById('menu-region').innerText = '지역: ' + randomItem.region;
-                    document.getElementById('menu-ingredients').innerText = '재료: ' + randomItem.ingredients;
+                    document.getElementById('menu-region').innerText = randomItem.region;
+                    document.getElementById('menu-description').innerText = randomItem.description;
+                    
+                    // 재료 태그 생성
+                    const ingredientsContainer = document.getElementById('menu-ingredients');
+                    ingredientsContainer.innerHTML = '';
+                    randomItem.ingredients.forEach(ingredient => {
+                        const tag = document.createElement('span');
+                        tag.className = 'ingredient-tag';
+                        tag.textContent = ingredient;
+                        ingredientsContainer.appendChild(tag);
+                    });
+                    
                     showStep(3); // 결과 표시
                 }, 2000);
             };
