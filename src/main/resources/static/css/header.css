@@ -164,23 +164,23 @@ body {
         top: 10px;
         border-radius: 30px;
     }
-    
+
     .header .container {
         flex-direction: column;
         gap: 20px;
         padding: 20px;
     }
-    
+
     .nav-menu {
         flex-wrap: wrap;
         justify-content: center;
         gap: 20px;
     }
-    
+
     .nav-link {
         font-size: 14px;
     }
-    
+
     .btn-login,
     .btn-signup {
         padding: 8px 16px;
@@ -194,19 +194,19 @@ body {
         top: 5px;
         border-radius: 25px;
     }
-    
+
     .container {
         padding: 0 15px;
     }
-    
+
     .nav-menu {
         gap: 15px;
     }
-    
+
     .nav-link {
         font-size: 14px;
     }
-    
+
     .btn-login,
     .btn-signup {
         padding: 8px 16px;
