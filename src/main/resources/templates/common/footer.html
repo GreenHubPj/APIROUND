@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Footer Fragment</title>
+    <link rel="stylesheet" href="/css/footer.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- 푸터 -->
+    <footer class="footer" th:fragment="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <div class="nav-brand">
+                        <img src="/images/로고 트럭.png" alt="로고" class="logo">
+                    </div>
+                    <p class="footer-description">지역마다 특산품을 전국 어디서나 쉽게 주문하세요</p>
+                </div>
+                <div class="footer-section">
+                    <h5 class="footer-subtitle">고객센터</h5>
+                    <p class="footer-text">1588-0000</p>
+                    <p class="footer-text">평일 09:00 - 18:00</p>
+                </div>
+                <div class="footer-section">
+                    <h5 class="footer-subtitle">회사정보</h5>
+                    <p class="footer-text">대표: 정민서</p>
+                    <p class="footer-text">사업자등록번호: 123-45-67890</p>
+                </div>
+                <div class="footer-section">
+                    <h5 class="footer-subtitle">이용약관</h5>
+                    <a href="#" class="footer-link">개인정보처리방침</a>
+                    <a href="#" class="footer-link">이용약관</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p class="footer-copyright">© 2024 농산물. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

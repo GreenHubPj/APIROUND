@@ -1,108 +1,4 @@
-/* 기본 스타일 리셋 */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-body {
-    font-family: 'Noto Sans KR', sans-serif;
-    line-height: 1.6;
-    color: #333;
-    background-color: #fff;
-}
-
-.container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 20px;
-}
-
-/* 헤더 스타일 */
-.header {
-    background-color: #fff;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-}
-
-.header .container {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 15px 20px;
-}
-
-.nav-brand {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.logo {
-    width: 40px;
-    height: 40px;
-    object-fit: contain;
-}
-
-.brand-text {
-    font-size: 24px;
-    font-weight: 700;
-    color: #2c5530;
-}
-
-.nav-menu {
-    display: flex;
-    gap: 30px;
-}
-
-.nav-link {
-    text-decoration: none;
-    color: #333;
-    font-weight: 500;
-    transition: color 0.3s ease;
-}
-
-.nav-link:hover {
-    color: #ff6b35;
-}
-
-.nav-auth {
-    display: flex;
-    gap: 15px;
-}
-
-.btn-login {
-    background-color: #ff6b35;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 25px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-}
-
-.btn-login:hover {
-    background-color: #e55a2b;
-}
-
-.btn-signup {
-    background-color: transparent;
-    color: #ff6b35;
-    border: 2px solid #ff6b35;
-    padding: 8px 18px;
-    border-radius: 25px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.btn-signup:hover {
-    background-color: #ff6b35;
-    color: white;
-}
+/* 메인 컨텐츠 스타일 */
 
 /* 메인 배너 */
 .main-banner {
@@ -169,61 +65,114 @@ body {
     filter: brightness(0) invert(1);
 }
 
-/* 메인 컨텐츠 */
-.main-content {
-    padding: 30px 0;
+/* 메인 컨텐츠 섹션 */
+.main-content-section {
+    padding: 60px 0;
     background-color: #f8f9fa;
 }
 
 .content-wrapper {
     display: flex;
-    gap: 50px;
+    gap: 60px;
     align-items: flex-start;
+}
+
+/* 왼쪽 컨텐츠 (검색바 + 카테고리) */
+.left-content {
+    flex: 2;
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+}
+
+/* 검색바 섹션 */
+.search-section {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.search-bar {
+    display: flex;
+    background-color: white;
+    border-radius: 30px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    overflow: hidden;
+    max-width: 600px;
+    width: 100%;
+}
+
+.search-input {
+    flex: 1;
+    padding: 15px 20px;
+    border: none;
+    outline: none;
+    font-size: 16px;
+    background-color: transparent;
+}
+
+.search-btn {
+    padding: 15px 20px;
+    background-color: #ff6b35;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.search-icon {
+    width: 20px;
+    height: 20px;
+    filter: brightness(0) invert(1);
 }
 
 /* 카테고리 섹션 */
 .categories-section {
-    flex: 2;
     display: flex;
-    justify-content: flex-start;
+    justify-content: center;
+    width: 100%;
 }
 
 .category-row {
     display: flex;
-    gap: 25px;
+    gap: 30px;
     align-items: center;
+    justify-content: center;
 }
 
 .category-item {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
     padding: 20px;
     background-color: white;
-    border-radius: 15px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    border-radius: 50%;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     cursor: pointer;
     width: 120px;
     height: 120px;
+    justify-content: center;
 }
 
 .category-item:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
 }
 
 .category-image {
-    width: 70px;
-    height: 70px;
+    width: 50px;
+    height: 50px;
     object-fit: cover;
     border-radius: 50%;
 }
 
 .category-label {
-    font-size: 14px;
-    font-weight: 500;
+    font-size: 13px;
+    font-weight: 600;
     color: #333;
     text-align: center;
 }
@@ -232,17 +181,18 @@ body {
 .recommended-recipe {
     flex: 1;
     background-color: white;
-    border-radius: 15px;
-    padding: 25px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    max-width: 300px;
+    border-radius: 25px;
+    padding: 35px;
+    box-shadow: 0 6px 25px rgba(0,0,0,0.1);
+    max-width: 380px;
+    margin-left: 20px;
 }
 
 .recipe-title {
-    font-size: 18px;
-    font-weight: 600;
+    font-size: 22px;
+    font-weight: 700;
     color: #2c5530;
-    margin-bottom: 15px;
+    margin-bottom: 25px;
     text-align: center;
 }
 
@@ -250,14 +200,15 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 15px;
+    gap: 20px;
 }
 
 .recipe-image {
     width: 100%;
-    height: 150px;
+    height: 200px;
     object-fit: cover;
-    border-radius: 10px;
+    border-radius: 20px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
 }
 
 .recipe-info {
@@ -265,21 +216,23 @@ body {
 }
 
 .recipe-name {
-    font-size: 16px;
+    font-size: 19px;
     font-weight: 600;
     color: #333;
-    margin-bottom: 8px;
+    margin-bottom: 10px;
 }
 
 .recipe-description {
-    font-size: 13px;
+    font-size: 15px;
     color: #666;
-    margin-bottom: 4px;
+    margin-bottom: 8px;
+    line-height: 1.4;
 }
 
 .recipe-subtitle {
-    font-size: 11px;
+    font-size: 13px;
     color: #999;
+    line-height: 1.3;
 }
 
 /* 제철상품 섹션 */
@@ -320,9 +273,31 @@ body {
 }
 
 .products-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    display: flex;
     gap: 30px;
+    overflow-x: auto;
+    padding: 20px 0;
+    scroll-behavior: smooth;
+    scrollbar-width: thin;
+    scrollbar-color: #ff6b35 #f0f0f0;
+}
+
+.products-grid::-webkit-scrollbar {
+    height: 8px;
+}
+
+.products-grid::-webkit-scrollbar-track {
+    background: #f0f0f0;
+    border-radius: 4px;
+}
+
+.products-grid::-webkit-scrollbar-thumb {
+    background: #ff6b35;
+    border-radius: 4px;
+}
+
+.products-grid::-webkit-scrollbar-thumb:hover {
+    background: #e55a2b;
 }
 
 .product-item {
@@ -332,6 +307,8 @@ body {
     box-shadow: 0 4px 20px rgba(0,0,0,0.1);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     cursor: pointer;
+    flex: 0 0 280px;
+    min-width: 280px;
 }
 
 .product-item:hover {
@@ -367,10 +344,30 @@ body {
     margin-bottom: 8px;
 }
 
+.product-catchphrase {
+    font-size: 16px;
+    font-weight: 700;
+    color: #ff6b35;
+    margin-bottom: 8px;
+}
+
 .product-description {
     font-size: 14px;
     color: #666;
     line-height: 1.4;
+    margin-bottom: 5px;
+}
+
+.product-subtitle {
+    font-size: 13px;
+    color: #888;
+    margin-bottom: 5px;
+}
+
+.product-action {
+    font-size: 12px;
+    color: #ff6b35;
+    font-weight: 500;
 }
 
 /* 요리법 섹션 */
@@ -380,9 +377,31 @@ body {
 }
 
 .recipes-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    display: flex;
     gap: 30px;
+    overflow-x: auto;
+    padding: 20px 0;
+    scroll-behavior: smooth;
+    scrollbar-width: thin;
+    scrollbar-color: #ff6b35 #f0f0f0;
+}
+
+.recipes-grid::-webkit-scrollbar {
+    height: 8px;
+}
+
+.recipes-grid::-webkit-scrollbar-track {
+    background: #f0f0f0;
+    border-radius: 4px;
+}
+
+.recipes-grid::-webkit-scrollbar-thumb {
+    background: #ff6b35;
+    border-radius: 4px;
+}
+
+.recipes-grid::-webkit-scrollbar-thumb:hover {
+    background: #e55a2b;
 }
 
 .recipe-item {
@@ -392,6 +411,8 @@ body {
     box-shadow: 0 4px 20px rgba(0,0,0,0.1);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     cursor: pointer;
+    flex: 0 0 280px;
+    min-width: 280px;
 }
 
 .recipe-item:hover {
@@ -417,129 +438,8 @@ body {
     line-height: 1.4;
 }
 
-/* 푸터 */
-.footer {
-    background-color: #2c5530;
-    color: white;
-    padding: 40px 0 20px;
-    margin-top: 60px;
-}
-
-.footer-content {
-    display: grid;
-    grid-template-columns: 2fr 1fr 1fr 1fr;
-    gap: 40px;
-    margin-bottom: 30px;
-}
-
-.footer-section {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
-
-.footer-title {
-    font-size: 24px;
-    font-weight: 700;
-    color: white;
-    margin-bottom: 10px;
-}
-
-.footer-description {
-    font-size: 14px;
-    color: #ccc;
-    line-height: 1.6;
-}
-
-.footer-subtitle {
-    font-size: 16px;
-    font-weight: 600;
-    color: white;
-    margin-bottom: 10px;
-}
-
-.footer-text {
-    font-size: 14px;
-    color: #ccc;
-    margin: 5px 0;
-}
-
-.footer-link {
-    font-size: 14px;
-    color: #ccc;
-    text-decoration: none;
-    margin: 5px 0;
-    transition: color 0.3s ease;
-}
-
-.footer-link:hover {
-    color: #ff6b35;
-}
-
-.footer-bottom {
-    border-top: 1px solid #444;
-    padding-top: 20px;
-    text-align: center;
-}
-
-.footer-copyright {
-    font-size: 12px;
-    color: #999;
-}
-
-/* 반응형 디자인 */
+/* 메인 컨텐츠 반응형 디자인 */
 @media (max-width: 768px) {
-    .header .container {
-        flex-direction: column;
-        gap: 20px;
-        padding: 20px;
-    }
-    
-    .nav-menu {
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 20px;
-    }
-    
-    .content-wrapper {
-        flex-direction: column;
-        gap: 30px;
-    }
-    
-    .categories-section {
-        justify-content: center;
-    }
-    
-    .category-row {
-        justify-content: center;
-        gap: 15px;
-    }
-    
-    .category-item {
-        padding: 15px;
-        width: 100px;
-        height: 100px;
-    }
-    
-    .category-image {
-        width: 50px;
-        height: 50px;
-    }
-    
-    .recommended-recipe {
-        max-width: none;
-    }
-    
-    .section-title {
-        font-size: 24px;
-    }
-    
-    .products-grid,
-    .recipes-grid {
-        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-        gap: 20px;
-    }
-    
     .main-banner {
         height: 250px;
     }
@@ -556,41 +456,74 @@ body {
     .search-btn {
         padding: 15px 20px;
     }
-}
-
-@media (max-width: 480px) {
-    .container {
-        padding: 0 15px;
+    
+    .content-wrapper {
+        flex-direction: column;
+        gap: 40px;
     }
     
-    .nav-menu {
-        gap: 15px;
+    .left-content {
+        gap: 30px;
     }
     
-    .nav-link {
-        font-size: 14px;
+    .search-bar {
+        max-width: none;
     }
     
-    .btn-login,
-    .btn-signup {
-        padding: 8px 16px;
-        font-size: 14px;
+    .categories-section {
+        justify-content: center;
     }
     
     .category-row {
-        flex-direction: column;
-        align-items: center;
-        gap: 10px;
+        justify-content: center;
+        gap: 20px;
     }
     
     .category-item {
-        min-width: 80px;
-        padding: 10px;
+        padding: 15px;
+        width: 100px;
+        height: 100px;
+    }
+    
+    .category-image {
+        width: 45px;
+        height: 45px;
+    }
+    
+    .recommended-recipe {
+        max-width: none;
+        margin: 0 auto;
+        margin-left: 0;
+    }
+    
+    .section-title {
+        font-size: 24px;
     }
     
     .products-grid,
     .recipes-grid {
-        grid-template-columns: 1fr;
+        gap: 20px;
+        padding: 15px 0;
+    }
+    
+    .product-item,
+    .recipe-item {
+        flex: 0 0 240px;
+        min-width: 240px;
+    }
+}
+
+@media (max-width: 480px) {
+    .products-grid,
+    .recipes-grid {
+        gap: 15px;
+        padding: 10px 0;
+    }
+    
+    .product-item,
+    .recipe-item {
+        flex: 0 0 200px;
+        min-width: 200px;
     }
     
     .section-title {
@@ -599,15 +532,5 @@ body {
     
     .truck-sound {
         font-size: 14px;
-    }
-    
-    .footer-content {
-        grid-template-columns: 1fr;
-        gap: 30px;
-        text-align: center;
-    }
-    
-    .footer-section {
-        align-items: center;
     }
 }
