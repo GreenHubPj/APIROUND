@@ -232,7 +232,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     box-shadow: 0 6px 20px rgba(255, 107, 53, 0.4);
                 }
                 .modal-title {
-                    font-size: 2.5rem;
+                    font-size: 1.5rem;
                     font-weight: 800;
                     color: #2c5530;
                     margin-bottom: 15px;
