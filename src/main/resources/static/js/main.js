@@ -39,10 +39,14 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // 네비게이션 링크
+    // 네비게이션 링크 (제철특산품 제외)
     const navLinks = document.querySelectorAll('.nav-link');
     navLinks.forEach(link => {
         link.addEventListener('click', function(e) {
+            // 제철특산품 링크는 실제 페이지로 이동하도록 허용
+            if (this.textContent === '제철특산품') {
+                return; // 기본 동작 허용
+            }
             e.preventDefault();
             const linkText = this.textContent;
             alert(`${linkText} 페이지로 이동합니다.`);

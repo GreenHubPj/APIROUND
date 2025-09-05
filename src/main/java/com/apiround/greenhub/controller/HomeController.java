@@ -15,4 +15,9 @@ public class HomeController {
     public String index() {
         return "main";
     }
+    
+    @GetMapping("/seasonal")
+    public String seasonal() {
+        return "seasonal";
+    }
 }
