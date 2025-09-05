@@ -25,4 +25,14 @@ public class HomeController {
     public String region() {
         return "region";
     }
+
+    @GetMapping("/popular")
+    public String popular() {
+        return "popular";
+    }
+
+    @GetMapping("/recipe")
+    public String recipe() {
+        return "recipe";
+    }
 }

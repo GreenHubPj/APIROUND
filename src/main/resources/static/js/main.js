@@ -53,6 +53,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 return; // 기본 동작 허용
             }
 
+            // 인기 특산품 링크는 실제 페이지로 이동하도록 허용
+            if (this.textContent === '인기 특산품') {
+                return; // 기본 동작 허용
+            }
+
+            // 요리법 링크는 실제 페이지로 이동하도록 허용
+            if (this.textContent === '요리법') {
+                return; // 기본 동작 허용
+            }
+
             e.preventDefault();
             const linkText = this.textContent;
             alert(`${linkText} 페이지로 이동합니다.`);
