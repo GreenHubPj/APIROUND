@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GreenHub - 회원가입</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/header.css">
+    <link rel="stylesheet" href="/css/footer.css">
+    <link rel="stylesheet" href="/css/signup.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- 헤더 포함 -->
+    <div th:replace="common/header :: header"></div>
+    
+    <div class="signup-container">
+        <div class="signup-header">
+            <h1 class="signup-title">회원가입</h1>
+            <p class="signup-subtitle">GreenHub에 오신 것을 환영합니다!</p>
+        </div>
+        
+        <!-- 회원 유형 선택 -->
+        <div class="member-type-tabs">
+            <button class="member-type-tab active" data-type="individual">개인 회원</button>
+            <button class="member-type-tab" data-type="seller">판매 회원</button>
+        </div>
+        
+        <!-- 개인 회원 가입 폼 -->
+        <div id="individualForm" class="signup-form">
+            <h2 class="section-title">소셜로 간편하게 가입하세요</h2>
+            <div class="social-login-section">
+                <p class="social-login-text">소셜로 간편하게 로그인하세요</p>
+                <div class="social-buttons">
+                    <button class="social-btn kakao-btn">
+                        <span>💬</span>
+                        카카오 로그인
+                    </button>
+                    <button class="social-btn google-btn">
+                        <span>G</span>
+                        구글 로그인
+                    </button>
+                </div>
+            </div>
+            
+            <h2 class="section-title">회원가입하고 다양한 혜택을 누리세요!</h2>
+            <p class="required-text">*필수 입력 정보입니다.</p>
+            
+            <div class="form-section">
+                <div class="form-group">
+                    <label class="form-label" for="individualName">이름(실명)</label>
+                    <input type="text" id="individualName" class="form-input" placeholder="실명을 입력해주세요">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="individualId">아이디</label>
+                    <input type="text" id="individualId" class="form-input" placeholder="아이디를 입력해주세요">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="individualPassword">비밀번호</label>
+                    <div class="password-input-container">
+                        <input type="password" id="individualPassword" class="form-input" placeholder="비밀번호를 입력해주세요">
+                        <button type="button" class="password-toggle">
+                            <img src="/images/감은눈.png" alt="비밀번호 보기">
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="individualPasswordConfirm">비밀번호 확인</label>
+                    <div class="password-input-container">
+                        <input type="password" id="individualPasswordConfirm" class="form-input" placeholder="비밀번호를 다시 입력해주세요">
+                        <button type="button" class="password-toggle">
+                            <img src="/images/감은눈.png" alt="비밀번호 보기">
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="individualPhone">휴대폰번호</label>
+                    <div class="verification-container">
+                        <div class="verification-input">
+                            <input type="tel" id="individualPhone" class="form-input" placeholder="휴대폰번호를 입력해주세요">
+                        </div>
+                        <button type="button" class="verification-btn">인증번호 전송</button>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="individualVerification">인증번호 입력</label>
+                    <div class="verification-container">
+                        <div class="verification-input">
+                            <input type="text" id="individualVerification" class="form-input" placeholder="인증번호를 입력해주세요">
+                        </div>
+                        <button type="button" class="verification-btn">확인</button>
+                        <button type="button" class="verification-btn secondary">재전송</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 판매 회원 가입 폼 -->
+        <div id="sellerForm" class="signup-form" style="display: none;">
+            <h2 class="section-title">회원가입하고 다양한 혜택을 누리세요!</h2>
+            <p class="required-text">*필수 입력 정보입니다.</p>
+            
+            <div class="form-section">
+                <div class="form-group">
+                    <label class="form-label" for="sellerId">아이디</label>
+                    <input type="text" id="sellerId" class="form-input" placeholder="아이디를 입력해주세요">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="sellerPassword">비밀번호</label>
+                    <div class="password-input-container">
+                        <input type="password" id="sellerPassword" class="form-input" placeholder="비밀번호를 입력해주세요">
+                        <button type="button" class="password-toggle">
+                            <img src="/images/감은눈.png" alt="비밀번호 보기">
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="sellerPasswordConfirm">비밀번호 확인</label>
+                    <div class="password-input-container">
+                        <input type="password" id="sellerPasswordConfirm" class="form-input" placeholder="비밀번호를 다시 입력해주세요">
+                        <button type="button" class="password-toggle">
+                            <img src="/images/감은눈.png" alt="비밀번호 보기">
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <h2 class="section-title">기업정보</h2>
+            <p class="required-text">*필수 입력 정보입니다.</p>
+            
+            <div class="form-section">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="companyName">기업명</label>
+                        <input type="text" id="companyName" class="form-input" placeholder="기업명을 입력해주세요">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="businessNumber">사업자등록번호</label>
+                        <input type="text" id="businessNumber" class="form-input" placeholder="사업자등록번호를 입력해주세요">
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="contactName">담당자명</label>
+                        <input type="text" id="contactName" class="form-input" placeholder="담당자명을 입력해주세요">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="sellerEmail">이메일(선택)</label>
+                        <input type="email" id="sellerEmail" class="form-input" placeholder="이메일을 입력해주세요">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="sellerPhone">휴대폰번호</label>
+                    <div class="verification-container">
+                        <div class="verification-input">
+                            <input type="tel" id="sellerPhone" class="form-input" placeholder="휴대폰번호를 입력해주세요">
+                        </div>
+                        <button type="button" class="verification-btn">인증번호 전송</button>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="sellerVerification">인증번호 입력</label>
+                    <div class="verification-container">
+                        <div class="verification-input">
+                            <input type="text" id="sellerVerification" class="form-input" placeholder="인증번호를 입력해주세요">
+                        </div>
+                        <button type="button" class="verification-btn">확인</button>
+                        <button type="button" class="verification-btn secondary">재전송</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 동의 항목 -->
+        <div class="agreement-section">
+            <div class="agreement-all">
+                <input type="checkbox" id="agreeAll">
+                <label for="agreeAll">필수동의 항목 및 개인정보 수집 및 이용 동의(선택) 광고성 정보 수신 (선택)에 모두 동의합니다.</label>
+            </div>
+            
+            <div class="agreement-list">
+                <div class="agreement-item">
+                    <label>
+                        <input type="checkbox" class="required-agreement">
+                        <span class="agreement-text">[필수] 만 15세 이상입니다</span>
+                    </label>
+                </div>
+                
+                <div class="agreement-item">
+                    <label>
+                        <input type="checkbox" class="required-agreement">
+                        <span class="agreement-text">[필수] 이용약관 동의</span>
+                    </label>
+                    <a href="#" class="agreement-link">내용보기</a>
+                </div>
+                
+                <div class="agreement-item">
+                    <label>
+                        <input type="checkbox" class="required-agreement">
+                        <span class="agreement-text">[필수] 개인정보 수집 및 이용 동의</span>
+                    </label>
+                    <a href="#" class="agreement-link">내용보기</a>
+                </div>
+                
+                <div class="agreement-item">
+                    <label>
+                        <input type="checkbox" class="optional-agreement">
+                        <span class="agreement-text">[선택] 개인정보 수집 및 이용 동의</span>
+                    </label>
+                    <a href="#" class="agreement-link">내용보기</a>
+                </div>
+                
+                <div class="agreement-item">
+                    <label>
+                        <input type="checkbox" class="optional-agreement">
+                        <span class="agreement-text">[선택] 광고성 정보 이메일 수신 동의</span>
+                    </label>
+                    <a href="#" class="agreement-link">내용보기</a>
+                </div>
+                
+                <div class="agreement-item">
+                    <label>
+                        <input type="checkbox" class="optional-agreement">
+                        <span class="agreement-text">[선택] 광고성 정보 SMS 수신 동의</span>
+                    </label>
+                    <a href="#" class="agreement-link">내용보기</a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 개인정보 유효기간 -->
+        <div class="retention-section">
+            <div class="retention-title">
+                <span>개인정보 유효기간 선택</span>
+                <span>❓</span>
+            </div>
+            
+            <div class="retention-options">
+                <div class="retention-option">
+                    <input type="radio" id="retention1" name="retention" value="1" checked>
+                    <label for="retention1">1년</label>
+                </div>
+                <div class="retention-option">
+                    <input type="radio" id="retention3" name="retention" value="3">
+                    <label for="retention3">3년</label>
+                </div>
+                <div class="retention-option">
+                    <input type="radio" id="retentionWithdraw" name="retention" value="withdraw">
+                    <label for="retentionWithdraw">회원탈퇴시</label>
+                </div>
+            </div>
+        </div>
+        
+        <button type="button" class="signup-btn">가입하기</button>
+    </div>
+    
+    <!-- 푸터 포함 -->
+    <div th:replace="common/footer :: footer"></div>
+    
+    <script src="/js/signup.js"></script>
+</body>
+</html>

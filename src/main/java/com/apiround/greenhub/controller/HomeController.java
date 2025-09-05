@@ -11,14 +11,24 @@ public class HomeController {
         return "main";
     }
     
-    @GetMapping("/index")
-    public String index() {
+    @GetMapping("/main")
+    public String main() {
         return "main";
     }
     
     @GetMapping("/seasonal")
     public String seasonal() {
         return "seasonal";
+    }
+    
+    @GetMapping("/login")
+    public String login() {
+        return "login";
+    }
+    
+    @GetMapping("/signup")
+    public String signup() {
+        return "signup";
     }
 
     @GetMapping("/region")

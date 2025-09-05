@@ -28,21 +28,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // 로그인/회원가입 버튼 이벤트
-    const loginBtn = document.querySelector('.btn-login');
-    const signupBtn = document.querySelector('.btn-signup');
-    
-    loginBtn.addEventListener('click', function() {
-        console.log('로그인 페이지로 이동');
-        // 실제 로그인 페이지로 이동하는 로직
-        alert('로그인 페이지로 이동합니다.');
-    });
-    
-    signupBtn.addEventListener('click', function() {
-        console.log('회원가입 페이지로 이동');
-        // 실제 회원가입 페이지로 이동하는 로직
-        alert('회원가입 페이지로 이동합니다.');
-    });
+    // 로그인/회원가입 버튼은 모달과 링크로 처리되므로 별도 이벤트 불필요
     
     // 상품 카드 호버 효과 강화
     const productCards = document.querySelectorAll('.product-card');
