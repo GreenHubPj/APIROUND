@@ -53,7 +53,7 @@ function removeActiveMenu() {
 // 메뉴 네비게이션 처리
 function handleMenuNavigation(menuText) {
     const menuRoutes = {
-        '지역별 특산품': '/regional',
+        '지역별 특산품': '/region',
         '인기 특산품': '/popular',
         '제철 특산품': '/seasonal',
         '요리법': '/recipes',

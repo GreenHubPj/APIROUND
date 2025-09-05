@@ -226,6 +226,8 @@ body {
 }
 
 .product-image {
+    display: flex;
+    flex-direction: column;
     flex-shrink: 0;
     width: 200px;
     height: 150px;
@@ -313,7 +315,7 @@ body {
     margin: 100px;
 }
 
-.map-container {
+.map-wrap {
     width: 100%;
     display: flex;
     justify-content: center;
@@ -324,7 +326,157 @@ body {
     width: 100%;
     height: auto;
     max-width: 300px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    filter: brightness(1) contrast(1);
 }
+
+.korea-map:hover {
+    transform: scale(1.05);
+}
+
+/* 강원도 선택 시 지도 효과 - 블러 적용 */
+.korea-map.selected {
+    filter: brightness(0.4) contrast(0.7) blur(3px);
+    transition: filter 0.3s ease;
+}
+
+/* 배경 오버레이 스타일 - 제거하고 지도 자체에 효과 적용 */
+
+/* 지도 오버레이 스타일 */
+.province-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    pointer-events: auto;
+    min-width: 300px;
+    min-height: 200px;
+}
+
+.province-map {
+    width: 200px;
+    height: auto;
+    animation: scaleIn 0.5s ease-out;
+}
+
+.selection-message {
+    background-color: rgba(255, 107, 53, 0.9);
+    color: white;
+    padding: 15px 25px;
+    border-radius: 25px;
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3);
+    animation: fadeInUp 0.6s ease-out 0.3s both;
+}
+
+.selection-message h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+/* 애니메이션 키프레임 */
+@keyframes fadeIn {
+    0% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+@keyframes scaleIn {
+    0% {
+        transform: scale(0.5);
+        opacity: 0;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes fadeInUp {
+    0% {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+    100% {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* 지도 래퍼에 상대 위치 설정 */
+.map-wrap {
+    position: relative;
+}
+
+/* 지역 라벨 스타일 */
+.region-labels {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.region-label {
+    position: absolute;
+    background-color: rgba(255, 107, 53, 0.9);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    pointer-events: auto;
+}
+
+.region-label:hover {
+    background-color: rgba(255, 107, 53, 1);
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* 각 지역별 위치 설정 - 픽셀 좌표로 직접 지정 */
+/* 수도권 */
+.seoul-label { top: 90px; left: 70px; }
+.gyeonggi-label { top: 130px; left: 90px; }
+.incheon-label { top: 100px; left: 30px; }
+
+/* 강원권 */
+.gangwon-label { top: 100px; left: 180px; }
+
+/* 충청권 */
+.chungbuk-label { top: 180px; left: 120px; }
+.chungnam-label { top: 190px; left: 60px; }
+.daejeon-label { top: 200px; left: 100px; }
+
+/* 전라권 */
+.jeonbuk-label { top: 270px; left: 90px; }
+.jeonnam-label { top: 370px; left: 80px; }
+.gwangju-label { top: 330px; left: 80px; }
+
+/* 경상권 */
+.gyeongbuk-label { top: 200px; left: 200px; }
+.gyeongnam-label { top: 310px; left: 180px; }
+.daegu-label { top: 270px; left: 200px; }
+.busan-label { top: 340px; left: 250px; }
+.ulsan-label { top: 300px; left: 250px; }
+
+/* 제주권 */
+.jeju-label { top: 505px; left: 40px; }
 
 /* 반응형 디자인 */
 @media (max-width: 768px) {
@@ -372,7 +524,7 @@ body {
         flex-wrap: wrap;
     }
     
-    .map-section {
+    .map-wrap {
         position: static;
     }
 }

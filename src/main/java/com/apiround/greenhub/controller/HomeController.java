@@ -20,4 +20,9 @@ public class HomeController {
     public String seasonal() {
         return "seasonal";
     }
+
+    @GetMapping("/region")
+    public String region() {
+        return "region";
+    }
 }
