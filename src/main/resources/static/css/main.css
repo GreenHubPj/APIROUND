@@ -530,89 +530,89 @@
     .main-banner {
         height: 250px;
     }
-    
+
     .search-section {
         padding: 30px 0;
     }
-    
+
     .search-input {
         padding: 15px 20px;
         font-size: 14px;
     }
-    
+
     .search-btn {
         padding: 15px 20px;
     }
-    
+
     .content-wrapper {
         flex-direction: column;
         gap: 40px;
         min-height: auto;
     }
-    
+
     .left-content {
         gap: 20px;
     }
-    
+
     .what-to-eat-box {
         padding: 25px;
         max-width: none;
     }
-    
+
     .what-to-eat-title {
         font-size: 22px;
     }
-    
+
     .what-to-eat-description {
         font-size: 15px;
     }
-    
+
     .search-bar {
         max-width: none;
     }
-    
+
     .categories-section {
         justify-content: center;
     }
-    
+
     .category-row {
         justify-content: center;
         gap: 20px;
     }
-    
+
     .category-item {
         padding: 15px;
         width: 100px;
         height: 100px;
     }
-    
+
     .category-image {
         width: 45px;
         height: 45px;
     }
-    
+
     .recommended-recipe {
         max-width: none;
         margin: 0 auto;
         margin-left: 0;
     }
-    
+
     .main-banner {
         height: 60vh;
         margin: 0 15px;
         border-radius: 15px;
     }
-    
+
     .section-title {
         font-size: 24px;
     }
-    
+
     .products-grid,
     .recipes-grid {
         gap: 20px;
         padding: 15px 0;
     }
-    
+
     .product-item,
     .recipe-item {
         flex: 0 0 240px;
@@ -626,39 +626,39 @@
         gap: 15px;
         padding: 10px 0;
     }
-    
+
     .product-item,
     .recipe-item {
         flex: 0 0 200px;
         min-width: 200px;
     }
-    
+
     .section-title {
         font-size: 20px;
     }
-    
+
     .truck-sound {
         font-size: 14px;
     }
-    
+
     .main-banner {
         height: 50vh;
         margin: 0 10px;
         border-radius: 12px;
     }
-    
+
     .what-to-eat-box {
         padding: 20px;
     }
-    
+
     .what-to-eat-title {
         font-size: 20px;
     }
-    
+
     .what-to-eat-description {
         font-size: 14px;
     }
-    
+
     .what-to-eat-btn {
         padding: 10px 25px;
         font-size: 14px;
