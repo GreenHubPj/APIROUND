@@ -47,6 +47,12 @@ document.addEventListener('DOMContentLoaded', function() {
             if (this.textContent === '제철특산품') {
                 return; // 기본 동작 허용
             }
+
+            // 지역별 특산품 링크는 실제 페이지로 이동하도록 허용
+            if (this.textContent === '지역별 특산품') {
+                return; // 기본 동작 허용
+            }
+
             e.preventDefault();
             const linkText = this.textContent;
             alert(`${linkText} 페이지로 이동합니다.`);
