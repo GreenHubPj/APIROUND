@@ -56,7 +56,7 @@ function handleMenuNavigation(menuText) {
         '지역별 특산품': '/region',
         '인기 특산품': '/popular',
         '제철 특산품': '/seasonal',
-        '요리법': '/recipes',
+        '요리법': '/recipe',
         '공지': '/notice'
     };
     
