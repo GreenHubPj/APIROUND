@@ -65,4 +65,14 @@ public class HomeController {
     public String event() {
         return "event";
     }
+
+    @GetMapping("/mypage")
+    public String mypage() {
+        return "mypage";
+    }
+
+    @GetMapping("/mypage-company")
+    public String mypageCompany() {
+        return "mypage_company";
+    }
 }

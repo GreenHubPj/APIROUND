@@ -23,8 +23,36 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // 헤더 관련 기능은 header.js에서 처리
-
+    // 로그인/회원가입 버튼
+    const loginBtn = document.querySelector('.btn-login');
+    const signupBtn = document.querySelector('.btn-signup');
+    
+    if (loginBtn) {
+        loginBtn.addEventListener('click', function() {
+            alert('로그인 페이지로 이동합니다.');
+        });
+    }
+    
+    if (signupBtn) {
+        signupBtn.addEventListener('click', function() {
+            alert('회원가입 페이지로 이동합니다.');
+        });
+    }
+    
+    // 네비게이션 링크 (제철특산품 제외)
+    const navLinks = document.querySelectorAll('.nav-link');
+    navLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            // 제철특산품 링크는 실제 페이지로 이동하도록 허용
+            if (this.textContent === '제철특산품') {
+                return; // 기본 동작 허용
+            }
+            e.preventDefault();
+            const linkText = this.textContent;
+            alert(`${linkText} 페이지로 이동합니다.`);
+        });
+    });
+    
     // 카테고리 아이템 클릭
     const categoryItems = document.querySelectorAll('.category-item');
     categoryItems.forEach(item => {
@@ -33,7 +61,7 @@ document.addEventListener('DOMContentLoaded', function() {
             alert(`${categoryName} 카테고리로 이동합니다.`);
         });
     });
-
+    
     // 상품 아이템 클릭
     const productItems = document.querySelectorAll('.product-item');
     productItems.forEach(item => {
@@ -42,7 +70,7 @@ document.addEventListener('DOMContentLoaded', function() {
             alert(`${productName} 상세 페이지로 이동합니다.`);
         });
     });
-
+    
     // 요리법 아이템 클릭
     const recipeItems = document.querySelectorAll('.recipe-item');
     recipeItems.forEach(item => {
@@ -51,7 +79,7 @@ document.addEventListener('DOMContentLoaded', function() {
             alert(`${recipeName} 요리법 페이지로 이동합니다.`);
         });
     });
-
+    
     // 추천 요리 클릭
     const recommendedRecipe = document.querySelector('.recommended-recipe');
     if (recommendedRecipe) {
@@ -70,7 +98,7 @@ document.addEventListener('DOMContentLoaded', function() {
             console.warn('이미지 로딩 실패:', this.src);
         });
     });
-
+    
     // 페이지 로딩 완료 후 애니메이션
     setTimeout(() => {
         document.body.style.opacity = '1';
@@ -101,12 +129,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div id="modal-step3" class="modal-step hidden">
                         <div class="recommendation-card">
                             <h2 id="menu-name" class="dish-name"></h2>
-
+                            
                             <div class="origin-tag">
                                 <span class="location-icon">📍</span>
                                 <span id="menu-region" class="origin-text"></span>
                             </div>
-
+                            
                             <div class="ingredients-section">
                                 <h3 class="ingredients-title">
                                     <span class="ingredients-icon">⚫</span>
@@ -114,9 +142,9 @@ document.addEventListener('DOMContentLoaded', function() {
                                 </h3>
                                 <div id="menu-ingredients" class="ingredients-tags"></div>
                             </div>
-
+                            
                             <p id="menu-description" class="dish-description"></p>
-
+                            
                             <div class="action-buttons">
                                 <button class="action-btn recipe-btn">레시피 보기</button>
                                 <button class="action-btn shopping-btn">장보기 리스트</button>
@@ -198,3 +226,5 @@ document.addEventListener('DOMContentLoaded', function() {
 // 페이지 로딩 시 페이드인 효과
 document.body.style.opacity = '0';
 document.body.style.transition = 'opacity 0.5s ease-in-out';
+
+

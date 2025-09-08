@@ -1,0 +1,325 @@
+/* 업체 마이페이지 스타일 */
+.mypage-company-section {
+    padding: 40px 0;
+    background-color: #f8f9fa;
+    min-height: 100vh;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* 업체 마이페이지 타이틀 */
+.mypage-title {
+    margin-bottom: 40px;
+}
+
+.page-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #ff6b35;
+    margin: 0;
+    display: inline-block;
+    background-color: #ff6b35;
+    color: white;
+    padding: 15px 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(255, 107, 53, 0.3);
+}
+
+/* 업체 정보 섹션 */
+.company-info-section {
+    margin-bottom: 30px;
+}
+
+.company-profile {
+    background-color: #f5f5dc;
+    border-radius: 15px;
+    padding: 30px;
+    display: flex;
+    align-items: center;
+    gap: 30px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    position: relative;
+}
+
+.company-avatar {
+    width: 120px;
+    height: 120px;
+    background-color: #28a745;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.avatar-text {
+    color: white;
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.company-details {
+    flex: 1;
+}
+
+.company-name {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #333;
+    margin: 0 0 20px 0;
+}
+
+.company-info-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+    font-size: 1rem;
+    color: #666;
+}
+
+.info-icon {
+    font-size: 1.2rem;
+    width: 20px;
+    text-align: center;
+}
+
+.info-text {
+    font-weight: 500;
+}
+
+.company-badge {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    background-color: #28a745;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.badge-text {
+    margin: 0;
+}
+
+/* 업체 통계 섹션 */
+.company-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    margin-bottom: 40px;
+}
+
+.stat-item {
+    background-color: white;
+    border-radius: 12px;
+    padding: 25px 20px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border: 2px solid #e9ecef;
+    transition: all 0.3s ease;
+}
+
+.stat-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+    border-color: #ff6b35;
+}
+
+.stat-number {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #ff6b35;
+    margin-bottom: 8px;
+}
+
+.stat-label {
+    font-size: 1rem;
+    color: #666;
+    font-weight: 500;
+}
+
+/* 기능 모듈 그리드 */
+.modules-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 30px;
+    margin-top: 40px;
+}
+
+.module-item {
+    background-color: #fff5e6;
+    border-radius: 15px;
+    padding: 30px 25px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border: 2px solid transparent;
+}
+
+.module-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    border-color: #ff6b35;
+}
+
+.module-icon {
+    margin-bottom: 20px;
+}
+
+.module-icon .icon {
+    font-size: 3rem;
+    display: block;
+}
+
+.module-title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #333;
+    margin: 0 0 15px 0;
+}
+
+.module-description {
+    font-size: 0.95rem;
+    color: #666;
+    line-height: 1.5;
+    margin: 0;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+    .container {
+        padding: 0 15px;
+    }
+    
+    .page-title {
+        font-size: 2rem;
+        padding: 12px 24px;
+    }
+    
+    .company-profile {
+        flex-direction: column;
+        text-align: center;
+        gap: 20px;
+        padding: 25px;
+    }
+    
+    .company-avatar {
+        width: 100px;
+        height: 100px;
+    }
+    
+    .avatar-text {
+        font-size: 1.3rem;
+    }
+    
+    .company-name {
+        font-size: 1.5rem;
+        margin-bottom: 15px;
+    }
+    
+    .company-badge {
+        position: static;
+        margin-top: 15px;
+        display: inline-block;
+    }
+    
+    .company-stats {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+    }
+    
+    .stat-item {
+        padding: 20px 15px;
+    }
+    
+    .stat-number {
+        font-size: 2rem;
+    }
+    
+    .modules-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+    }
+    
+    .module-item {
+        padding: 25px 20px;
+    }
+    
+    .module-icon .icon {
+        font-size: 2.5rem;
+    }
+    
+    .module-title {
+        font-size: 1.2rem;
+    }
+    
+    .module-description {
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .company-stats {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+    
+    .modules-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+    
+    .page-title {
+        font-size: 1.8rem;
+        padding: 10px 20px;
+    }
+    
+    .company-profile {
+        padding: 20px;
+    }
+    
+    .company-avatar {
+        width: 80px;
+        height: 80px;
+    }
+    
+    .avatar-text {
+        font-size: 1.1rem;
+    }
+    
+    .company-name {
+        font-size: 1.3rem;
+    }
+    
+    .stat-item {
+        padding: 15px 10px;
+    }
+    
+    .stat-number {
+        font-size: 1.8rem;
+    }
+    
+    .module-item {
+        padding: 20px 15px;
+    }
+    
+    .module-icon .icon {
+        font-size: 2rem;
+    }
+    
+    .module-title {
+        font-size: 1.1rem;
+    }
+    
+    .module-description {
+        font-size: 0.85rem;
+    }
+}

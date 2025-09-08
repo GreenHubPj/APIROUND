@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>마이페이지 - GreenHub</title>
+    <link rel="stylesheet" href="/css/header.css">
+    <link rel="stylesheet" href="/css/mypage.css">
+    <link rel="stylesheet" href="/css/footer.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+<!-- 헤더 include -->
+<div th:replace="common/header :: header"></div>
+
+<!-- 마이페이지 메인 컨텐츠 -->
+<section class="mypage-section">
+    <div class="container">
+        <!-- 마이페이지 타이틀 -->
+        <div class="mypage-title">
+            <h1 class="page-title">마이페이지</h1>
+        </div>
+
+        <!-- 사용자 정보 섹션 -->
+        <div class="user-info-section">
+            <div class="user-profile">
+                <div class="profile-avatar">
+                    <span class="avatar-text">Kang</span>
+                </div>
+                <div class="user-details">
+                    <h2 class="user-name">Yoyo Kang님</h2>
+                    <div class="user-info-item">
+                        <span class="info-icon">📧</span>
+                        <span class="info-text">yoyo@example.com</span>
+                    </div>
+                    <div class="user-info-item">
+                        <span class="info-icon">📱</span>
+                        <span class="info-text">010-1234-5678</span>
+                    </div>
+                    <div class="user-info-item">
+                        <span class="info-icon">🏠</span>
+                        <span class="info-text">경기도 성남시 수정구 123</span>
+                    </div>
+                </div>
+                <div class="vip-badge">
+                    <span class="badge-text">VIP 소비자</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 기능 모듈 그리드 -->
+        <div class="modules-grid">
+            <!-- 결제 내역 -->
+            <div class="module-item" data-module="payment">
+                <div class="module-icon">
+                    <span class="icon">💳</span>
+                </div>
+                <h3 class="module-title">결제 내역</h3>
+                <p class="module-description">주문 및 결제 내역을 확인하고 영수증을 다운로드할 수 있습니다.</p>
+            </div>
+
+            <!-- 환불 신청 -->
+            <div class="module-item" data-module="refund">
+                <div class="module-icon">
+                    <span class="icon">💰</span>
+                </div>
+                <h3 class="module-title">환불 신청</h3>
+                <p class="module-description">주문 취소 및 환불 신청을 하고 진행 상황을 확인할 수 있습니다.</p>
+            </div>
+
+            <!-- 반품/교환 -->
+            <div class="module-item" data-module="return">
+                <div class="module-icon">
+                    <span class="icon">🔄</span>
+                </div>
+                <h3 class="module-title">반품/교환</h3>
+                <p class="module-description">상품 반품 및 교환 신청을 하고 체리 현황을 조회할 수 있습니다.</p>
+            </div>
+
+            <!-- 장바구니 -->
+            <div class="module-item" data-module="cart">
+                <div class="module-icon">
+                    <span class="icon">🛒</span>
+                </div>
+                <h3 class="module-title">장바구니</h3>
+                <p class="module-description">담아둔 신선한 농산물을 확인하고 주문을 진행할 수 있습니다.</p>
+            </div>
+
+            <!-- 내 레시피 -->
+            <div class="module-item" data-module="recipe">
+                <div class="module-icon">
+                    <span class="icon">📖</span>
+                </div>
+                <h3 class="module-title">내 레시피</h3>
+                <p class="module-description">저장한 농산물 요리 레시피를 관리하고 새로운 레시피를 추가할 수 있습니다.</p>
+            </div>
+
+            <!-- 프로필 수정 -->
+            <div class="module-item" data-module="profile">
+                <div class="module-icon">
+                    <span class="icon">⚙️</span>
+                </div>
+                <h3 class="module-title">프로필 수정</h3>
+                <p class="module-description">개인정보, 배송지, 비밀번호 등을 변경할 수 있습니다.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 푸터 include -->
+<div th:replace="common/footer :: footer"></div>
+
+<script src="/js/mypage.js"></script>
+</body>
+</html>
