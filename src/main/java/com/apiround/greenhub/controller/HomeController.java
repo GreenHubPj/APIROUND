@@ -45,4 +45,9 @@ public class HomeController {
     public String recipe() {
         return "recipe";
     }
+    
+    @GetMapping("/mypage")
+    public String mypage() {
+        return "mypage";
+    }
 }
