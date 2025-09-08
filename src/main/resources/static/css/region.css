@@ -1,0 +1,556 @@
+/* 기본 스타일 리셋 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Malgun Gothic', '맑은 고딕', sans-serif;
+    background-color: #f5f5f5;
+    color: #333;
+    line-height: 1.6;
+}
+
+/* 헤더 스타일 - 사진과 정확히 동일 */
+.header {
+    background-color: #e8e8e8;
+    padding: 0;
+    box-shadow: none;
+    border-bottom: none;
+}
+
+.nav-container {
+    max-width: 100%;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 15px 40px;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+}
+
+.logo-img {
+    height: 40px;
+    width: auto;
+}
+
+.nav-menu {
+    display: flex;
+    gap: 40px;
+    align-items: center;
+    margin-left: 20px;
+}
+
+.nav-link {
+    text-decoration: none;
+    color: #333;
+    font-weight: 500;
+    font-size: 16px;
+    transition: color 0.3s ease;
+}
+
+.nav-link:hover,
+.nav-link.active {
+    color: #ff6b35;
+}
+
+.auth-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.btn-login,
+.btn-signup {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-login {
+    background-color: transparent;
+    color: #ff6b35;
+    border: 1px solid #ff6b35;
+}
+
+.btn-login:hover {
+    background-color: #ff6b35;
+    color: white;
+}
+
+.btn-signup {
+    background-color: #ff6b35;
+    color: white;
+}
+
+.btn-signup:hover {
+    background-color: #e55a2b;
+}
+
+/* 메인 컨텐츠 - 사진과 정확히 동일 */
+.main-content {
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 0;
+}
+
+.content {
+    display: flex;
+    justify-content: center;
+}
+
+/* 배너 섹션 - 사진과 정확히 동일 */
+.banner-section {
+    padding: 30px 40px;
+
+}
+
+.banner-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+.banner-icon {
+    height: 80px;
+    width: auto;
+
+}
+
+.banner-title {
+    display: flex;
+    align-items: baseline;
+    flex-direction: column;
+}
+
+.title-underground {
+    margin-top: -25px;
+    margin-left: 30px;
+    color: #bbbbbb;
+    font-weight: bold;
+    font-size: 20px;
+}
+
+.title-name {
+    font-size: 15px;
+    font-weight: bold;
+    color: #333;
+
+}
+
+/* 검색 섹션 */
+.search-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.search-section {
+    width: 1400px;
+    padding: 40px 0;
+}
+
+.search-bar {
+    max-width: 100%;
+    margin: 0 auto;
+    position: relative;
+    display: flex;
+    align-items: center;
+    background-color: white;
+    border-radius: 50px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.search-input {
+    flex: 1;
+    padding: 20px 30px;
+    border: none;
+    outline: none;
+    font-size: 16px;
+    background-color: transparent;
+}
+
+.search-btn {
+    background-color: #ff6b35;
+    border: none;
+    padding: 20px 30px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.search-btn:hover {
+    background-color: #e55a2b;
+}
+
+.search-icon {
+    width: 20px;
+    height: 20px;
+    filter: brightness(0) invert(1);
+}
+/* 컨텐츠 래퍼 - 사진과 정확히 동일한 비율 */
+.content-wrapper {
+    max-width: 900px;
+}
+
+/* 상품 섹션 - 사진과 정확히 동일 */
+.products-section {
+    display: flex;
+    flex-direction: column;
+    margin: 25px;
+}
+
+.product-card {
+    display: flex;
+    background-color: white;
+    border-radius: 12px;
+    padding: 25px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    gap: 25px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.product-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+}
+
+.product-image {
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    width: 200px;
+    height: 150px;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.product-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.product-info {
+    gap: 12px;
+    align-items: flex-start;
+}
+
+.title-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.product-title {
+    font-size: 15px;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 8px;
+}
+
+.product-description {
+    color: #666;
+    font-size: 14px;
+    line-height: 1.5;
+    margin-bottom: 15px;
+}
+
+.product-prices {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+    flex-direction: column;
+}
+
+.price {
+    background-color: #f8f9fa;
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-weight: 600;
+    color: #ff6b35;
+    font-size: 14px;
+}
+
+.company-info {
+    border-radius: 8px;
+    text-align: right;
+
+}
+
+.company-info h4 {
+    color: #333;
+    font-size: 16px;
+    margin-bottom: 50px;
+    font-weight: 600;
+}
+
+.company-info p {
+    color: #666;
+    font-size: 14px;
+    margin-bottom: 3px;
+}
+
+.company-info p:last-child {
+    margin-bottom: 0;
+    font-weight: 500;
+    color: #ff6b35;
+}
+
+/* 지도 섹션 - 사진과 정확히 동일 */
+.map-section {
+    border-radius: 12px;
+    height: fit-content;
+    position: sticky;
+    top: 20px;
+    margin: 100px;
+}
+
+.map-wrap {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.korea-map {
+    width: 100%;
+    height: auto;
+    max-width: 300px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    filter: brightness(1) contrast(1);
+}
+
+.korea-map:hover {
+    transform: scale(1.05);
+}
+
+/* 강원도 선택 시 지도 효과 - 블러 적용 */
+.korea-map.selected {
+    filter: brightness(0.4) contrast(0.7) blur(3px);
+    transition: filter 0.3s ease;
+}
+
+/* 배경 오버레이 스타일 - 제거하고 지도 자체에 효과 적용 */
+
+/* 지도 오버레이 스타일 */
+.province-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    pointer-events: auto;
+    min-width: 300px;
+    min-height: 200px;
+}
+
+.province-map {
+    width: 200px;
+    height: auto;
+    animation: scaleIn 0.5s ease-out;
+}
+
+.selection-message {
+    background-color: rgba(255, 107, 53, 0.9);
+    color: white;
+    padding: 15px 25px;
+    border-radius: 25px;
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3);
+    animation: fadeInUp 0.6s ease-out 0.3s both;
+}
+
+.selection-message h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+/* 애니메이션 키프레임 */
+@keyframes fadeIn {
+    0% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+@keyframes scaleIn {
+    0% {
+        transform: scale(0.5);
+        opacity: 0;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes fadeInUp {
+    0% {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+    100% {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* 지도 래퍼에 상대 위치 설정 */
+.map-wrap {
+    position: relative;
+}
+
+/* 지역 라벨 스타일 */
+.region-labels {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.region-label {
+    position: absolute;
+    background-color: rgba(255, 107, 53, 0.9);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    pointer-events: auto;
+}
+
+.region-label:hover {
+    background-color: rgba(255, 107, 53, 1);
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* 각 지역별 위치 설정 - 픽셀 좌표로 직접 지정 */
+/* 수도권 */
+.seoul-label { top: 90px; left: 70px; }
+.gyeonggi-label { top: 130px; left: 90px; }
+.incheon-label { top: 100px; left: 30px; }
+
+/* 강원권 */
+.gangwon-label { top: 100px; left: 180px; }
+
+/* 충청권 */
+.chungbuk-label { top: 180px; left: 120px; }
+.chungnam-label { top: 190px; left: 60px; }
+.daejeon-label { top: 200px; left: 100px; }
+
+/* 전라권 */
+.jeonbuk-label { top: 270px; left: 90px; }
+.jeonnam-label { top: 370px; left: 80px; }
+.gwangju-label { top: 330px; left: 80px; }
+
+/* 경상권 */
+.gyeongbuk-label { top: 200px; left: 200px; }
+.gyeongnam-label { top: 310px; left: 180px; }
+.daegu-label { top: 270px; left: 200px; }
+.busan-label { top: 340px; left: 250px; }
+.ulsan-label { top: 300px; left: 250px; }
+
+/* 제주권 */
+.jeju-label { top: 505px; left: 40px; }
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+    .nav-container {
+        flex-direction: column;
+        gap: 15px;
+        padding: 15px;
+    }
+    
+    .nav-menu {
+        gap: 20px;
+        flex-wrap: wrap;
+        justify-content: center;
+        margin-left: 0;
+    }
+    
+    .banner-content {
+        flex-direction: column;
+        gap: 20px;
+        text-align: center;
+    }
+    
+    .search-container {
+        min-width: 250px;
+    }
+    
+    .content-wrapper {
+        grid-template-columns: 1fr;
+        gap: 20px;
+        padding: 20px;
+    }
+    
+    .product-card {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .product-image {
+        width: 100%;
+        height: 200px;
+    }
+    
+    .product-prices {
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    
+    .map-wrap {
+        position: static;
+    }
+}
+
+@media (max-width: 480px) {
+    .banner-section {
+        padding: 20px;
+    }
+    
+    .content-wrapper {
+        padding: 15px;
+    }
+    
+    .banner-title h1 {
+        font-size: 24px;
+    }
+    
+    .product-title {
+        font-size: 18px;
+    }
+    
+    .nav-menu {
+        gap: 15px;
+    }
+    
+    .nav-link {
+        font-size: 14px;
+    }
+}
