@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>아이디 찾기 - GreenHub</title>
+    <link rel="stylesheet" href="/css/header.css">
+    <link rel="stylesheet" href="/css/footer.css">
+    <link rel="stylesheet" href="/css/find-id.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- 헤더 include -->
+    <div th:replace="common/header :: header"></div>
+
+    <div class="find-id-container">
+        <div class="find-id-header">
+            <h1 class="find-id-title">아이디 찾기</h1>
+            <p class="find-id-subtitle">가입 시 입력한 정보로 아이디를 찾을 수 있습니다</p>
+        </div>
+        
+        <!-- 회원 유형 선택 -->
+        <div class="member-type-tabs">
+            <button class="member-type-tab active" data-type="individual">개인 회원</button>
+            <button class="member-type-tab" data-type="seller">판매 회원</button>
+        </div>
+        
+        <!-- 개인 회원 아이디 찾기 폼 -->
+        <div id="individualFindIdForm" class="find-id-form-section">
+            <h2 class="section-title">아이디 찾기</h2>
+            <p class="required-text">*필수 입력 정보입니다.</p>
+            
+            <form id="findIdForm" class="find-id-form">
+                <div class="form-group">
+                    <label class="form-label" for="individualName">이름(실명) *</label>
+                    <input type="text" id="individualName" class="form-input" placeholder="실명을 입력해주세요" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="individualEmail">이메일 *</label>
+                    <div class="verification-container">
+                        <div class="verification-input">
+                            <input type="email" id="individualEmail" class="form-input" placeholder="이메일을 입력해주세요" required>
+                        </div>
+                        <button type="button" class="verification-btn">인증번호 전송</button>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="individualVerification">인증번호 입력 *</label>
+                    <div class="verification-container">
+                        <div class="verification-input">
+                            <input type="text" id="individualVerification" class="form-input" placeholder="인증번호를 입력해주세요" required>
+                        </div>
+                        <button type="button" class="verification-btn">확인</button>
+                        <button type="button" class="verification-btn secondary">재전송</button>
+                    </div>
+                </div>
+                
+                <button type="submit" class="find-id-btn">아이디 찾기</button>
+            </form>
+        </div>
+        
+        <!-- 판매 회원 아이디 찾기 폼 -->
+        <div id="sellerFindIdForm" class="find-id-form-section" style="display: none;">
+            <h2 class="section-title">아이디 찾기</h2>
+            <p class="required-text">*필수 입력 정보입니다.</p>
+            
+            <form id="findSellerIdForm" class="find-id-form">
+                <div class="form-group">
+                    <label class="form-label" for="companyName">기업명 *</label>
+                    <input type="text" id="companyName" class="form-input" placeholder="기업명을 입력해주세요" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="businessNumber">사업자등록번호 *</label>
+                    <input type="text" id="businessNumber" class="form-input" placeholder="사업자등록번호를 입력해주세요 (예: 123-45-67890)" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="contactName">담당자명 *</label>
+                    <input type="text" id="contactName" class="form-input" placeholder="담당자명을 입력해주세요" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="sellerEmail">이메일 *</label>
+                    <div class="verification-container">
+                        <div class="verification-input">
+                            <input type="email" id="sellerEmail" class="form-input" placeholder="이메일을 입력해주세요" required>
+                        </div>
+                        <button type="button" class="verification-btn">인증번호 전송</button>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="sellerVerification">인증번호 입력 *</label>
+                    <div class="verification-container">
+                        <div class="verification-input">
+                            <input type="text" id="sellerVerification" class="form-input" placeholder="인증번호를 입력해주세요" required>
+                        </div>
+                        <button type="button" class="verification-btn">확인</button>
+                        <button type="button" class="verification-btn secondary">재전송</button>
+                    </div>
+                </div>
+                
+                <button type="submit" class="find-id-btn">아이디 찾기</button>
+            </form>
+        </div>
+        
+        <!-- 결과 표시 영역 -->
+        <div id="resultSection" class="result-section" style="display: none;">
+            <div class="result-content">
+                <div class="result-icon">🔍</div>
+                <h3 class="result-title">아이디 찾기 결과</h3>
+                <div class="result-info">
+                    <p class="result-text">회원님의 아이디는 다음과 같습니다:</p>
+                    <div class="found-id">
+                        <span id="foundUserId"></span>
+                    </div>
+                    <p class="result-date">가입일: <span id="joinDate"></span></p>
+                </div>
+                <div class="result-actions">
+                    <button class="action-btn secondary" onclick="location.href='/login'">로그인하기</button>
+                    <button class="action-btn primary" onclick="location.href='/find-password'">비밀번호 찾기</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 추가 링크들 -->
+        <div class="find-id-links">
+            <div class="back-links">
+                <a href="/login" class="back-link">← 로그인으로 돌아가기</a>
+            </div>
+            
+            <div class="other-find-link">
+                <p>비밀번호를 잊으셨나요? <a href="/find-password" class="find-link-text">비밀번호 찾기</a></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 푸터 include -->
+    <div th:replace="common/footer :: footer"></div>
+
+    <script src="/js/find-id.js"></script>
+</body>
+</html>

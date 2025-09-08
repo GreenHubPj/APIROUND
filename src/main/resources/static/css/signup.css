@@ -219,6 +219,40 @@
     background: #e0e0e0;
 }
 
+.verification-message {
+    margin-top: 8px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    min-height: 20px;
+    transition: all 0.3s ease;
+}
+
+.verification-message.success {
+    background: #e8f5e8;
+    color: #4CAF50;
+    border: 1px solid #c8e6c9;
+}
+
+.verification-message.error {
+    background: #ffebee;
+    color: #f44336;
+    border: 1px solid #ffcdd2;
+}
+
+.verification-message.info {
+    background: #e3f2fd;
+    color: #2196f3;
+    border: 1px solid #bbdefb;
+}
+
+.verification-message.warning {
+    background: #fff3e0;
+    color: #ff9800;
+    border: 1px solid #ffcc02;
+}
+
 .agreement-section {
     background: white;
     padding: 30px;

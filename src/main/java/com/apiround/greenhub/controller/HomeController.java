@@ -45,4 +45,14 @@ public class HomeController {
     public String recipe() {
         return "recipe";
     }
+
+    @GetMapping("/find-id")
+    public String findId() {
+        return "find-id";
+    }
+
+    @GetMapping("/find-password")
+    public String findPassword() {
+        return "find-password";
+    }
 }

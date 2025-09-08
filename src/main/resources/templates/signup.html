@@ -76,15 +76,16 @@
                         </button>
                     </div>
                 </div>
-                
+
                 <div class="form-group">
-                    <label class="form-label" for="individualPhone">휴대폰번호</label>
+                    <label class="form-label" for="sellerEmail">이메일</label>
                     <div class="verification-container">
                         <div class="verification-input">
-                            <input type="tel" id="individualPhone" class="form-input" placeholder="휴대폰번호를 입력해주세요">
+                            <input type="email" id="sellerEmail" class="form-input" placeholder="이메일을 입력해주세요">
                         </div>
                         <button type="button" class="verification-btn">인증번호 전송</button>
                     </div>
+                    <div class="verification-message" id="individualEmailMessage"></div>
                 </div>
                 
                 <div class="form-group">
@@ -96,6 +97,7 @@
                         <button type="button" class="verification-btn">확인</button>
                         <button type="button" class="verification-btn secondary">재전송</button>
                     </div>
+                    <div class="verification-message" id="individualVerificationMessage"></div>
                 </div>
             </div>
         </div>
@@ -153,19 +155,20 @@
                         <input type="text" id="contactName" class="form-input" placeholder="담당자명을 입력해주세요">
                     </div>
                     <div class="form-group">
-                        <label class="form-label" for="sellerEmail">이메일(선택)</label>
-                        <input type="email" id="sellerEmail" class="form-input" placeholder="이메일을 입력해주세요">
+                        <label class="form-label" for="sellerPhone">휴대폰번호(선택)</label>
+                        <input type="tel" id="sellerPhone" class="form-input" placeholder="휴대폰번호를 입력해주세요">
                     </div>
                 </div>
                 
                 <div class="form-group">
-                    <label class="form-label" for="sellerPhone">휴대폰번호</label>
+                    <label class="form-label" for="sellerEmail">이메일</label>
                     <div class="verification-container">
                         <div class="verification-input">
-                            <input type="tel" id="sellerPhone" class="form-input" placeholder="휴대폰번호를 입력해주세요">
+                            <input type="email" id="sellerEmail" class="form-input" placeholder="이메일을 입력해주세요">
                         </div>
                         <button type="button" class="verification-btn">인증번호 전송</button>
                     </div>
+                    <div class="verification-message" id="sellerEmailMessage"></div>
                 </div>
                 
                 <div class="form-group">
@@ -177,6 +180,7 @@
                         <button type="button" class="verification-btn">확인</button>
                         <button type="button" class="verification-btn secondary">재전송</button>
                     </div>
+                    <div class="verification-message" id="sellerVerificationMessage"></div>
                 </div>
             </div>
         </div>
