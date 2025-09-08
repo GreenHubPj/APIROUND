@@ -60,9 +60,14 @@ public class HomeController {
     public String mypage() {
         return "mypage";
     }
-    
+
     @GetMapping("/mypage-company")
     public String mypageCompany() {
         return "mypage_company";
+    }
+
+    @GetMapping("/recipe-detail")
+    public String recipeDetail() {
+        return "recipe-detail";
     }
 }

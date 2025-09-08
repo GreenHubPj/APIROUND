@@ -53,6 +53,8 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
+    // 헤더 관련 기능은 header.js에서 처리
+
     // 카테고리 아이템 클릭
     const categoryItems = document.querySelectorAll('.category-item');
     categoryItems.forEach(item => {
@@ -226,5 +228,3 @@ document.addEventListener('DOMContentLoaded', function() {
 // 페이지 로딩 시 페이드인 효과
 document.body.style.opacity = '0';
 document.body.style.transition = 'opacity 0.5s ease-in-out';
-
-
