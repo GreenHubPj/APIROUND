@@ -60,4 +60,9 @@ public class HomeController {
     public String findPassword() {
         return "find-password";
     }
+
+    @GetMapping("/event")
+    public String event() {
+        return "event";
+    }
 }
