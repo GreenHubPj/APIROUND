@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>정보수정 - GreenHub</title>
+    <link rel="stylesheet" href="/css/header.css">
+    <link rel="stylesheet" href="/css/footer.css">
+    <link rel="stylesheet" href="/css/profile-edit.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- 헤더 include -->
+    <div th:replace="common/header :: header"></div>
+
+    <div class="profile-edit-container">
+        <div class="profile-edit-card">
+            <!-- 프로필 사진 -->
+            <div class="profile-picture-section">
+                <div class="profile-picture">
+                    <div class="profile-placeholder">
+                        <span class="profile-icon">🏢</span>
+                    </div>
+                    <div class="camera-icon">
+                        <span>📷</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 정보수정 폼 -->
+            <form class="profile-edit-form" id="profileEditForm">
+                <div class="form-group">
+                    <label class="form-label" for="companyName">기업명</label>
+                    <input type="text" id="companyName" class="form-input" placeholder="기업명을 입력해주세요">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="userId">아이디</label>
+                    <input type="text" id="userId" class="form-input" placeholder="아이디를 입력해주세요">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="password">비밀번호</label>
+                    <input type="password" id="password" class="form-input" value="************" readonly disabled>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="businessNumber">사업자등록번호</label>
+                    <input type="text" id="businessNumber" class="form-input" value="************" readonly disabled>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="email">이메일</label>
+                    <input type="email" id="email" class="form-input" value="********" readonly disabled>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="contactPerson">담당자</label>
+                    <div class="contact-inputs">
+                        <input type="text" id="contactPerson" class="form-input" placeholder="담당자명을 입력해주세요">
+                        <input type="tel" id="contactNumber" class="form-input" placeholder="담당자 번호를 입력해주세요">
+                    </div>
+                </div>
+
+                <button type="submit" class="save-btn">
+                    <span class="check-icon">✓</span>
+                    변경 사항 저장
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 푸터 include -->
+    <div th:replace="common/footer :: footer"></div>
+
+    <script src="/js/profile-edit.js"></script>
+</body>
+</html>

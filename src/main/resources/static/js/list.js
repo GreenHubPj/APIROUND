@@ -22,9 +22,6 @@ document.addEventListener('DOMContentLoaded', function() {
         if (searchTerm) {
             console.log('검색어:', searchTerm);
             // 실제 검색 로직은 서버와 연동하여 구현
-            alert(`"${searchTerm}"에 대한 검색 결과를 표시합니다.`);
-        } else {
-            alert('검색어를 입력해주세요.');
         }
     }
     
@@ -50,17 +47,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const loginBtn = document.querySelector('.btn-login');
     const signupBtn = document.querySelector('.btn-signup');
     
-    loginBtn.addEventListener('click', function() {
-        console.log('로그인 페이지로 이동');
-        // 실제 로그인 페이지로 이동하는 로직
-        alert('로그인 페이지로 이동합니다.');
-    });
-    
-    signupBtn.addEventListener('click', function() {
-        console.log('회원가입 페이지로 이동');
-        // 실제 회원가입 페이지로 이동하는 로직
-        alert('회원가입 페이지로 이동합니다.');
-    });
+    // 로그인/회원가입 버튼 - 메시지창 제거, 기본 링크 동작 허용
     
     // 상품 카드 호버 효과 강화
     const productCards = document.querySelectorAll('.product-card');
@@ -81,7 +68,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const priceText = this.textContent;
             console.log(`선택된 가격: ${priceText}`);
             // 실제 주문/장바구니 로직
-            alert(`${priceText} 상품을 선택했습니다.`);
+            // 상품 선택 로직 구현 예정
         });
     });
     
@@ -92,7 +79,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const companyName = this.querySelector('p:last-child').textContent;
             console.log(`업체 연락: ${companyName}`);
             // 실제 연락처 표시 또는 연락 로직
-            alert(`${companyName} 업체에 연락합니다.`);
+            // 업체 연락 로직 구현 예정
         });
     });
     
@@ -102,7 +89,7 @@ document.addEventListener('DOMContentLoaded', function() {
         koreaMap.addEventListener('click', function() {
             console.log('지역별 특산품 페이지로 이동');
             // 실제 지역별 특산품 페이지로 이동하는 로직
-            alert('지역별 특산품 페이지로 이동합니다.');
+            // 지역별 특산품 페이지 이동 로직 구현 예정
         });
     }
     
