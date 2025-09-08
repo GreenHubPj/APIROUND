@@ -75,4 +75,14 @@ public class HomeController {
     public String mypageCompany() {
         return "mypage_company";
     }
+
+    @GetMapping("/profile-edit")
+    public String profileEdit() {
+        return "profile-edit";
+    }
+
+    @GetMapping("/profile-edit-company")
+    public String profileEditCompany() {
+        return "profile-edit-company";
+    }
 }
