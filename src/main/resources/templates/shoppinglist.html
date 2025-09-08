@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>장바구니 - GreenHub</title>
+    <link rel="stylesheet" href="/css/header.css">
+    <link rel="stylesheet" href="/css/shoppinglist.css">
+    <link rel="stylesheet" href="/css/footer.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- 헤더 include -->
+    <div th:replace="common/header :: header"></div>
+
+    <!-- 메인 콘텐츠 -->
+    <main class="main-content">
+        <!-- 사용자 정보 섹션 -->
+        <div class="user-info-section">
+            <div class="user-profile">
+                <div class="profile-avatar">
+                    <span class="avatar-text">Kang</span>
+                </div>
+                <div class="user-details">
+                    <h2 class="user-name">Yoyo Kang님</h2>
+                    <div class="user-info-item">
+                        <span class="info-icon">📧</span>
+                        <span class="info-text">yoyo@example.com</span>
+                    </div>
+                    <div class="user-info-item">
+                        <span class="info-icon">📱</span>
+                        <span class="info-text">010-1234-5678</span>
+                    </div>
+                    <div class="user-info-item">
+                        <span class="info-icon">🏠</span>
+                        <span class="info-text">경기도 성남시 수정구 123</span>
+                    </div>
+                </div>
+                <div class="vip-badge">
+                    <span class="badge-text">VIP 소비자</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 장바구니 타이틀 -->
+        <div class="cart-title">
+            <h1>장바구니</h1>
+            <button class="clear-all-btn" id="clearAllBtn">전체삭제</button>
+        </div>
+
+        <!-- 장바구니 아이템들 -->
+        <div class="cart-items" id="cartItems">
+            <!-- 장바구니 아이템 1 -->
+            <div class="cart-item" data-product-id="1">
+                <div class="item-image">
+                    <img src="/images/인기 사과.jpg" alt="문경 사과">
+                </div>
+                <div class="item-info">
+                    <h3 class="item-name">[지금이 제철] 문경 사과</h3>
+                </div>
+                <div class="item-controls">
+                    <div class="control-buttons">
+                        <button class="control-btn pin-btn" title="고정하기">
+                            <span class="pin-icon">📌</span>
+                        </button>
+                        <button class="control-btn delete-btn" title="삭제">
+                            <span class="delete-icon">🗑️</span>
+                        </button>
+                    </div>
+                    <div class="quantity-controls">
+                        <button class="quantity-btn minus-btn">-</button>
+                        <span class="quantity">1</span>
+                        <button class="quantity-btn plus-btn">+</button>
+                    </div>
+                    <div class="item-price">9,900 원</div>
+                </div>
+            </div>
+
+            <!-- 장바구니 아이템 2 -->
+            <div class="cart-item" data-product-id="2">
+                <div class="item-image">
+                    <img src="/images/인기 돼지.jpg" alt="고흥 돼지">
+                </div>
+                <div class="item-info">
+                    <h3 class="item-name">[지금이 제철] 고흥 돼지</h3>
+                </div>
+                <div class="item-controls">
+                    <div class="control-buttons">
+                        <button class="control-btn pin-btn" title="고정하기">
+                            <span class="pin-icon">📌</span>
+                        </button>
+                        <button class="control-btn delete-btn" title="삭제">
+                            <span class="delete-icon">🗑️</span>
+                        </button>
+                    </div>
+                    <div class="quantity-controls">
+                        <button class="quantity-btn minus-btn">-</button>
+                        <span class="quantity">1</span>
+                        <button class="quantity-btn plus-btn">+</button>
+                    </div>
+                    <div class="item-price">9,900 원</div>
+                </div>
+            </div>
+
+            <!-- 장바구니 아이템 3 -->
+            <div class="cart-item" data-product-id="3">
+                <div class="item-image">
+                    <img src="/images/인기 돼지.jpg" alt="고흥 돼지">
+                </div>
+                <div class="item-info">
+                    <h3 class="item-name">[지금이 제철] 고흥 돼지</h3>
+                </div>
+                <div class="item-controls">
+                    <div class="control-buttons">
+                        <button class="control-btn pin-btn" title="고정하기">
+                            <span class="pin-icon">📌</span>
+                        </button>
+                        <button class="control-btn delete-btn" title="삭제">
+                            <span class="delete-icon">🗑️</span>
+                        </button>
+                    </div>
+                    <div class="quantity-controls">
+                        <button class="quantity-btn minus-btn">-</button>
+                        <span class="quantity">1</span>
+                        <button class="quantity-btn plus-btn">+</button>
+                    </div>
+                    <div class="item-price">9,900 원</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 주문 요약 및 주문하기 버튼 -->
+        <div class="order-summary">
+            <div class="summary-info">
+                <div class="summary-item">
+                    <span class="summary-label">총 주문 개수</span>
+                    <span class="summary-value" id="totalQuantity">3개</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">총 주문 금액</span>
+                    <span class="summary-value" id="totalAmount">48,800 원</span>
+                </div>
+            </div>
+            <button class="order-btn" id="orderBtn">주문하기</button>
+        </div>
+    </main>
+
+    <!-- 푸터 include -->
+    <div th:replace="common/footer :: footer"></div>
+
+    <script src="/js/shoppinglist.js"></script>
+</body>
+</html>

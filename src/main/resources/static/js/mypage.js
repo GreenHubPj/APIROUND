@@ -66,8 +66,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 장바구니 페이지로 이동
     function showShoppingCart() {
-        alert('장바구니 페이지로 이동합니다.');
-        // window.location.href = '/cart';
+        window.location.href = '/shoppinglist';
     }
     
     // 내 레시피 페이지로 이동

@@ -75,4 +75,9 @@ public class HomeController {
     public String mypageCompany() {
         return "mypage_company";
     }
+
+    @GetMapping("/shoppinglist")
+    public String shoppinglist() {
+        return "shoppinglist";
+    }
 }
