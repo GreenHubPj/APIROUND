@@ -10,144 +10,166 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <!-- 헤더 include -->
-    <div th:replace="common/header :: header"></div>
+<!-- 헤더 include -->
+<div th:replace="common/header :: header"></div>
 
-    <!-- 메인 콘텐츠 -->
-    <main class="main-content">
-        <!-- 사용자 정보 섹션 -->
-        <div class="user-info-section">
-            <div class="user-profile">
-                <div class="profile-avatar">
-                    <span class="avatar-text">Kang</span>
-                </div>
-                <div class="user-details">
-                    <h2 class="user-name">Yoyo Kang님</h2>
-                    <div class="user-info-item">
-                        <span class="info-icon">📧</span>
-                        <span class="info-text">yoyo@example.com</span>
-                    </div>
-                    <div class="user-info-item">
-                        <span class="info-icon">📱</span>
-                        <span class="info-text">010-1234-5678</span>
-                    </div>
-                    <div class="user-info-item">
-                        <span class="info-icon">🏠</span>
-                        <span class="info-text">경기도 성남시 수정구 123</span>
-                    </div>
-                </div>
-                <div class="vip-badge">
-                    <span class="badge-text">VIP 소비자</span>
-                </div>
+<!-- 장바구니 메인 컨텐츠 -->
+<section class="shoppinglist-section">
+    <div class="container">
+        <!-- 장바구니 제어 버튼 -->
+        <div class="cart-controls">
+            <div class="select-all">
+                <input type="checkbox" id="selectAll" class="select-all-checkbox">
+                <label for="selectAll" class="select-all-label">전체선택</label>
             </div>
+            <button class="delete-selected-btn" id="deleteSelected">
+                <span class="delete-count">0</span> 선택삭제
+            </button>
         </div>
 
-        <!-- 장바구니 타이틀 -->
-        <div class="cart-title">
-            <h1>장바구니</h1>
-            <button class="clear-all-btn" id="clearAllBtn">전체삭제</button>
-        </div>
-
-        <!-- 장바구니 아이템들 -->
-        <div class="cart-items" id="cartItems">
-            <!-- 장바구니 아이템 1 -->
+        <!-- 장바구니 상품 목록 -->
+        <div class="cart-items">
+            <!-- 상품 1: 제철 당근 -->
             <div class="cart-item" data-product-id="1">
-                <div class="item-image">
-                    <img src="/images/인기 사과.jpg" alt="문경 사과">
+                <div class="item-checkbox">
+                    <input type="checkbox" class="item-check" data-product-id="1">
                 </div>
                 <div class="item-info">
-                    <h3 class="item-name">[지금이 제철] 문경 사과</h3>
+                    <div class="seller-info">
+                        <span class="seller-icon">🏠</span>
+                        <span class="seller-name">Yoyo Farm</span>
+                    </div>
+                    <div class="product-details">
+                        <img src="/images/제철 당근.jpg" alt="제철 당근" class="product-image">
+                        <div class="product-info">
+                            <h3 class="product-name">제철 당근</h3>
+                            <p class="product-description">가을철 영양의 보고! 비타민A가 풍부한 당근으로 면역력 강화에 도움을 줍니다.</p>
+                            <div class="product-price">6000원/kg</div>
+                            <div class="product-origin">
+                                <span class="origin-badge">제주 구좌읍</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="item-controls">
-                    <div class="control-buttons">
-                        <button class="control-btn pin-btn" title="고정하기">
-                            <span class="pin-icon">📌</span>
-                        </button>
-                        <button class="control-btn delete-btn" title="삭제">
-                            <span class="delete-icon">🗑️</span>
-                        </button>
+                <div class="item-quantity">
+                    <div class="quantity-info">
+                        <span class="quantity-label">상품 주문수량 :</span>
+                        <span class="quantity-value">5kg</span>
                     </div>
-                    <div class="quantity-controls">
-                        <button class="quantity-btn minus-btn">-</button>
-                        <span class="quantity">1</span>
-                        <button class="quantity-btn plus-btn">+</button>
+                    <button class="modify-order-btn">주문수정</button>
+                </div>
+                <div class="item-total">
+                    <div class="total-price">
+                        <span class="price-label">상품 금액</span>
+                        <span class="price-value">30000원</span>
                     </div>
-                    <div class="item-price">9,900 원</div>
+                    <button class="order-btn">주문하기</button>
                 </div>
             </div>
 
-            <!-- 장바구니 아이템 2 -->
+            <!-- 상품 2: 문경 사과 -->
             <div class="cart-item" data-product-id="2">
-                <div class="item-image">
-                    <img src="/images/인기 돼지.jpg" alt="고흥 돼지">
+                <div class="item-checkbox">
+                    <input type="checkbox" class="item-check" data-product-id="2">
                 </div>
                 <div class="item-info">
-                    <h3 class="item-name">[지금이 제철] 고흥 돼지</h3>
+                    <div class="seller-info">
+                        <span class="seller-icon">🏠</span>
+                        <span class="seller-name">말랑 소매</span>
+                    </div>
+                    <div class="product-details">
+                        <img src="/images/제철 사과.jpg" alt="문경 사과" class="product-image">
+                        <div class="product-info">
+                            <h3 class="product-name">문경 사과</h3>
+                            <p class="product-description">문경에서 유명한 사과로 달콤하고 아삭한 맛이 일품입니다.</p>
+                            <div class="product-price">12000원/kg</div>
+                            <div class="product-origin">
+                                <span class="origin-badge">경북 문경</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="item-controls">
-                    <div class="control-buttons">
-                        <button class="control-btn pin-btn" title="고정하기">
-                            <span class="pin-icon">📌</span>
-                        </button>
-                        <button class="control-btn delete-btn" title="삭제">
-                            <span class="delete-icon">🗑️</span>
-                        </button>
+                <div class="item-quantity">
+                    <div class="quantity-info">
+                        <span class="quantity-label">상품 주문수량 :</span>
+                        <span class="quantity-value">1kg</span>
                     </div>
-                    <div class="quantity-controls">
-                        <button class="quantity-btn minus-btn">-</button>
-                        <span class="quantity">1</span>
-                        <button class="quantity-btn plus-btn">+</button>
+                    <button class="modify-order-btn">주문수정</button>
+                </div>
+                <div class="item-total">
+                    <div class="total-price">
+                        <span class="price-label">상품 금액</span>
+                        <span class="price-value">12000원</span>
                     </div>
-                    <div class="item-price">9,900 원</div>
+                    <button class="order-btn">주문하기</button>
                 </div>
             </div>
 
-            <!-- 장바구니 아이템 3 -->
+            <!-- 상품 3: 포도잼 -->
             <div class="cart-item" data-product-id="3">
-                <div class="item-image">
-                    <img src="/images/인기 돼지.jpg" alt="고흥 돼지">
+                <div class="item-checkbox">
+                    <input type="checkbox" class="item-check" data-product-id="3">
                 </div>
                 <div class="item-info">
-                    <h3 class="item-name">[지금이 제철] 고흥 돼지</h3>
+                    <div class="seller-info">
+                        <span class="seller-icon">🏠</span>
+                        <span class="seller-name">현아네마켓</span>
+                    </div>
+                    <div class="product-details">
+                        <img src="/images/포도잼.jpg" alt="포도잼" class="product-image">
+                        <div class="product-info">
+                            <h3 class="product-name">포도잼</h3>
+                            <p class="product-description">신선한 포도로 만든 수제 잼으로 빵과 함께 드시면 최고입니다.</p>
+                            <div class="product-price">8000원/개</div>
+                            <div class="product-origin">
+                                <span class="origin-badge">경기도 포도농장</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="item-controls">
-                    <div class="control-buttons">
-                        <button class="control-btn pin-btn" title="고정하기">
-                            <span class="pin-icon">📌</span>
-                        </button>
-                        <button class="control-btn delete-btn" title="삭제">
-                            <span class="delete-icon">🗑️</span>
-                        </button>
+                <div class="item-quantity">
+                    <div class="quantity-info">
+                        <span class="quantity-label">상품 주문수량 :</span>
+                        <span class="quantity-value">2개</span>
                     </div>
-                    <div class="quantity-controls">
-                        <button class="quantity-btn minus-btn">-</button>
-                        <span class="quantity">1</span>
-                        <button class="quantity-btn plus-btn">+</button>
+                    <button class="modify-order-btn">주문수정</button>
+                </div>
+                <div class="item-total">
+                    <div class="total-price">
+                        <span class="price-label">상품 금액</span>
+                        <span class="price-value">16000원</span>
                     </div>
-                    <div class="item-price">9,900 원</div>
+                    <button class="order-btn">주문하기</button>
                 </div>
             </div>
         </div>
 
-        <!-- 주문 요약 및 주문하기 버튼 -->
+        <!-- 장바구니 안내사항 -->
+        <div class="cart-notice">
+            <ul class="notice-list">
+                <li>장바구니 상품은 최대 90일간 저장됩니다.</li>
+                <li>장바구니에 담긴 상품은 옵션 또는 추가상품 단위로 최대 10개의 상품만 동시 주문할 수 있습니다.</li>
+                <li>가격, 옵션 등 정보가 변경된 경우 주문이 불가할 수 있습니다.</li>
+                <li>오늘출발 정보는 판매자가 설정한 정보에 의해 제공되며, 물류위탁 상품인 경우 물류사의 사정에 따라 실제와 다를 수 있습니다.</li>
+                <li>일부 상품의 경우 카드 할부기간이 카드사 제공 기간보다 적게 제공될 수 있습니다.</li>
+                <li>장바구니에 보여지는 배송비는 최종적으로 발생하는 배송비가 아니며, 주문 주소지에 따라 도서산간 비용 등이 추가 발생할 수 있습니다.</li>
+            </ul>
+        </div>
+
+        <!-- 주문 요약 -->
         <div class="order-summary">
             <div class="summary-info">
-                <div class="summary-item">
-                    <span class="summary-label">총 주문 개수</span>
-                    <span class="summary-value" id="totalQuantity">3개</span>
-                </div>
-                <div class="summary-item">
-                    <span class="summary-label">총 주문 금액</span>
-                    <span class="summary-value" id="totalAmount">48,800 원</span>
-                </div>
+                <span class="total-items">총 <span id="totalItems">0</span>건</span>
+                <span class="total-amount">주문금액 <span id="totalAmount">0</span>원</span>
             </div>
-            <button class="order-btn" id="orderBtn">주문하기</button>
+            <button class="final-order-btn" id="finalOrderBtn">주문하기</button>
         </div>
-    </main>
+    </div>
+</section>
 
-    <!-- 푸터 include -->
-    <div th:replace="common/footer :: footer"></div>
+<!-- 푸터 include -->
+<div th:replace="common/footer :: footer"></div>
 
-    <script src="/js/shoppinglist.js"></script>
+<script src="/js/shoppinglist.js"></script>
 </body>
 </html>
