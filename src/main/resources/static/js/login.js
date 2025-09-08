@@ -88,15 +88,8 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // 아이디/비밀번호 찾기 링크
-    const forgotLinks = document.querySelectorAll('.forgot-link');
-    forgotLinks.forEach(link => {
-        link.addEventListener('click', function(e) {
-            e.preventDefault();
-            const linkText = this.textContent;
-            alert(`${linkText} 기능은 준비 중입니다.`);
-        });
-    });
+    // 아이디/비밀번호 찾기 링크는 기본 동작 허용 (페이지 이동)
+    // 링크 클릭 시 해당 페이지로 이동하도록 함
     
     console.log('로그인 페이지가 로드되었습니다.');
 });

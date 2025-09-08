@@ -66,28 +66,45 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
+    // 메시지 표시 함수
+    function showMessage(messageElement, message, type = 'info') {
+        messageElement.textContent = message;
+        messageElement.className = `verification-message ${type}`;
+        
+        // 3초 후 메시지 자동 숨김 (성공/에러 메시지 제외)
+        if (type === 'info' || type === 'warning') {
+            setTimeout(() => {
+                messageElement.textContent = '';
+                messageElement.className = 'verification-message';
+            }, 3000);
+        }
+    }
+
     // 인증번호 전송 버튼
     const verificationSendBtns = document.querySelectorAll('.verification-btn');
     verificationSendBtns.forEach(btn => {
         if (btn.textContent === '인증번호 전송') {
             btn.addEventListener('click', function() {
-                const phoneInput = this.parentElement.querySelector('input');
-                const phoneNumber = phoneInput.value.trim();
+                const emailInput = this.parentElement.querySelector('input');
+                const email = emailInput.value.trim();
                 
-                if (!phoneNumber) {
-                    alert('휴대폰번호를 입력해주세요.');
+                // 메시지 요소 찾기
+                const messageElement = this.closest('.form-group').querySelector('.verification-message');
+                
+                if (!email) {
+                    showMessage(messageElement, '이메일을 입력해주세요.', 'error');
                     return;
                 }
                 
-                // 휴대폰번호 형식 검증
-                const phoneRegex = /^01[0-9]-?[0-9]{4}-?[0-9]{4}$/;
-                if (!phoneRegex.test(phoneNumber)) {
-                    alert('올바른 휴대폰번호 형식을 입력해주세요.');
+                // 이메일 형식 검증
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(email)) {
+                    showMessage(messageElement, '올바른 이메일 형식을 입력해주세요.', 'error');
                     return;
                 }
                 
                 // 인증번호 전송 시뮬레이션
-                alert('인증번호가 전송되었습니다.');
+                showMessage(messageElement, '인증번호가 전송되었습니다. 이메일을 확인해주세요.', 'success');
                 this.textContent = '재전송';
                 this.classList.add('secondary');
             });
@@ -102,13 +119,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 const verificationInput = this.parentElement.querySelector('input');
                 const verificationCode = verificationInput.value.trim();
                 
+                // 메시지 요소 찾기
+                const messageElement = this.closest('.form-group').querySelector('.verification-message');
+                
                 if (!verificationCode) {
-                    alert('인증번호를 입력해주세요.');
+                    showMessage(messageElement, '인증번호를 입력해주세요.', 'error');
                     return;
                 }
                 
                 // 인증번호 확인 시뮬레이션
-                alert('인증이 완료되었습니다.');
+                showMessage(messageElement, '인증이 완료되었습니다.', 'success');
                 this.textContent = '인증완료';
                 this.style.background = '#4CAF50';
                 this.disabled = true;
@@ -121,7 +141,9 @@ document.addEventListener('DOMContentLoaded', function() {
     resendBtns.forEach(btn => {
         if (btn.textContent === '재전송') {
             btn.addEventListener('click', function() {
-                alert('인증번호가 재전송되었습니다.');
+                // 메시지 요소 찾기
+                const messageElement = this.closest('.form-group').querySelector('.verification-message');
+                showMessage(messageElement, '인증번호가 재전송되었습니다.', 'info');
             });
         }
     });
