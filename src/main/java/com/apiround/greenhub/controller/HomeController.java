@@ -46,6 +46,11 @@ public class HomeController {
         return "recipe";
     }
 
+    @GetMapping("/recipe-detail")
+    public String recipeDetail() {
+        return "recipe-detail";
+    }
+
     @GetMapping("/find-id")
     public String findId() {
         return "find-id";

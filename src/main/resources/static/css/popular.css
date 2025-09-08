@@ -359,3 +359,55 @@ body {
         gap: 0.25rem;
     }
 }
+
+/* 더보기 버튼 스타일 */
+.load-more-container {
+    text-align: center;
+    margin: 40px 0;
+    padding: 20px;
+}
+
+.load-more-btn {
+    background: none;
+    color: #333;
+    border: none;
+    padding: 20px 60px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+    width: 100%;
+    display: block;
+}
+
+.load-more-btn:hover {
+    color: #666;
+    transform: translateY(-2px);
+}
+
+.load-more-btn:active {
+    transform: translateY(0);
+}
+
+.product-card.hidden {
+    display: none;
+}
+
+/* 더 이상 상품이 없을 때 메시지 스타일 */
+.no-more-products-message {
+    text-align: center;
+    padding: 30px;
+    color: #666;
+    font-size: 16px;
+    line-height: 1.6;
+}
+
+.no-more-products-message p {
+    margin: 5px 0;
+}
+
+.no-more-products-message p:first-child {
+    font-weight: 600;
+    color: #333;
+}
