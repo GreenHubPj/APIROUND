@@ -28,8 +28,8 @@ document.addEventListener('DOMContentLoaded', function() {
             case 'refund':
                 showRefundApplication();
                 break;
-            case 'return':
-                showReturnExchange();
+            case 'review':
+                showReviewWrite();
                 break;
             case 'cart':
                 showShoppingCart();
@@ -52,16 +52,16 @@ document.addEventListener('DOMContentLoaded', function() {
         // window.location.href = '/payment-history';
     }
     
-    // 환불 신청 페이지로 이동
+    // 교환/환불 페이지로 이동
     function showRefundApplication() {
-        alert('환불 신청 페이지로 이동합니다.');
+        alert('교환/환불 페이지로 이동합니다.');
         // window.location.href = '/refund-application';
     }
     
-    // 반품/교환 페이지로 이동
-    function showReturnExchange() {
-        alert('반품/교환 페이지로 이동합니다.');
-        // window.location.href = '/return-exchange';
+    // 리뷰작성 페이지로 이동
+    function showReviewWrite() {
+        alert('리뷰작성 페이지로 이동합니다.');
+        // window.location.href = '/review-write';
     }
     
     // 장바구니 페이지로 이동
