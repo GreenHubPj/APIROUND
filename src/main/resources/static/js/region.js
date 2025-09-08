@@ -4,6 +4,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 지역 필터링 관련 변수
     let currentRegion = 'all'; // 현재 선택된 지역
+    const itemsPerPage = 5; // 한 페이지에 표시할 상품 수
+    let displayedCount = 0; // 현재 표시된 상품 수
 
     // DOM 요소들
     const productCards = document.querySelectorAll('.product-card');
@@ -45,49 +47,158 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 검색어로 상품 필터링
     function filterProductsBySearch(searchTerm) {
-        const allProducts = Array.from(productCards);
-        allProducts.forEach(card => {
+        displayedCount = 0; // 표시된 상품 수 초기화
+        
+        // 모든 상품을 숨김
+        productCards.forEach(card => {
+            card.classList.add('hidden');
+        });
+        
+        // 검색어에 맞는 상품만 처음 5개 표시
+        showNextProductsBySearch(searchTerm);
+        
+        // 더보기 버튼 상태 업데이트
+        updateLoadMoreButtonBySearch(searchTerm);
+        
+        // 애니메이션 적용
+        animateVisibleCards();
+    }
+    
+    // 검색 결과에서 다음 상품들을 표시하는 함수
+    function showNextProductsBySearch(searchTerm) {
+        const searchLower = searchTerm.toLowerCase();
+        const visibleCards = [];
+        
+        productCards.forEach(card => {
             const title = card.querySelector('.product-title').textContent.toLowerCase();
             const description = card.querySelector('.product-description').textContent.toLowerCase();
             const place = card.querySelector('.product-place').textContent.toLowerCase();
-            const searchLower = searchTerm.toLowerCase();
             
             if (title.includes(searchLower) || 
                 description.includes(searchLower) || 
                 place.includes(searchLower)) {
-                card.classList.remove('hidden');
-            } else {
-                card.classList.add('hidden');
+                visibleCards.push(card);
             }
         });
+        
+        // 현재 표시된 수부터 itemsPerPage만큼 더 표시
+        const endIndex = Math.min(displayedCount + itemsPerPage, visibleCards.length);
+        
+        for (let i = displayedCount; i < endIndex; i++) {
+            visibleCards[i].classList.remove('hidden');
+        }
+        
+        displayedCount = endIndex;
+        
+        // 더 표시할 상품이 있는지 반환
+        return displayedCount < visibleCards.length;
+    }
+    
+    // 검색 결과에 대한 더보기 버튼 상태 업데이트
+    function updateLoadMoreButtonBySearch(searchTerm) {
+        const loadMoreBtn = document.getElementById('loadMoreBtn');
+        if (!loadMoreBtn) return;
+        
+        const searchLower = searchTerm.toLowerCase();
+        const visibleCards = [];
+        
+        productCards.forEach(card => {
+            const title = card.querySelector('.product-title').textContent.toLowerCase();
+            const description = card.querySelector('.product-description').textContent.toLowerCase();
+            const place = card.querySelector('.product-place').textContent.toLowerCase();
+            
+            if (title.includes(searchLower) || 
+                description.includes(searchLower) || 
+                place.includes(searchLower)) {
+                visibleCards.push(card);
+            }
+        });
+        
+        // 모든 상품이 표시되었으면 더보기 버튼 숨김
+        if (displayedCount >= visibleCards.length) {
+            loadMoreBtn.style.display = 'none';
+        } else {
+            loadMoreBtn.style.display = 'block';
+        }
     }
 
     // 지역별 필터링 함수
     function filterProductsByRegion(region) {
         currentRegion = region;
+        displayedCount = 0; // 표시된 상품 수 초기화
         
+        // 모든 상품을 숨김
         productCards.forEach(card => {
-            if (region === 'all') {
-                // 모든 상품 표시
-                card.classList.remove('hidden');
-            } else {
-                // 선택된 지역의 상품만 표시
-                const cardRegion = card.getAttribute('data-region');
-                if (cardRegion === region) {
-                    card.classList.remove('hidden');
-                } else {
-                    card.classList.add('hidden');
-                }
-            }
+            card.classList.add('hidden');
         });
+        
+        // 선택된 지역의 상품만 처음 5개 표시
+        showNextProducts();
+        
+        // 더보기 버튼 상태 업데이트
+        updateLoadMoreButton();
         
         // 애니메이션 적용
         animateVisibleCards();
     }
 
+    // 다음 상품들을 표시하는 함수
+    function showNextProducts() {
+        const visibleCards = [];
+        
+        productCards.forEach(card => {
+            if (currentRegion === 'all') {
+                visibleCards.push(card);
+            } else {
+                const cardRegion = card.getAttribute('data-region');
+                if (cardRegion === currentRegion) {
+                    visibleCards.push(card);
+                }
+            }
+        });
+        
+        // 현재 표시된 수부터 itemsPerPage만큼 더 표시
+        const endIndex = Math.min(displayedCount + itemsPerPage, visibleCards.length);
+        
+        for (let i = displayedCount; i < endIndex; i++) {
+            visibleCards[i].classList.remove('hidden');
+        }
+        
+        displayedCount = endIndex;
+        
+        // 더 표시할 상품이 있는지 반환
+        return displayedCount < visibleCards.length;
+    }
+    
+    // 더보기 버튼 상태 업데이트
+    function updateLoadMoreButton() {
+        const loadMoreBtn = document.getElementById('loadMoreBtn');
+        if (!loadMoreBtn) return;
+        
+        const visibleCards = [];
+        
+        productCards.forEach(card => {
+            if (currentRegion === 'all') {
+                visibleCards.push(card);
+            } else {
+                const cardRegion = card.getAttribute('data-region');
+                if (cardRegion === currentRegion) {
+                    visibleCards.push(card);
+                }
+            }
+        });
+        
+        // 모든 상품이 표시되었으면 더보기 버튼 숨김
+        if (displayedCount >= visibleCards.length) {
+            loadMoreBtn.style.display = 'none';
+        } else {
+            loadMoreBtn.style.display = 'block';
+        }
+    }
+
     // 보이는 카드들에 애니메이션 적용
     function animateVisibleCards() {
-        const visibleCards = document.querySelectorAll('.product-card[style*="block"]');
+        const visibleCards = document.querySelectorAll('.product-card:not(.hidden)');
         visibleCards.forEach((card, index) => {
             card.style.opacity = '0';
             card.style.transform = 'translateY(20px)';
@@ -117,6 +228,48 @@ document.addEventListener('DOMContentLoaded', function() {
             showRegionSelection(regionName);
         });
     });
+
+    // 더보기 버튼 클릭 이벤트
+    const loadMoreBtn = document.getElementById('loadMoreBtn');
+    if (loadMoreBtn) {
+        loadMoreBtn.addEventListener('click', function() {
+            console.log('더보기 버튼 클릭');
+            
+            // 검색어가 있는지 확인
+            const searchTerm = searchInput ? searchInput.value.trim() : '';
+            
+            if (searchTerm) {
+                // 검색 결과에서 더보기
+                const hasMore = showNextProductsBySearch(searchTerm);
+                updateLoadMoreButtonBySearch(searchTerm);
+                if (!hasMore) {
+                    showNoMoreProductsMessage();
+                }
+            } else {
+                // 지역 필터에서 더보기
+                const hasMore = showNextProducts();
+                updateLoadMoreButton();
+                if (!hasMore) {
+                    showNoMoreProductsMessage();
+                }
+            }
+            
+            animateVisibleCards();
+        });
+    }
+
+    // 더 이상 상품이 없을 때 메시지 표시
+    function showNoMoreProductsMessage() {
+        const loadMoreContainer = document.querySelector('.load-more-container');
+        if (loadMoreContainer) {
+            loadMoreContainer.innerHTML = `
+                <div class="no-more-products-message">
+                    <p>더 이상 표시할 상품이 없습니다.</p>
+                    <p>새로운 상품을 추가해주세요!</p>
+                </div>
+            `;
+        }
+    }
 
     // 상품 카드 호버 효과
     productCards.forEach(card => {
@@ -268,6 +421,9 @@ document.addEventListener('DOMContentLoaded', function() {
         // 반응형 처리
         filterProductsByRegion(currentRegion);
     });
+    
+    // 초기 로드 시 페이징 적용
+    filterProductsByRegion('all');
     
     console.log('지역별 특산품 페이지 초기화 완료');
 });

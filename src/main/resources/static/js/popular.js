@@ -1,6 +1,95 @@
 document.addEventListener('DOMContentLoaded', function() {
     console.log('GreenHub 인기 특산품 페이지가 로드되었습니다.');
 
+    // 페이징 관련 변수
+    const itemsPerPage = 5; // 한 페이지에 표시할 상품 수
+    let displayedCount = 0; // 현재 표시된 상품 수
+    const productCards = document.querySelectorAll('.product-card');
+    
+    console.log('총 상품 카드 수:', productCards.length);
+
+    // 다음 상품들을 표시하는 함수
+    function showNextProducts() {
+        // 현재 표시된 수부터 itemsPerPage만큼 더 표시
+        const endIndex = Math.min(displayedCount + itemsPerPage, productCards.length);
+        
+        console.log('표시할 상품 범위:', displayedCount, '~', endIndex);
+        
+        for (let i = displayedCount; i < endIndex; i++) {
+            productCards[i].classList.remove('hidden');
+            console.log('상품', i, '표시됨');
+        }
+        
+        displayedCount = endIndex;
+        
+        console.log('현재 표시된 상품 수:', displayedCount);
+        
+        // 더 표시할 상품이 있는지 반환
+        return displayedCount < productCards.length;
+    }
+    
+    // 더보기 버튼 상태 업데이트
+    function updateLoadMoreButton() {
+        const loadMoreBtn = document.getElementById('loadMoreBtn');
+        if (!loadMoreBtn) {
+            console.log('더보기 버튼을 찾을 수 없습니다');
+            return;
+        }
+        
+        console.log('더보기 버튼 상태 업데이트:', displayedCount, '/', productCards.length);
+        
+        // 모든 상품이 표시되었으면 더보기 버튼 숨김
+        if (displayedCount >= productCards.length) {
+            loadMoreBtn.style.display = 'none';
+            console.log('더보기 버튼 숨김');
+        } else {
+            loadMoreBtn.style.display = 'block';
+            console.log('더보기 버튼 표시');
+        }
+    }
+
+    // 보이는 카드들에 애니메이션 적용
+    function animateVisibleCards() {
+        const visibleCards = document.querySelectorAll('.product-card:not(.hidden)');
+        visibleCards.forEach((card, index) => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            
+            setTimeout(() => {
+                card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            }, index * 100);
+        });
+    }
+
+    // 더보기 버튼 클릭 이벤트
+    const loadMoreBtn = document.getElementById('loadMoreBtn');
+    if (loadMoreBtn) {
+        loadMoreBtn.addEventListener('click', function() {
+            console.log('더보기 버튼 클릭');
+            const hasMore = showNextProducts();
+            updateLoadMoreButton();
+            if (!hasMore) {
+                showNoMoreProductsMessage();
+            }
+            animateVisibleCards();
+        });
+    }
+
+    // 더 이상 상품이 없을 때 메시지 표시
+    function showNoMoreProductsMessage() {
+        const loadMoreContainer = document.querySelector('.load-more-container');
+        if (loadMoreContainer) {
+            loadMoreContainer.innerHTML = `
+                <div class="no-more-products-message">
+                    <p>더 이상 표시할 상품이 없습니다.</p>
+                    <p>새로운 상품을 추가해주세요!</p>
+                </div>
+            `;
+        }
+    }
+
     // 가격 옵션 클릭 이벤트
     const priceOptions = document.querySelectorAll('.price-option');
     priceOptions.forEach(option => {
@@ -127,7 +216,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // 상품 카드 호버 효과
-    const productCards = document.querySelectorAll('.product-card');
     productCards.forEach(card => {
         card.addEventListener('mouseenter', function() {
             this.style.transform = 'translateY(-5px) scale(1.02)';
@@ -139,21 +227,18 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
 
-    // 페이지 로드 애니메이션
-    const productCards = document.querySelectorAll('.product-card');
-    productCards.forEach((card, index) => {
-        card.style.opacity = '0';
-        card.style.transform = 'translateY(30px)';
-        
-        setTimeout(() => {
-            card.style.transition = 'all 0.6s ease';
-            card.style.opacity = '1';
-            card.style.transform = 'translateY(0)';
-        }, index * 200);
+    // 초기 로드 시 페이징 적용
+    // 모든 상품을 숨김
+    productCards.forEach(card => {
+        card.classList.add('hidden');
     });
+    
+    // 처음 5개 상품만 표시
+    showNextProducts();
+    updateLoadMoreButton();
+    animateVisibleCards();
 
     // 인기 순위 바 애니메이션
-    const trendItems = document.querySelectorAll('.trend-item');
     trendItems.forEach((item, index) => {
         item.style.opacity = '0';
         item.style.transform = 'translateX(-20px)';
