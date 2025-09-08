@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>환불/교환 - GreenHub</title>
+    <link rel="stylesheet" th:href="@{/css/header.css}">
+    <link rel="stylesheet" th:href="@{/css/footer.css}">
+    <link rel="stylesheet" th:href="@{/css/refund.css}">
+</head>
+<body>
+    <!-- 헤더 -->
+    <div th:replace="common/header :: header"></div>
+
+    <!-- 메인 컨텐츠 -->
+    <div class="refund-container">
+        <div class="refund-content">
+            <!-- 페이지 제목 -->
+            <div class="page-title">
+                <h1>환불/교환</h1>
+            </div>
+
+            <!-- 탭 메뉴 -->
+            <div class="tab-menu">
+                <button class="tab-btn active" data-tab="return">반품</button>
+                <button class="tab-btn" data-tab="exchange">교환</button>
+            </div>
+
+            <!-- 반품 탭 컨텐츠 -->
+            <div class="tab-content active" id="return-tab">
+                <div class="order-list">
+                    <!-- 주문 1 -->
+                    <div class="order-item">
+                        <div class="order-header">
+                            <div class="order-info">
+                                <span class="return-date">반품접수일: 2025/09/02</span>
+                                <span class="order-date">주문일: 2025/09/01</span>
+                                <span class="order-number">주문번호: 9100136994478</span>
+                            </div>
+                        </div>
+                        <div class="order-details">
+                            <div class="product-info">
+                                <div class="product-name">우리 쌀 백미</div>
+                                <div class="product-desc">우리 쌀 백미, 10kg, 1개</div>
+                            </div>
+                            <div class="product-quantity">
+                                <div class="quantity">1개</div>
+                                <div class="price">33,000원</div>
+                            </div>
+                            <div class="order-status">
+                                <div class="status">취소완료</div>
+                                <button class="detail-btn">취소상세</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 주문 2 -->
+                    <div class="order-item">
+                        <div class="order-header">
+                            <div class="order-info">
+                                <span class="return-date">반품접수일: 2025/08/26</span>
+                                <span class="order-date">주문일: 2025/08/23</span>
+                                <span class="order-number">주문번호: 9100136994466</span>
+                            </div>
+                        </div>
+                        <div class="order-details">
+                            <div class="product-info">
+                                <div class="product-name">동글동글 감자</div>
+                                <div class="product-desc">동글동글 감자, 1kg, 3개</div>
+                            </div>
+                            <div class="product-quantity">
+                                <div class="quantity">3개</div>
+                                <div class="price">24,900원</div>
+                            </div>
+                            <div class="order-status">
+                                <div class="status">취소완료</div>
+                                <button class="detail-btn">취소상세</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 주문 3 -->
+                    <div class="order-item">
+                        <div class="order-header">
+                            <div class="order-info">
+                                <span class="return-date">반품접수일: 2025/08/02</span>
+                                <span class="order-date">주문일: 2025/08/01</span>
+                                <span class="order-number">주문번호: 910013698555</span>
+                            </div>
+                        </div>
+                        <div class="order-details">
+                            <div class="product-info">
+                                <div class="product-name">우리 가족 사과</div>
+                                <div class="product-desc">못난이 사과, 2kg, 2개</div>
+                            </div>
+                            <div class="product-quantity">
+                                <div class="quantity">2개</div>
+                                <div class="price">20,000원</div>
+                            </div>
+                            <div class="order-status">
+                                <div class="status">취소완료</div>
+                                <button class="detail-btn">취소상세</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 주문 4 -->
+                    <div class="order-item">
+                        <div class="order-header">
+                            <div class="order-info">
+                                <span class="return-date">반품접수일: 2025/07/06</span>
+                                <span class="order-date">주문일: 2025/07/02</span>
+                                <span class="order-number">주문번호: 9100136971222</span>
+                            </div>
+                        </div>
+                        <div class="order-details">
+                            <div class="product-info">
+                                <div class="product-name">말랑이 복숭아</div>
+                                <div class="product-desc">말랑한 물복, 1kg, 1개</div>
+                            </div>
+                            <div class="product-quantity">
+                                <div class="quantity">1개</div>
+                                <div class="price">9,900원</div>
+                            </div>
+                            <div class="order-status">
+                                <div class="status">취소완료</div>
+                                <button class="detail-btn">취소상세</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 교환 탭 컨텐츠 -->
+            <div class="tab-content" id="exchange-tab">
+                <div class="order-list">
+                    <!-- 교환 주문 1 -->
+                    <div class="order-item">
+                        <div class="order-header">
+                            <div class="order-info">
+                                <span class="return-date">교환접수일: 2025/09/15</span>
+                                <span class="order-date">주문일: 2025/09/10</span>
+                                <span class="order-number">주문번호: 9100136995001</span>
+                            </div>
+                        </div>
+                        <div class="order-details">
+                            <div class="product-info">
+                                <div class="product-name">신선한 토마토</div>
+                                <div class="product-desc">신선한 토마토, 1kg, 2개</div>
+                            </div>
+                            <div class="product-quantity">
+                                <div class="quantity">2개</div>
+                                <div class="price">15,000원</div>
+                            </div>
+                            <div class="order-status">
+                                <div class="status exchange-status">교환완료</div>
+                                <button class="detail-btn">교환상세</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 교환 주문 2 -->
+                    <div class="order-item">
+                        <div class="order-header">
+                            <div class="order-info">
+                                <span class="return-date">교환접수일: 2025/08/28</span>
+                                <span class="order-date">주문일: 2025/08/25</span>
+                                <span class="order-number">주문번호: 9100136994888</span>
+                            </div>
+                        </div>
+                        <div class="order-details">
+                            <div class="product-info">
+                                <div class="product-name">달콤한 딸기</div>
+                                <div class="product-desc">달콤한 딸기, 500g, 1개</div>
+                            </div>
+                            <div class="product-quantity">
+                                <div class="quantity">1개</div>
+                                <div class="price">12,000원</div>
+                            </div>
+                            <div class="order-status">
+                                <div class="status exchange-status">교환완료</div>
+                                <button class="detail-btn">교환상세</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 교환 주문 3 -->
+                    <div class="order-item">
+                        <div class="order-header">
+                            <div class="order-info">
+                                <span class="return-date">교환접수일: 2025/08/10</span>
+                                <span class="order-date">주문일: 2025/08/08</span>
+                                <span class="order-number">주문번호: 9100136994777</span>
+                            </div>
+                        </div>
+                        <div class="order-details">
+                            <div class="product-info">
+                                <div class="product-name">아삭한 오이</div>
+                                <div class="product-desc">아삭한 오이, 1kg, 3개</div>
+                            </div>
+                            <div class="product-quantity">
+                                <div class="quantity">3개</div>
+                                <div class="price">8,500원</div>
+                            </div>
+                            <div class="order-status">
+                                <div class="status exchange-status">교환완료</div>
+                                <button class="detail-btn">교환상세</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 교환 주문 4 -->
+                    <div class="order-item">
+                        <div class="order-header">
+                            <div class="order-info">
+                                <span class="return-date">교환접수일: 2025/07/20</span>
+                                <span class="order-date">주문일: 2025/07/18</span>
+                                <span class="order-number">주문번호: 9100136994666</span>
+                            </div>
+                        </div>
+                        <div class="order-details">
+                            <div class="product-info">
+                                <div class="product-name">상큼한 레몬</div>
+                                <div class="product-desc">상큼한 레몬, 500g, 1개</div>
+                            </div>
+                            <div class="product-quantity">
+                                <div class="quantity">1개</div>
+                                <div class="price">6,500원</div>
+                            </div>
+                            <div class="order-status">
+                                <div class="status exchange-status">교환완료</div>
+                                <button class="detail-btn">교환상세</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 푸터 -->
+    <div th:replace="common/footer :: footer"></div>
+
+    <script th:src="@{/js/header.js}"></script>
+    <script th:src="@{/js/refund.js}"></script>
+</body>
+</html>

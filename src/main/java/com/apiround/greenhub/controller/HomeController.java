@@ -46,6 +46,7 @@ public class HomeController {
         return "recipe";
     }
 
+
     @GetMapping("/recipe-detail")
     public String recipeDetail() {
         return "recipe-detail";
@@ -76,13 +77,6 @@ public class HomeController {
         return "mypage_company";
     }
 
-
-    @GetMapping("/shoppinglist")
-    public String shoppinglist() {
-        return "shoppinglist";
-    }
-
-
     @GetMapping("/profile-edit")
     public String profileEdit() {
         return "profile-edit";
@@ -91,5 +85,20 @@ public class HomeController {
     @GetMapping("/profile-edit-company")
     public String profileEditCompany() {
         return "profile-edit-company";
+    }
+
+    @GetMapping("/refund")
+    public String refund() {
+        return "refund";
+    }
+
+    @GetMapping("/order-detail")
+    public String orderDetail() {
+        return "order-detail";
+    }
+
+    @GetMapping("/shoppinglist")
+    public String shoppinglist() {
+        return "shoppinglist";
     }
 }
