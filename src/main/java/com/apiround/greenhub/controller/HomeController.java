@@ -70,9 +70,24 @@ public class HomeController {
     public String recipeDetail() {
         return "recipe-detail";
     }
-    
+
     @GetMapping("/shoppinglist")
     public String shoppinglist() {
         return "shoppinglist";
+    }
+
+    @GetMapping("/event")
+    public String event() {
+        return "event";
+    }
+
+    @GetMapping("/profile-edit")
+    public String profileEdit() {
+        return "profile-edit";
+    }
+
+    @GetMapping("/profile-edit-company")
+    public String profileEditCompany() {
+        return "profile-edit-company";
     }
 }
