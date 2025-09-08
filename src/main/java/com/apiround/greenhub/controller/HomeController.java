@@ -76,6 +76,16 @@ public class HomeController {
         return "shoppinglist";
     }
 
+    @GetMapping("/review")
+    public String review() {
+        return "review";
+    }
+
+    @GetMapping("/review-write")
+    public String reviewWrite() {
+        return "review-write";
+    }
+
     @GetMapping("/event")
     public String event() {
         return "event";
