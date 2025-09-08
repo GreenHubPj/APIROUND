@@ -70,4 +70,9 @@ public class HomeController {
     public String recipeDetail() {
         return "recipe-detail";
     }
+    
+    @GetMapping("/shoppinglist")
+    public String shoppinglist() {
+        return "shoppinglist";
+    }
 }
