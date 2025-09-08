@@ -1,0 +1,372 @@
+/* 기본 스타일 */
+body {
+    font-family: 'Noto Sans KR', sans-serif;
+    line-height: 1.6;
+    color: #333;
+    background-color: #f8f9fa;
+}
+
+/* 메인 콘텐츠 */
+.main-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+    margin-top: 100px;
+}
+
+/* 요리법 섹션 */
+.recipe-section {
+    margin-bottom: 3rem;
+}
+
+.recipe-card {
+    background-color: white;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    padding: 3rem;
+    position: relative;
+    max-width: 1500px;
+    margin: 0 auto;
+}
+
+/* 책 형태 레이아웃 */
+.book-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    min-height: 700px;
+    position: relative;
+    margin-top: 2rem;
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    border-radius: 15px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+}
+
+.book-layout::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 20px;
+    bottom: 20px;
+    width: 3px;
+    background: linear-gradient(to bottom, transparent, #e0e0e0 15%, #d0d0d0 50%, #e0e0e0 85%, transparent);
+    transform: translateX(-50%);
+    z-index: 1;
+    border-radius: 2px;
+}
+
+.left-page, .right-page {
+    padding: 2.5rem;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+.left-page {
+    border-right: 1px solid #f0f0f0;
+    padding-right: 3.5rem;
+}
+
+.right-page {
+    padding-left: 3.5rem;
+}
+
+/* 요리법 헤더 */
+.recipe-header {
+    text-align: center;
+    margin-bottom: 3rem;
+    border-bottom: 2px solid #f0f0f0;
+    padding-bottom: 2rem;
+    position: relative;
+    z-index: 2;
+}
+
+.recipe-title {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #2c5530;
+    margin-bottom: 1rem;
+    line-height: 1.3;
+}
+
+.recipe-servings {
+    display: inline-block;
+    background-color: #FF6B35;
+    color: white;
+    padding: 0.5rem 1.5rem;
+    border-radius: 25px;
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+/* 요리법 설명 - 오른쪽 페이지 */
+.recipe-instructions {
+    display: flex;
+    flex-direction: column;
+    gap: 2.5rem;
+    flex: 1;
+}
+
+.instruction-section {
+    background-color: #ffffff;
+    padding: 2.5rem;
+    border-radius: 15px;
+    border-left: 4px solid #FF6B35;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.instruction-section:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.instruction-title {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #2c5530;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+}
+
+.instruction-title::before {
+    content: "👨‍🍳";
+    margin-right: 0.5rem;
+    font-size: 1.2rem;
+}
+
+.instruction-steps {
+    list-style: none;
+    counter-reset: step-counter;
+    padding: 0;
+    margin: 0;
+}
+
+.instruction-steps li {
+    counter-increment: step-counter;
+    margin-bottom: 1rem;
+    padding-left: 3rem;
+    position: relative;
+    line-height: 1.6;
+    font-size: 1rem;
+}
+
+.instruction-steps li::before {
+    content: counter(step-counter);
+    position: absolute;
+    left: 0;
+    top: 0;
+    background-color: #FF6B35;
+    color: white;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    font-weight: bold;
+}
+
+/* 왼쪽 페이지 스타일 */
+.left-page {
+    display: flex;
+    flex-direction: column;
+    gap: 2.5rem;
+}
+
+/* 재료 섹션 */
+.ingredients-section {
+    background-color: #ffffff;
+    padding: 2rem;
+    border-radius: 15px;
+    border: 1px solid #e9ecef;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    flex: 1;
+}
+
+.ingredients-title {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #2c5530;
+    margin-bottom: 1.5rem;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.ingredients-title::before {
+    content: "🥘";
+    margin-right: 0.5rem;
+    font-size: 1.2rem;
+}
+
+.ingredients-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.ingredient-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.ingredient-item:last-child {
+    border-bottom: none;
+}
+
+.ingredient-name {
+    font-weight: 500;
+    color: #333;
+}
+
+.ingredient-amount {
+    font-weight: bold;
+    color: #FF6B35;
+    background-color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 15px;
+    font-size: 0.9rem;
+}
+
+.ingredient-note {
+    margin-top: 1.5rem;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, #e8f5e8 0%, #f0f8f0 100%);
+    border-radius: 12px;
+    text-align: center;
+    border: 1px solid #c3e6c3;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.ingredient-note p {
+    margin: 0;
+    font-weight: 600;
+    color: #2c5530;
+    font-size: 1rem;
+}
+
+/* 요리법 이미지 - 왼쪽 상단 */
+.recipe-image {
+    text-align: center;
+    margin-bottom: 2rem;
+    flex-shrink: 0;
+}
+
+.recipe-main-image {
+    width: 100%;
+    max-width: 280px;
+    height: auto;
+    border-radius: 15px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    transition: transform 0.3s ease;
+}
+
+.recipe-main-image:hover {
+    transform: scale(1.02);
+}
+
+.recipe-product-image {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-bottom: 0.5rem;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+    .main-content {
+        padding: 1rem;
+        margin-top: 80px;
+    }
+
+    .recipe-card {
+        padding: 2rem 1.5rem;
+    }
+
+    .recipe-title {
+        font-size: 2rem;
+    }
+
+    .book-layout {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+
+    .book-layout::before {
+        display: none;
+    }
+
+    .left-page {
+        border-right: none;
+        padding-right: 2rem;
+    }
+
+    .right-page {
+        padding-left: 2rem;
+    }
+
+    .instruction-section {
+        padding: 1.5rem;
+    }
+
+    .ingredients-section {
+        padding: 1.5rem;
+    }
+
+    .search-input {
+        padding: 0.875rem 3rem 0.875rem 1.25rem;
+        font-size: 0.9rem;
+    }
+
+    .search-btn {
+        width: 35px;
+        height: 35px;
+    }
+}
+
+@media (max-width: 480px) {
+    .main-content {
+        padding: 0.5rem;
+        margin-top: 80px;
+    }
+
+    .recipe-card {
+        padding: 1.5rem 1rem;
+    }
+
+    .recipe-title {
+        font-size: 1.8rem;
+    }
+
+    .left-page, .right-page {
+        padding: 1rem;
+    }
+
+    .instruction-section {
+        padding: 1rem;
+    }
+
+    .ingredients-section {
+        padding: 1rem;
+    }
+
+    .instruction-steps li {
+        padding-left: 2.5rem;
+        font-size: 0.9rem;
+    }
+
+    .instruction-steps li::before {
+        width: 20px;
+        height: 20px;
+        font-size: 0.8rem;
+    }
+}

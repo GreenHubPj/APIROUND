@@ -45,4 +45,9 @@ public class HomeController {
     public String recipe() {
         return "recipe";
     }
+
+    @GetMapping("/recipe-detail")
+    public String recipeDetail() {
+        return "recipe-detail";
+    }
 }
