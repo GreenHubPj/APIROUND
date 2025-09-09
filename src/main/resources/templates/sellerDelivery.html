@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>배송관리 - GreenHub</title>
+    <link rel="stylesheet" href="/css/header.css">
+    <link rel="stylesheet" href="/css/sellerDelivery.css">
+    <link rel="stylesheet" href="/css/footer.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+<!-- 헤더 include -->
+<div th:replace="common/header :: header"></div>
+
+<!-- 배송관리 메인 컨텐츠 -->
+<section class="delivery-management-section">
+    <div class="container">
+        <!-- 배송관리 타이틀 -->
+        <div class="delivery-title">
+            <div class="title-icon">🚚</div>
+            <h1 class="page-title">배송관리</h1>
+        </div>
+
+        <!-- 배송 현황 요약 -->
+        <div class="delivery-summary">
+            <div class="summary-card">
+                <div class="summary-icon">📦</div>
+                <div class="summary-content">
+                    <div class="summary-number">2</div>
+                    <div class="summary-label">배송 준비중</div>
+                </div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-icon">🚚</div>
+                <div class="summary-content">
+                    <div class="summary-number">1</div>
+                    <div class="summary-label">배송중</div>
+                </div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-icon">✅</div>
+                <div class="summary-content">
+                    <div class="summary-number">1</div>
+                    <div class="summary-label">배송 완료</div>
+                </div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-icon">🔄</div>
+                <div class="summary-content">
+                    <div class="summary-number">1</div>
+                    <div class="summary-label">반품/교환</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 주문 배송 현황 -->
+        <div class="order-delivery-section">
+            <div class="section-header">
+                <div class="section-icon">☑️</div>
+                <h2 class="section-title">주문 배송 현황</h2>
+            </div>
+            
+            <!-- 탭 메뉴 -->
+            <div class="delivery-tabs">
+                <button class="tab-button active" data-tab="all">전체</button>
+                <button class="tab-button" data-tab="preparing">배송 준비</button>
+                <button class="tab-button" data-tab="delivering">배송중</button>
+                <button class="tab-button" data-tab="completed">배송 완료</button>
+                <button class="tab-button" data-tab="return">교환/환불</button>
+            </div>
+
+            <!-- 주문 목록 -->
+            <div class="order-list">
+                <!-- 주문 1: 제주 유기농 당근 -->
+                <div class="order-item" data-status="preparing">
+                    <div class="order-header">
+                        <span class="order-number">주문번호: #YJ-2024-001</span>
+                    </div>
+                    <div class="order-content">
+                        <div class="product-info">
+                            <div class="product-icon">🥕</div>
+                            <div class="product-details">
+                                <div class="product-name">제주 유기농 당근</div>
+                                <div class="product-spec">5kg × 1개</div>
+                            </div>
+                        </div>
+                        <div class="recipient-info">
+                            <div class="recipient-name">Yoyo Kang</div>
+                            <div class="recipient-address">제주도 제주시</div>
+                        </div>
+                        <div class="order-actions">
+                            <button class="status-button preparing">배송 준비중</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 주문 2: 제주 한라봉 -->
+                <div class="order-item" data-status="delivering">
+                    <div class="order-header">
+                        <span class="order-number">주문번호: #YJ-2024-002</span>
+                    </div>
+                    <div class="order-content">
+                        <div class="product-info">
+                            <div class="product-icon">🍊</div>
+                            <div class="product-details">
+                                <div class="product-name">제주 한라봉</div>
+                                <div class="product-spec">3kg × 2개</div>
+                            </div>
+                        </div>
+                        <div class="recipient-info">
+                            <div class="recipient-name">Minseo</div>
+                            <div class="recipient-address">서울시 구로구</div>
+                        </div>
+                        <div class="order-actions">
+                            <button class="status-button delivering">배송중</button>
+                            <button class="action-button">송장 확인</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 주문 3: 경북 문경 사과 -->
+                <div class="order-item" data-status="completed">
+                    <div class="order-header">
+                        <span class="order-number">주문번호: #GB-2024-003</span>
+                    </div>
+                    <div class="order-content">
+                        <div class="product-info">
+                            <div class="product-icon">🍎</div>
+                            <div class="product-details">
+                                <div class="product-name">경북 문경 사과</div>
+                                <div class="product-spec">1kg × 1개</div>
+                            </div>
+                        </div>
+                        <div class="recipient-info">
+                            <div class="recipient-name">Hannah</div>
+                            <div class="recipient-address">부산시 해운대구</div>
+                        </div>
+                        <div class="order-actions">
+                            <button class="status-button completed">배송 완료</button>
+                            <button class="action-button">리뷰 확인</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 주문 4: 전남 고흥 유자 (교환/환불) -->
+                <div class="order-item" data-status="return">
+                    <div class="order-header">
+                        <span class="order-number">주문번호: #JN-2024-004</span>
+                    </div>
+                    <div class="order-content">
+                        <div class="product-info">
+                            <div class="product-icon">🍋</div>
+                            <div class="product-details">
+                                <div class="product-name">전남 고흥 유자</div>
+                                <div class="product-spec">2kg × 1개</div>
+                            </div>
+                        </div>
+                        <div class="recipient-info">
+                            <div class="recipient-name">김민수</div>
+                            <div class="recipient-address">대전시 유성구</div>
+                        </div>
+                        <div class="order-actions">
+                            <button class="status-button return">교환 요청</button>
+                            <button class="action-button">처리하기</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 주문 5: 경남 거창 한우 (교환 진행중) -->
+                <div class="order-item" data-status="exchange">
+                    <div class="order-header">
+                        <span class="order-number">주문번호: #GN-2024-005</span>
+                    </div>
+                    <div class="order-content">
+                        <div class="product-info">
+                            <div class="product-icon">🥩</div>
+                            <div class="product-details">
+                                <div class="product-name">경남 거창 한우</div>
+                                <div class="product-spec">1kg × 2개</div>
+                            </div>
+                        </div>
+                        <div class="recipient-info">
+                            <div class="recipient-name">박지영</div>
+                            <div class="recipient-address">인천시 연수구</div>
+                        </div>
+                        <div class="order-actions">
+                            <button class="status-button exchange">교환 진행중</button>
+                            <button class="action-button">진행상황</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 푸터 include -->
+<div th:replace="common/footer :: footer"></div>
+
+<script src="/js/sellerDelivery.js"></script>
+</body>
+</html>

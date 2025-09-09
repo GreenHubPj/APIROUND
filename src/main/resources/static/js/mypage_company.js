@@ -47,14 +47,12 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 고객 주문건 페이지로 이동
     function showCustomerOrders() {
-        alert('고객 주문건 관리 페이지로 이동합니다.');
-        // window.location.href = '/company/orders';
+        window.location.href = '/customerOrder';
     }
     
     // 배송건 관리 페이지로 이동
     function showDeliveryManagement() {
-        alert('배송건 관리 페이지로 이동합니다.');
-        // window.location.href = '/company/delivery';
+        window.location.href = '/sellerDelivery';
     }
     
     // 리뷰 관리 페이지로 이동
