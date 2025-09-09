@@ -198,6 +198,66 @@ body {
     height: 20px;
     filter: brightness(0) invert(1);
 }
+
+/* 선택된 지역 섹션 */
+.selected-region-section {
+    max-width: 300px;
+    margin: 10px auto;
+    padding: 0 20px;
+}
+
+.selected-region-container {
+    max-width: 100%;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 0;
+}
+
+.selected-region-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.selected-label {
+    color: #666;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.selected-region-name {
+    color: #ff8c42;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.clear-selection-btn {
+    background: none;
+    color: #999;
+    border: none;
+    padding: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+}
+
+.clear-selection-btn:hover {
+    background: #f0f0f0;
+    color: #666;
+}
+
+.clear-icon {
+    font-size: 12px;
+    font-weight: bold;
+}
 /* 컨텐츠 래퍼 - 사진과 정확히 동일한 비율 */
 .content-wrapper {
     max-width: 900px;
@@ -380,107 +440,34 @@ body {
     height: fit-content;
     position: sticky;
     top: 20px;
-    margin: 100px;
+    margin: 0;
+    width: fit-content;
+    margin-top: 200px;
+    margin-left: 40px;
 }
 
 .map-wrap {
-    width: 100%;
+    width: fit-content;
     display: flex;
     justify-content: center;
     align-items: center;
+    position: relative;
 }
 
 .korea-map {
-    width: 100%;
+    width: 300px;
     height: auto;
-    max-width: 300px;
     cursor: pointer;
     transition: all 0.3s ease;
     filter: brightness(1) contrast(1);
-    margin-top: 50px;
+    margin: 0;
 }
 
 .korea-map:hover {
     transform: scale(1.05);
 }
 
-/* 강원도 선택 시 지도 효과 - 블러 적용 */
-.korea-map.selected {
-    filter: brightness(0.4) contrast(0.7) blur(3px);
-    transition: filter 0.3s ease;
-}
 
-/* 배경 오버레이 스타일 - 제거하고 지도 자체에 효과 적용 */
-
-/* 지도 오버레이 스타일 */
-.province-overlay {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 1000;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 20px;
-    pointer-events: auto;
-    min-width: 300px;
-    min-height: 200px;
-}
-
-.province-map {
-    width: 200px;
-    height: auto;
-    animation: scaleIn 0.5s ease-out;
-}
-
-.selection-message {
-    background-color: rgba(255, 107, 53, 0.9);
-    color: white;
-    padding: 15px 25px;
-    border-radius: 25px;
-    text-align: center;
-    box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3);
-    animation: fadeInUp 0.6s ease-out 0.3s both;
-}
-
-.selection-message h3 {
-    margin: 0;
-    font-size: 16px;
-    font-weight: 600;
-}
-
-/* 애니메이션 키프레임 */
-@keyframes fadeIn {
-    0% {
-        opacity: 0;
-    }
-    100% {
-        opacity: 1;
-    }
-}
-
-@keyframes scaleIn {
-    0% {
-        transform: scale(0.5);
-        opacity: 0;
-    }
-    100% {
-        transform: scale(1);
-        opacity: 1;
-    }
-}
-
-@keyframes fadeInUp {
-    0% {
-        transform: translateY(20px);
-        opacity: 0;
-    }
-    100% {
-        transform: translateY(0);
-        opacity: 1;
-    }
-}
 
 /* 지도 래퍼에 상대 위치 설정 */
 .map-wrap {
@@ -495,7 +482,7 @@ body {
     width: 100%;
     height: 100%;
     pointer-events: none;
-    margin-top: 50px;
+    margin: 0;
 }
 
 .region-label {
@@ -755,5 +742,36 @@ body {
     .filter-title {
         font-size: 1.1rem;
         margin-bottom: 12px;
+    }
+    
+    /* 선택된 지역 섹션 반응형 */
+    .selected-region-section {
+        width: 100%;
+        padding: 15px 20px;
+    }
+    
+    .selected-region-container {
+        flex-direction: column;
+        gap: 10px;
+        text-align: center;
+    }
+    
+    .selected-region-info {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .selected-label {
+        font-size: 13px;
+    }
+    
+    .selected-region-name {
+        font-size: 15px;
+    }
+    
+    .clear-selection-btn {
+        width: 20px;
+        height: 20px;
+        font-size: 14px;
     }
 }

@@ -226,6 +226,160 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
+    // 장바구니 버튼 클릭 이벤트
+    const cartButtons = document.querySelectorAll('.btn-cart');
+    cartButtons.forEach(button => {
+        button.addEventListener('click', function(event) {
+            event.stopPropagation();
+            const productId = this.getAttribute('data-product-id');
+            const productName = this.getAttribute('data-product-name');
+            
+            // 가격 옵션 선택 확인
+            const productCard = this.closest('.product-card');
+            const selectedOption = productCard.querySelector('.price-option.selected');
+            
+            if (!selectedOption) {
+                showMessage('가격 옵션을 선택해주세요.', 'warning', this);
+                return;
+            }
+            
+            const priceLabel = selectedOption.querySelector('.price-label').textContent;
+            const priceAmount = selectedOption.querySelector('.price-amount').textContent;
+            
+            // 장바구니에 추가
+            addToCart(productId, productName, priceLabel, priceAmount);
+            showMessage(`${productName}이 장바구니에 추가되었습니다!`, 'success', this);
+        });
+    });
+
+    // 구매하기 버튼 클릭 이벤트
+    const buyButtons = document.querySelectorAll('.btn-buy');
+    buyButtons.forEach(button => {
+        button.addEventListener('click', function(event) {
+            event.stopPropagation();
+            const productId = this.getAttribute('data-product-id');
+            const productName = this.getAttribute('data-product-name');
+            
+            // 가격 옵션 선택 확인
+            const productCard = this.closest('.product-card');
+            const selectedOption = productCard.querySelector('.price-option.selected');
+            
+            if (!selectedOption) {
+                showMessage('가격 옵션을 선택해주세요.', 'warning', this);
+                return;
+            }
+            
+            const priceLabel = selectedOption.querySelector('.price-label').textContent;
+            const priceAmount = selectedOption.querySelector('.price-amount').textContent;
+            
+            // 구매 페이지로 이동
+            buyNow(productId, productName, priceLabel, priceAmount);
+        });
+    });
+
+    // 장바구니에 상품 추가 함수
+    function addToCart(productId, productName, priceLabel, priceAmount) {
+        const cartItem = {
+            id: productId,
+            name: productName,
+            quantity: priceLabel,
+            price: priceAmount,
+            timestamp: new Date().toISOString()
+        };
+        
+        // localStorage에서 기존 장바구니 가져오기
+        let cart = JSON.parse(localStorage.getItem('cart')) || [];
+        
+        // 중복 상품 확인
+        const existingItem = cart.find(item => item.id === productId && item.quantity === priceLabel);
+        if (existingItem) {
+            existingItem.count = (existingItem.count || 1) + 1;
+        } else {
+            cartItem.count = 1;
+            cart.push(cartItem);
+        }
+        
+        // localStorage에 저장
+        localStorage.setItem('cart', JSON.stringify(cart));
+        
+        console.log('장바구니에 추가됨:', cartItem);
+    }
+
+    // 구매하기 함수
+    function buyNow(productId, productName, priceLabel, priceAmount) {
+        const orderItem = {
+            id: productId,
+            name: productName,
+            quantity: priceLabel,
+            price: priceAmount,
+            timestamp: new Date().toISOString()
+        };
+        
+        // 주문 정보를 localStorage에 저장
+        localStorage.setItem('currentOrder', JSON.stringify([orderItem]));
+        
+        // 구매 페이지로 이동
+        window.location.href = '/buying';
+    }
+
+    // 메시지 표시 함수
+    function showMessage(message, type, targetElement) {
+        // 기존 메시지 제거
+        const existingMessage = document.querySelector('.action-message');
+        if (existingMessage) {
+            existingMessage.remove();
+        }
+        
+        // 새 메시지 생성
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `action-message ${type}`;
+        messageDiv.textContent = message;
+        
+        // 스타일 적용
+        messageDiv.style.cssText = `
+            position: fixed;
+            z-index: 1000;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transition: all 0.3s ease;
+        `;
+        
+        // 타입별 스타일
+        if (type === 'success') {
+            messageDiv.style.background = '#d4edda';
+            messageDiv.style.color = '#155724';
+            messageDiv.style.border = '1px solid #c3e6cb';
+        } else if (type === 'warning') {
+            messageDiv.style.background = '#fff3cd';
+            messageDiv.style.color = '#856404';
+            messageDiv.style.border = '1px solid #ffeaa7';
+        }
+        
+        // 위치 계산
+        if (targetElement) {
+            const rect = targetElement.getBoundingClientRect();
+            messageDiv.style.left = `${rect.left}px`;
+            messageDiv.style.top = `${rect.top - 50}px`;
+        } else {
+            messageDiv.style.left = '50%';
+            messageDiv.style.top = '20px';
+            messageDiv.style.transform = 'translateX(-50%)';
+        }
+        
+        // DOM에 추가
+        document.body.appendChild(messageDiv);
+        
+        // 3초 후 제거
+        setTimeout(() => {
+            if (messageDiv.parentNode) {
+                messageDiv.remove();
+            }
+        }, 3000);
+    }
+
 
     // 초기 로드 시 페이징 적용
     // 모든 상품을 숨김

@@ -10,17 +10,28 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <!-- 헤더 -->
+    <!-- 헤더 include -->
     <div th:replace="common/header :: header"></div>
 
     <!-- 메인 컨텐츠 -->
     <main class="main-content">
         <div class="container">
-            <!-- 상품 상세 정보 -->
-            <div class="product-detail-section">
-                <div class="product-detail-container">
+            <!-- 뒤로가기 버튼 -->
+            <div class="back-button">
+                <button class="back-btn" id="backBtn">
+                    <span>←</span> 목록으로 돌아가기
+                </button>
+            </div>
+
+            <!-- 메인 레이아웃 -->
+            <div class="main-layout">
+                <!-- 왼쪽: 상품 이미지, 리뷰, 업체 정보 -->
+                <div class="left-section">
                     <!-- 상품 이미지 -->
                     <div class="product-images">
+                        <div class="thumbnail-container" id="thumbnailContainer">
+                            <!-- 썸네일 이미지들이 여기에 동적으로 추가됩니다 -->
+                        </div>
                         <div class="main-image-container">
                             <img id="mainImage" src="" alt="상품 이미지" class="main-image">
                             <div class="image-nav">
@@ -28,19 +39,43 @@
                                 <button class="nav-btn next-btn" id="nextBtn">›</button>
                             </div>
                         </div>
-                        <div class="thumbnail-container" id="thumbnailContainer">
-                            <!-- 썸네일 이미지들이 여기에 동적으로 추가됩니다 -->
+                    </div>
+
+                    <!-- 리뷰 섹션 -->
+                    <div class="review-section">
+                        <div class="review-header">
+                            <h2 class="section-title">고객 리뷰</h2>
+                            <button class="view-all-reviews-btn" id="viewAllReviewsBtn">리뷰보기</button>
+                        </div>
+                        <div class="review-list" id="reviewList">
+                            <!-- 리뷰들이 여기에 동적으로 추가됩니다 -->
                         </div>
                     </div>
 
-                    <!-- 상품 정보 -->
+                    <!-- 업체 정보 섹션 -->
+                    <div class="company-section">
+                        <h3 class="company-title">업체 정보</h3>
+                        <div class="company-details">
+                            <div class="company-item">
+                                <span class="company-label">업체명:</span>
+                                <span class="company-value" id="companyName">문경농협</span>
+                            </div>
+                            <div class="company-item">
+                                <span class="company-label">전화번호:</span>
+                                <span class="company-value" id="companyPhone">054-555-1234</span>
+                            </div>
+                            <div class="company-item">
+                                <span class="company-label">이메일:</span>
+                                <span class="company-value" id="companyEmail">mungyeong@coop.co.kr</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 오른쪽: 상품 정보 -->
+                <div class="right-section">
                     <div class="product-info">
                         <div class="product-header">
-                            <div class="product-header-top">
-                                <button class="back-btn" id="backBtn">
-                                    <span>←</span> 목록으로 돌아가기
-                                </button>
-                            </div>
                             <h1 class="product-title" id="productTitle">상품명</h1>
                             <div class="product-tags" id="productTags">
                                 <!-- 태그들이 여기에 동적으로 추가됩니다 -->
@@ -102,8 +137,8 @@
                                 <span class="total-amount" id="totalAmount">0원</span>
                             </div>
                             <div class="purchase-buttons">
-                                <button class="btn-cart" id="addToCartBtn">장바구니 담기</button>
-                                <button class="btn-buy" id="buyNowBtn">바로 구매</button>
+                                <button class="btn-cart" id="addToCartBtn">🛒 장바구니 담기</button>
+                                <button class="btn-buy" id="buyNowBtn">💳 구매하기</button>
                             </div>
                         </div>
                     </div>
@@ -120,7 +155,7 @@
         </div>
     </main>
 
-    <!-- 푸터 -->
+    <!-- 푸터 include -->
     <div th:replace="common/footer :: footer"></div>
 
     <script th:src="@{/js/region-detail.js}"></script>
