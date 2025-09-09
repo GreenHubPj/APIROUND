@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>고객 주문관리 - GreenHub</title>
+    <link rel="stylesheet" href="/css/header.css">
+    <link rel="stylesheet" href="/css/customerOrder.css">
+    <link rel="stylesheet" href="/css/footer.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+<!-- 헤더 include -->
+<div th:replace="common/header :: header"></div>
+
+<!-- 고객 주문관리 메인 컨텐츠 -->
+<section class="customer-order-section">
+    <div class="container">
+        <!-- 페이지 타이틀 -->
+        <div class="page-header">
+            <h1 class="page-title">고객 주문관리</h1>
+        </div>
+
+        <!-- 조회 기간 설정 -->
+        <div class="date-filter-section">
+            <div class="date-range">
+                <div class="date-input-group">
+                    <label>조회 기간</label>
+                    <div class="date-inputs">
+                        <input type="date" id="startDate" value="2024-08-08">
+                        <span class="date-separator">~</span>
+                        <input type="date" id="endDate" value="2024-09-08">
+                    </div>
+                </div>
+                <button class="apply-btn">적용</button>
+            </div>
+            
+            <div class="quick-date-buttons">
+                <button class="quick-btn active" data-period="today">오늘</button>
+                <button class="quick-btn" data-period="yesterday">어제</button>
+                <button class="quick-btn" data-period="thisWeek">이번 주</button>
+                <button class="quick-btn" data-period="lastWeek">지난 주</button>
+                <button class="quick-btn" data-period="thisMonth">이번 달</button>
+                <button class="quick-btn" data-period="lastMonth">지난 달</button>
+            </div>
+        </div>
+
+        <!-- 메인 대시보드 -->
+        <div class="dashboard-grid">
+            <!-- 좌측: 판매량 추이 -->
+            <div class="sales-chart-section">
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <h3>판매량 추이</h3>
+                    </div>
+                    <canvas id="salesChart" width="400" height="200"></canvas>
+                    <div class="view-toggle">
+                        <button class="toggle-btn active" data-view="daily">일별</button>
+                        <button class="toggle-btn" data-view="hourly">시간별</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 우측: 매출 요약 -->
+            <div class="sales-summary-section">
+                <h3>매출 요약</h3>
+                <div class="summary-grid">
+                    <div class="summary-item">
+                        <div class="summary-label">총 매출</div>
+                        <div class="summary-value">₩1,245,000</div>
+                        <div class="summary-change positive">+12.5%</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-label">총 주문건</div>
+                        <div class="summary-value">156건</div>
+                        <div class="summary-change positive">+8.3%</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-label">평균 주문금액</div>
+                        <div class="summary-value">₩79,800</div>
+                        <div class="summary-change positive">+3.7%</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-label">주문 완료율</div>
+                        <div class="summary-value">94.2%</div>
+                        <div class="summary-change negative">-1.2%</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-label">최다 주문시간</div>
+                        <div class="summary-value">14:00-16:00</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-label">베스트 상품</div>
+                        <div class="summary-value">제주 유기농 당근</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 주문 상태 요약 카드 -->
+        <div class="order-status-cards">
+            <div class="status-card new-orders">
+                <div class="card-icon">🆕</div>
+                <div class="card-content">
+                    <div class="card-number">8</div>
+                    <div class="card-label">신규 주문</div>
+                </div>
+            </div>
+            <div class="status-card confirmed-orders">
+                <div class="card-icon">✅</div>
+                <div class="card-content">
+                    <div class="card-number">15</div>
+                    <div class="card-label">주문 확인</div>
+                </div>
+            </div>
+            <div class="status-card cancelled-orders">
+                <div class="card-icon">❌</div>
+                <div class="card-content">
+                    <div class="card-number">2</div>
+                    <div class="card-label">주문 취소</div>
+                </div>
+            </div>
+            <div class="status-card total-orders">
+                <div class="card-icon">📦</div>
+                <div class="card-content">
+                    <div class="card-number">156</div>
+                    <div class="card-label">총 주문건</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 주문 현황 상세 -->
+        <div class="order-details-section">
+            <div class="section-header">
+                <h3>주문 현황</h3>
+                <div class="date-info">
+                    <span class="current-date">2024년 9월 9일 (월요일)</span>
+                    <span class="date-short">2024.09.09 (오늘)</span>
+                </div>
+            </div>
+
+            <!-- 탭 메뉴 -->
+            <div class="order-tabs">
+                <button class="tab-button active" data-tab="all">전체 주문</button>
+                <button class="tab-button" data-tab="new">신규 주문</button>
+                <button class="tab-button" data-tab="confirmed">주문 확인</button>
+                <button class="tab-button" data-tab="preparing">배송 준비</button>
+                <button class="tab-button" data-tab="shipping">배송중</button>
+                <button class="tab-button" data-tab="completed">완료</button>
+                <button class="tab-button" data-tab="cancelled">취소</button>
+            </div>
+
+            <!-- 일별 요약 -->
+            <div class="daily-summary">
+                <span class="summary-text">주문 8건 매출 ₩567,000</span>
+            </div>
+
+            <!-- 주문 목록 -->
+            <div class="order-list">
+                <!-- 주문 1 -->
+                <div class="order-item" data-status="new">
+                    <div class="order-info">
+                        <div class="order-number">#YJ-2024-101</div>
+                        <div class="order-time">15:30 (30분 전)</div>
+                    </div>
+                    <div class="order-amount">₩89,000</div>
+                    <div class="order-actions">
+                        <button class="status-button new">신규 주문</button>
+                    </div>
+                </div>
+
+                <!-- 주문 2 -->
+                <div class="order-item" data-status="confirmed">
+                    <div class="order-info">
+                        <div class="order-number">#YJ-2024-102</div>
+                        <div class="order-time">10:15 (5시간 전)</div>
+                    </div>
+                    <div class="order-amount">₩56,000</div>
+                    <div class="order-actions">
+                        <button class="status-button confirmed">주문 확인</button>
+                    </div>
+                </div>
+
+                <!-- 주문 3 -->
+                <div class="order-item" data-status="preparing">
+                    <div class="order-info">
+                        <div class="order-number">#YJ-2024-103</div>
+                        <div class="order-time">09:45 (6시간 전)</div>
+                    </div>
+                    <div class="order-amount">₩123,000</div>
+                    <div class="order-actions">
+                        <button class="status-button preparing">배송 준비</button>
+                    </div>
+                </div>
+
+                <!-- 주문 4 -->
+                <div class="order-item" data-status="shipping">
+                    <div class="order-info">
+                        <div class="order-number">#YJ-2024-104</div>
+                        <div class="order-time">08:20 (7시간 전)</div>
+                    </div>
+                    <div class="order-amount">₩78,500</div>
+                    <div class="order-actions">
+                        <button class="status-button shipping">배송중</button>
+                    </div>
+                </div>
+
+                <!-- 주문 5 -->
+                <div class="order-item" data-status="completed">
+                    <div class="order-info">
+                        <div class="order-number">#YJ-2024-105</div>
+                        <div class="order-time">어제 16:30</div>
+                    </div>
+                    <div class="order-amount">₩95,000</div>
+                    <div class="order-actions">
+                        <button class="status-button completed">완료</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 푸터 include -->
+<div th:replace="common/footer :: footer"></div>
+
+<script src="/js/customerOrder.js"></script>
+</body>
+</html>

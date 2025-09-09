@@ -153,4 +153,14 @@ public class HomeController {
         return "review-management";
     }
 
+    @GetMapping("/sellerDelivery")
+    public String sellerDelivery() {
+        return "sellerDelivery";
+    }
+
+    @GetMapping("/customerOrder")
+    public String customerOrder() {
+        return "customerOrder";
+    }
+
 }
