@@ -28,8 +28,8 @@ document.addEventListener('DOMContentLoaded', function() {
             case 'delivery':
                 showDeliveryManagement();
                 break;
-            case 'posts':
-                showPostManagement();
+            case 'reviews':
+                showReviewManagement();
                 break;
             case 'company-edit':
                 showCompanyEdit();
@@ -57,10 +57,9 @@ document.addEventListener('DOMContentLoaded', function() {
         // window.location.href = '/company/delivery';
     }
     
-    // 게시물 관리 페이지로 이동
-    function showPostManagement() {
-        alert('게시물 관리 페이지로 이동합니다.');
-        // window.location.href = '/company/posts';
+    // 리뷰 관리 페이지로 이동
+    function showReviewManagement() {
+        window.location.href = '/review-management';
     }
     
     // 업체정보수정 페이지로 이동
@@ -71,8 +70,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 환불처리 페이지로 이동
     function showRefundProcessing() {
-        alert('환불처리 페이지로 이동합니다.');
-        // window.location.href = '/company/refund';
+        window.location.href = '/refund-management';
     }
     
     // 상품관리 페이지로 이동

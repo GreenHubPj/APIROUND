@@ -96,6 +96,11 @@ public class HomeController {
         return "refund";
     }
 
+    @GetMapping("/refund-management")
+    public String refundManagement() {
+        return "refund-management";
+    }
+
     @GetMapping("/order-detail")
     public String orderDetail() {
         return "order-detail";
@@ -111,5 +116,9 @@ public class HomeController {
         return "review-write";
     }
 
+    @GetMapping("/review-management")
+    public String reviewManagement() {
+        return "review-management";
+    }
 
 }

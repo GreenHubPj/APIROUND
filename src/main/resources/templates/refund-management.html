@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>환불 관리 - GreenHub</title>
+    <link rel="stylesheet" href="/css/header.css">
+    <link rel="stylesheet" href="/css/footer.css">
+    <link rel="stylesheet" href="/css/refund-management.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+<!-- 헤더 include -->
+<div th:replace="common/header :: header"></div>
+
+<!-- 환불 관리 메인 컨텐츠 -->
+<section class="refund-management-section">
+    <div class="container">
+        <!-- 페이지 타이틀 -->
+        <div class="page-header">
+            <div class="page-title-container">
+                <div class="page-icon">
+                    <span class="money-icon">💸</span>
+                </div>
+                <div>
+                    <h1 class="page-title">환불/교환 관리</h1>
+                    <p class="page-description">고객이 신청한 환불 및 교환 내역을 확인하고 처리하세요.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 필터 및 검색 영역 -->
+        <div class="filter-section">
+            <div class="filter-row">
+                <!-- 기간 검색 -->
+                <div class="filter-group">
+                    <label for="dateFilter">기간 검색</label>
+                    <select id="dateFilter" class="filter-select">
+                        <option value="">전체</option>
+                        <option value="today">오늘</option>
+                        <option value="week">1주일</option>
+                        <option value="month">1개월</option>
+                        <option value="custom">직접입력</option>
+                    </select>
+                </div>
+
+                <!-- 유형별 필터 -->
+                <div class="filter-group">
+                    <label for="typeFilter">유형별 필터</label>
+                    <select id="typeFilter" class="filter-select">
+                        <option value="">전체</option>
+                        <option value="환불">환불</option>
+                        <option value="교환">교환</option>
+                    </select>
+                </div>
+
+                <!-- 상태별 필터 -->
+                <div class="filter-group">
+                    <label for="statusFilter">상태별 필터</label>
+                    <select id="statusFilter" class="filter-select">
+                        <option value="">전체</option>
+                        <option value="신청">신청</option>
+                        <option value="승인대기">승인대기</option>
+                        <option value="처리중">처리중</option>
+                        <option value="완료">완료</option>
+                        <option value="반려">반려</option>
+                    </select>
+                </div>
+
+                <!-- 검색창 -->
+                <div class="filter-group search-group">
+                    <label for="searchInput">검색</label>
+                    <div class="search-input-container">
+                        <input type="text" id="searchInput" class="search-input" placeholder="주문번호, 고객명으로 검색">
+                        <button type="button" class="search-btn">검색</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 직접입력 날짜 선택 -->
+            <div class="custom-date-range" id="customDateRange" style="display: none;">
+                <div class="date-input-group">
+                    <input type="date" id="startDate" class="date-input">
+                    <span class="date-separator">~</span>
+                    <input type="date" id="endDate" class="date-input">
+                    <button type="button" class="apply-date-btn">적용</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 일괄 처리 버튼 -->
+        <div class="bulk-actions">
+            <button type="button" class="bulk-btn approve-btn" id="bulkApprove">선택 항목 승인</button>
+            <button type="button" class="bulk-btn reject-btn" id="bulkReject">선택 항목 반려</button>
+            <button type="button" class="bulk-btn complete-btn" id="bulkComplete">선택 항목 완료</button>
+        </div>
+
+        <!-- 환불 요청 목록 테이블 -->
+        <div class="table-container">
+            <table class="refund-table">
+                <thead>
+                    <tr>
+                        <th class="checkbox-col">
+                            <input type="checkbox" id="selectAll" class="checkbox">
+                        </th>
+                        <th class="date-col">신청일</th>
+                        <th class="order-col">주문번호</th>
+                        <th class="customer-col">고객명</th>
+                        <th class="product-col">상품명 / 수량</th>
+                        <th class="type-col">유형</th>
+                        <th class="reason-col">사유</th>
+                        <th class="amount-col">금액</th>
+                        <th class="status-col">상태</th>
+                        <th class="file-col">첨부파일</th>
+                        <th class="action-col">액션</th>
+                    </tr>
+                </thead>
+                <tbody id="refundTableBody">
+                    <!-- 환불 데이터가 동적으로 삽입됩니다 -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 페이지네이션 -->
+        <div class="pagination-container">
+            <div class="pagination">
+                <button type="button" class="page-btn prev-btn" id="prevPage">이전</button>
+                <div class="page-numbers" id="pageNumbers">
+                    <!-- 페이지 번호가 동적으로 생성됩니다 -->
+                </div>
+                <button type="button" class="page-btn next-btn" id="nextPage">다음</button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 환불 상세보기 모달 -->
+<div class="modal-overlay" id="refundDetailModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 class="modal-title">환불 상세 정보</h2>
+            <button type="button" class="modal-close" id="closeModal">&times;</button>
+        </div>
+        
+        <div class="modal-body">
+            <!-- 주문 정보 -->
+            <div class="info-section">
+                <h3 class="section-title">주문 정보</h3>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="info-label">주문번호:</span>
+                        <span class="info-value" id="modalOrderNumber">-</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">주문일자:</span>
+                        <span class="info-value" id="modalOrderDate">-</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">결제수단:</span>
+                        <span class="info-value" id="modalPaymentMethod">-</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">총 금액:</span>
+                        <span class="info-value" id="modalTotalAmount">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 환불 정보 -->
+            <div class="info-section">
+                <h3 class="section-title">환불 정보</h3>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="info-label">환불 사유:</span>
+                        <span class="info-value" id="modalRefundReason">-</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">환불 신청일:</span>
+                        <span class="info-value" id="modalRefundDate">-</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">환불 금액:</span>
+                        <span class="info-value" id="modalRefundAmount">-</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">환불 방법:</span>
+                        <span class="info-value" id="modalRefundMethod">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 고객 정보 -->
+            <div class="info-section">
+                <h3 class="section-title">고객 정보</h3>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="info-label">이름:</span>
+                        <span class="info-value" id="modalCustomerName">-</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">연락처:</span>
+                        <span class="info-value" id="modalCustomerPhone">-</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">이메일:</span>
+                        <span class="info-value" id="modalCustomerEmail">-</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">계좌번호:</span>
+                        <span class="info-value" id="modalAccountNumber">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 첨부 파일 -->
+            <div class="info-section">
+                <h3 class="section-title">첨부 파일</h3>
+                <div class="file-section" id="modalFileSection">
+                    <p class="no-file">첨부된 파일이 없습니다.</p>
+                </div>
+            </div>
+
+            <!-- 처리 이력 -->
+            <div class="info-section">
+                <h3 class="section-title">처리 이력</h3>
+                <div class="history-section" id="modalHistorySection">
+                    <!-- 처리 이력이 동적으로 생성됩니다 -->
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-footer">
+            <button type="button" class="modal-btn approve-btn" id="modalApprove">승인</button>
+            <button type="button" class="modal-btn reject-btn" id="modalReject">반려</button>
+            <button type="button" class="modal-btn complete-btn" id="modalComplete">처리완료</button>
+            <button type="button" class="modal-btn close-btn" id="modalClose">닫기</button>
+        </div>
+    </div>
+</div>
+
+<!-- 반려 사유 입력 모달 -->
+<div class="modal-overlay" id="rejectReasonModal">
+    <div class="modal-content reject-modal">
+        <div class="modal-header">
+            <h2 class="modal-title">반려 사유 입력</h2>
+            <button type="button" class="modal-close" id="closeRejectModal">&times;</button>
+        </div>
+        
+        <div class="modal-body">
+            <div class="form-group">
+                <label for="rejectReason" class="form-label">반려 사유</label>
+                <textarea id="rejectReason" class="form-textarea" rows="4" placeholder="반려 사유를 입력해주세요."></textarea>
+            </div>
+        </div>
+
+        <div class="modal-footer">
+            <button type="button" class="modal-btn confirm-btn" id="confirmReject">확인</button>
+            <button type="button" class="modal-btn cancel-btn" id="cancelReject">취소</button>
+        </div>
+    </div>
+</div>
+
+<!-- 푸터 include -->
+<div th:replace="common/footer :: footer"></div>
+
+<script src="/js/refund-management.js"></script>
+</body>
+</html>
+
