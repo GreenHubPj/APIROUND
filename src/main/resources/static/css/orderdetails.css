@@ -1,0 +1,792 @@
+/* 기본 스타일 */
+body {
+    font-family: 'Noto Sans KR', sans-serif;
+    line-height: 1.6;
+    color: #333;
+    background-color: #f8f9fa;
+}
+
+/* 메인 콘텐츠 */
+.main-content {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+    margin-top: 100px;
+}
+
+/* 페이지 타이틀 */
+.page-title-section {
+    text-align: center;
+    margin-bottom: 3rem;
+    padding: 2rem 0;
+    background: linear-gradient(135deg, #e8f5e8 0%, #f0f8f0 100%);
+    border-radius: 20px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.page-title {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #2c5530;
+    margin-bottom: 1rem;
+}
+
+.page-subtitle {
+    font-size: 1.1rem;
+    color: #666;
+    margin: 0;
+}
+
+/* 주문 정보 카드 */
+.order-info-card {
+    background-color: white;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+    overflow: hidden;
+}
+
+.order-header {
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    padding: 2rem;
+    border-bottom: 1px solid #e9ecef;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.order-basic-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.order-number {
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: #2c5530;
+    margin: 0;
+}
+
+.order-date {
+    font-size: 1rem;
+    color: #666;
+}
+
+.status-badge {
+    padding: 0.75rem 1.5rem;
+    border-radius: 25px;
+    font-size: 1rem;
+    font-weight: 600;
+    text-align: center;
+    min-width: 100px;
+}
+
+.status-completed {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.status-shipping {
+    background-color: #cce5ff;
+    color: #004085;
+}
+
+.status-preparing {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.status-cancelled {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+/* 섹션 공통 스타일 */
+.order-items-section,
+.delivery-info-section,
+.payment-info-section {
+    background-color: white;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+    overflow: hidden;
+}
+
+.section-title {
+    background: linear-gradient(135deg, #2c5530 0%, #3d6b42 100%);
+    color: white;
+    padding: 1.5rem 2rem;
+    margin: 0;
+    font-size: 1.3rem;
+    font-weight: 600;
+}
+
+/* 주문 상품 목록 */
+.order-items-list {
+    padding: 2rem;
+}
+
+.order-item-detail {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 1.5rem;
+    background-color: #f8f9fa;
+    border-radius: 12px;
+    margin-bottom: 1rem;
+    transition: all 0.3s ease;
+    border: 1px solid #e9ecef;
+    cursor: pointer;
+}
+
+.order-item-detail:hover {
+    background-color: #e3f2fd;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border-color: #2196F3;
+}
+
+.order-item-detail:last-child {
+    margin-bottom: 0;
+}
+
+.item-image-detail {
+    width: 80px;
+    height: 80px;
+    border-radius: 10px;
+    object-fit: cover;
+    flex-shrink: 0;
+    border: 2px solid #e9ecef;
+}
+
+.item-info-detail {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.item-name-detail {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #333;
+}
+
+.item-details-detail {
+    font-size: 1rem;
+    color: #666;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.item-quantity {
+    font-weight: 500;
+}
+
+.item-unit-price {
+    color: #888;
+}
+
+.item-total-price {
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: #FF6B35;
+    text-align: right;
+    min-width: 120px;
+}
+
+/* 배송 정보 */
+.delivery-info-card {
+    padding: 2rem;
+}
+
+.delivery-address {
+    margin-bottom: 2rem;
+}
+
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.info-row:last-child {
+    border-bottom: none;
+}
+
+.info-label {
+    font-weight: 600;
+    color: #555;
+    min-width: 120px;
+}
+
+.info-value {
+    color: #333;
+    text-align: right;
+    flex: 1;
+    margin-left: 1rem;
+}
+
+/* 배송 추적 */
+.delivery-tracking h4 {
+    color: #2c5530;
+    margin-bottom: 1.5rem;
+    font-size: 1.2rem;
+}
+
+.tracking-timeline {
+    position: relative;
+    padding-left: 2rem;
+}
+
+.tracking-timeline::before {
+    content: '';
+    position: absolute;
+    left: 1rem;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background-color: #e9ecef;
+}
+
+.tracking-step {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+}
+
+.tracking-step:last-child {
+    margin-bottom: 0;
+}
+
+.tracking-step::before {
+    content: '';
+    position: absolute;
+    left: -1.5rem;
+    top: 0.5rem;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: #e9ecef;
+    border: 3px solid white;
+    box-shadow: 0 0 0 2px #e9ecef;
+}
+
+.tracking-step.completed::before {
+    background-color: #28a745;
+    box-shadow: 0 0 0 2px #28a745;
+}
+
+.step-icon {
+    font-size: 1.5rem;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f8f9fa;
+    border-radius: 50%;
+    border: 2px solid #e9ecef;
+}
+
+.tracking-step.completed .step-icon {
+    background-color: #d4edda;
+    border-color: #28a745;
+}
+
+.step-content {
+    flex: 1;
+}
+
+.step-title {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 0.25rem;
+}
+
+.step-date {
+    font-size: 0.9rem;
+    color: #666;
+}
+
+/* 결제 정보 */
+.payment-info-card {
+    padding: 2rem;
+    display: flex;
+    gap: 3rem;
+    flex-wrap: wrap;
+}
+
+.payment-method {
+    flex: 1;
+    min-width: 300px;
+}
+
+.payment-summary {
+    flex: 1;
+    min-width: 300px;
+    background-color: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 10px;
+    border: 1px solid #e9ecef;
+}
+
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.summary-row:last-child {
+    border-bottom: none;
+}
+
+.summary-row.discount {
+    color: #dc3545;
+}
+
+.summary-row.total {
+    border-top: 2px solid #2c5530;
+    margin-top: 0.5rem;
+    padding-top: 1rem;
+    font-weight: bold;
+    font-size: 1.1rem;
+    color: #2c5530;
+}
+
+.summary-label {
+    font-weight: 500;
+    color: #555;
+}
+
+.summary-value {
+    font-weight: 600;
+    color: #333;
+}
+
+.summary-row.discount .summary-value {
+    color: #dc3545;
+}
+
+.summary-row.total .summary-value {
+    color: #2c5530;
+    font-size: 1.2rem;
+}
+
+/* 액션 버튼 */
+.action-buttons-section {
+    background-color: white;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.action-btn {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-block;
+    text-align: center;
+    min-width: 140px;
+}
+
+.btn-primary {
+    background-color: #007bff;
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #0056b3;
+    transform: translateY(-2px);
+}
+
+.btn-secondary {
+    background-color: #6c757d;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background-color: #545b62;
+    transform: translateY(-2px);
+}
+
+.btn-outline {
+    background-color: transparent;
+    color: #FF6B35;
+    border: 2px solid #FF6B35;
+}
+
+.btn-outline:hover {
+    background-color: #FF6B35;
+    color: white;
+    transform: translateY(-2px);
+}
+
+.btn-warning {
+    background-color: #ffc107;
+    color: #212529;
+}
+
+.btn-warning:hover {
+    background-color: #e0a800;
+    transform: translateY(-2px);
+}
+
+.btn-info {
+    background-color: #17a2b8;
+    color: white;
+}
+
+.btn-info:hover {
+    background-color: #138496;
+    transform: translateY(-2px);
+}
+
+/* 영수증 모달 */
+.receipt-modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(5px);
+}
+
+.receipt-modal-content {
+    background-color: white;
+    margin: 2% auto;
+    padding: 0;
+    border-radius: 15px;
+    width: 90%;
+    max-width: 600px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.receipt-header {
+    background: linear-gradient(135deg, #2c5530 0%, #4a7c59 100%);
+    color: white;
+    padding: 1.5rem 2rem;
+    border-radius: 15px 15px 0 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.receipt-header h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 2rem;
+    cursor: pointer;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background-color 0.3s ease;
+}
+
+.close-btn:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.receipt-body {
+    padding: 2rem;
+    background-color: #f8f9fa;
+}
+
+.receipt-info {
+    background-color: white;
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.receipt-title {
+    text-align: center;
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: #2c5530;
+    margin-bottom: 1rem;
+    border-bottom: 2px solid #e9ecef;
+    padding-bottom: 1rem;
+}
+
+.receipt-section {
+    margin-bottom: 1.5rem;
+}
+
+.receipt-section h3 {
+    color: #2c5530;
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+    border-left: 4px solid #28a745;
+    padding-left: 1rem;
+}
+
+.receipt-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.receipt-row:last-child {
+    border-bottom: none;
+}
+
+.receipt-label {
+    font-weight: 500;
+    color: #666;
+}
+
+.receipt-value {
+    font-weight: 600;
+    color: #333;
+}
+
+.receipt-total {
+    background-color: #e8f5e8;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-top: 1rem;
+}
+
+.receipt-total .receipt-row {
+    border-bottom: none;
+    font-size: 1.1rem;
+}
+
+.receipt-total .receipt-value {
+    color: #2c5530;
+    font-size: 1.3rem;
+    font-weight: bold;
+}
+
+.receipt-footer {
+    padding: 1.5rem 2rem;
+    background-color: white;
+    border-radius: 0 0 15px 15px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    border-top: 1px solid #e9ecef;
+}
+
+.receipt-footer button {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.receipt-footer .btn-secondary {
+    background-color: #6c757d;
+    color: white;
+}
+
+.receipt-footer .btn-secondary:hover {
+    background-color: #545b62;
+}
+
+.receipt-footer .btn-primary {
+    background-color: #28a745;
+    color: white;
+}
+
+.receipt-footer .btn-primary:hover {
+    background-color: #218838;
+}
+
+/* 영수증 특별 스타일 */
+.receipt-value-red {
+    color: #dc3545 !important;
+    font-weight: bold !important;
+}
+
+.receipt-row.sub-amount {
+    padding-left: 1rem;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.receipt-notes {
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #e9ecef;
+}
+
+.receipt-notes p {
+    font-size: 0.85rem;
+    color: #666;
+    line-height: 1.5;
+    margin-bottom: 0.8rem;
+    text-align: left;
+}
+
+.receipt-notes p:last-child {
+    margin-bottom: 0;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+    .main-content {
+        padding: 1rem;
+        margin-top: 80px;
+    }
+
+    .page-title {
+        font-size: 2rem;
+    }
+
+    .order-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .order-item-detail {
+        flex-direction: column;
+        align-items: flex-start;
+        text-align: left;
+        gap: 1rem;
+    }
+
+    .item-total-price {
+        text-align: left;
+        min-width: auto;
+        align-self: flex-end;
+    }
+
+    .info-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    .info-value {
+        text-align: left;
+        margin-left: 0;
+    }
+
+    .payment-info-card {
+        flex-direction: column;
+        gap: 2rem;
+    }
+
+    .payment-method,
+    .payment-summary {
+        min-width: auto;
+    }
+
+    .action-buttons {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .action-btn {
+        width: 100%;
+        max-width: 300px;
+    }
+
+    .tracking-timeline {
+        padding-left: 1.5rem;
+    }
+
+    .tracking-step::before {
+        left: -1.25rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .page-title {
+        font-size: 1.8rem;
+    }
+
+    .order-header {
+        padding: 1.5rem;
+    }
+
+    .order-items-list,
+    .delivery-info-card,
+    .payment-info-card,
+    .action-buttons-section {
+        padding: 1.5rem;
+    }
+
+    .order-item-detail {
+        padding: 1rem;
+    }
+
+    .item-image-detail {
+        width: 60px;
+        height: 60px;
+    }
+
+    .item-name-detail {
+        font-size: 1.1rem;
+    }
+
+    .item-total-price {
+        font-size: 1.2rem;
+    }
+
+    .action-btn {
+        padding: 0.6rem 1.2rem;
+        font-size: 0.9rem;
+        min-width: 120px;
+    }
+}

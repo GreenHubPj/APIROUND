@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>내 요리법 - GreenHub</title>
+    <link rel="stylesheet" href="/css/header.css">
+    <link rel="stylesheet" href="/css/myrecipe-detail.css">
+    <link rel="stylesheet" href="/css/footer.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- 헤더 include -->
+    <div th:replace="common/header :: header"></div>
+
+    <!-- 메인 콘텐츠 -->
+    <main class="main-content">
+
+        <!-- 요리법 카드 - 책 형태 -->
+        <section class="recipe-section">
+            <div class="recipe-card">
+                <div class="recipe-header">
+                    <h1 class="recipe-title" contenteditable="false">달콤한 사과로 만드는 애플파이</h1>
+                    <div class="recipe-servings" contenteditable="false">4인분</div>
+                    <div class="edit-controls">
+                        <button class="edit-btn" id="editModeBtn">수정 모드</button>
+                        <button class="delete-recipe-btn" id="deleteRecipeBtn">삭제하기</button>
+                        <button class="save-btn" id="saveBtn" style="display: none;">저장</button>
+                        <button class="cancel-btn" id="cancelBtn" style="display: none;">취소</button>
+                    </div>
+                </div>
+
+                <div class="book-layout">
+                    <!-- 왼쪽 페이지 - 재료와 이미지 -->
+                    <div class="left-page">
+                        <div class="recipe-image">
+                            <img src="/images/애플파이.jpg" alt="달콤한 애플파이" class="recipe-main-image">
+                            <div class="image-upload" style="display: none;">
+                                <input type="file" id="imageUpload" accept="image/*">
+                                <label for="imageUpload" class="upload-btn">이미지 변경</label>
+                            </div>
+                        </div>
+
+                        <div class="ingredients-section">
+                            <h3 class="ingredients-title">재료</h3>
+                            <ul class="ingredients-list" id="ingredientsList">
+                                <li class="ingredient-item">
+                                    <span class="ingredient-name" contenteditable="false">박력분</span>
+                                    <span class="ingredient-amount" contenteditable="false">230g</span>
+                                    <button class="remove-ingredient" style="display: none;">×</button>
+                                </li>
+                                <li class="ingredient-item">
+                                    <span class="ingredient-name" contenteditable="false">차가운 버터</span>
+                                    <span class="ingredient-amount" contenteditable="false">120g</span>
+                                    <button class="remove-ingredient" style="display: none;">×</button>
+                                </li>
+                                <li class="ingredient-item">
+                                    <span class="ingredient-name" contenteditable="false">차가운 물</span>
+                                    <span class="ingredient-amount" contenteditable="false">50g</span>
+                                    <button class="remove-ingredient" style="display: none;">×</button>
+                                </li>
+                                <li class="ingredient-item">
+                                    <span class="ingredient-name" contenteditable="false">소금</span>
+                                    <span class="ingredient-amount" contenteditable="false">2g</span>
+                                    <button class="remove-ingredient" style="display: none;">×</button>
+                                </li>
+                                <li class="ingredient-item">
+                                    <span class="ingredient-name" contenteditable="false">사과</span>
+                                    <span class="ingredient-amount" contenteditable="false">2~3개</span>
+                                    <button class="remove-ingredient" style="display: none;">×</button>
+                                </li>
+                                <li class="ingredient-item">
+                                    <span class="ingredient-name" contenteditable="false">설탕</span>
+                                    <span class="ingredient-amount" contenteditable="false">70g</span>
+                                    <button class="remove-ingredient" style="display: none;">×</button>
+                                </li>
+                                <li class="ingredient-item">
+                                    <span class="ingredient-name" contenteditable="false">레몬즙</span>
+                                    <span class="ingredient-amount" contenteditable="false">1큰술</span>
+                                    <button class="remove-ingredient" style="display: none;">×</button>
+                                </li>
+                                <li class="ingredient-item">
+                                    <span class="ingredient-name" contenteditable="false">계피가루</span>
+                                    <span class="ingredient-amount" contenteditable="false">1티스푼</span>
+                                    <button class="remove-ingredient" style="display: none;">×</button>
+                                </li>
+                                <li class="ingredient-item">
+                                    <span class="ingredient-name" contenteditable="false">계란</span>
+                                    <span class="ingredient-amount" contenteditable="false">1개</span>
+                                    <button class="remove-ingredient" style="display: none;">×</button>
+                                </li>
+                            </ul>
+                            <button class="add-ingredient" id="addIngredientBtn" style="display: none;">+ 재료 추가</button>
+                            <div class="ingredient-note">
+                                <img src="/images/사과.jpg" alt="문경 사과" class="recipe-product-image">
+                                <p contenteditable="false">문경 사과</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 오른쪽 페이지 - 요리법 설명 -->
+                    <div class="right-page">
+                        <div class="recipe-instructions">
+                            <div class="instruction-section">
+                                <h3 class="instruction-title" contenteditable="false">파이지 만들기</h3>
+                                <ol class="instruction-steps">
+                                    <li contenteditable="false">박력분과 소금을 체에 쳐서 볼에 넣고 섞어주세요.<button class="remove-step" style="display: none;">×</button></li>
+                                    <li contenteditable="false">차가운 버터를 작은 조각으로 잘라 넣고 손가락으로 비벼가며 밀가루와 섞어주세요.<button class="remove-step" style="display: none;">×</button></li>
+                                    <li contenteditable="false">차가운 물을 조금씩 넣어가며 반죽을 만들어주세요.<button class="remove-step" style="display: none;">×</button></li>
+                                    <li contenteditable="false">반죽을 랩으로 싸서 냉장고에서 30분간 휴지시켜주세요.<button class="remove-step" style="display: none;">×</button></li>
+                                </ol>
+                                <button class="add-step" style="display: none;">+ 단계 추가</button>
+                                <button class="remove-section" style="display: none;">섹션 삭제</button>
+                            </div>
+
+                            <div class="instruction-section">
+                                <h3 class="instruction-title" contenteditable="false">사과 필링 만들기</h3>
+                                <ol class="instruction-steps">
+                                    <li contenteditable="false">사과를 껍질을 벗기고 적당한 크기로 썰어주세요.<button class="remove-step" style="display: none;">×</button></li>
+                                    <li contenteditable="false">팬에 사과, 설탕, 레몬즙을 넣고 중불에서 끓여주세요.<button class="remove-step" style="display: none;">×</button></li>
+                                    <li contenteditable="false">사과가 갈색이 되고 부드러워질 때까지 끓여주세요.<button class="remove-step" style="display: none;">×</button></li>
+                                    <li contenteditable="false">계피가루를 넣고 수분이 없어질 때까지 더 끓여주세요.<button class="remove-step" style="display: none;">×</button></li>
+                                </ol>
+                                <button class="add-step" style="display: none;">+ 단계 추가</button>
+                                <button class="remove-section" style="display: none;">섹션 삭제</button>
+                            </div>
+
+                            <div class="instruction-section">
+                                <h3 class="instruction-title" contenteditable="false">애플파이 만들기</h3>
+                                <ol class="instruction-steps">
+                                    <li contenteditable="false">휴지한 반죽을 밀대로 펴서 타르트 팬에 깔아주세요.<button class="remove-step" style="display: none;">×</button></li>
+                                    <li contenteditable="false">만들어둔 사과 필링을 넣어주세요.<button class="remove-step" style="display: none;">×</button></li>
+                                    <li contenteditable="false">남은 반죽으로 격자무늬를 만들어 위에 올려주세요.<button class="remove-step" style="display: none;">×</button></li>
+                                    <li contenteditable="false">계란을 풀어서 격자무늬 위에 발라주세요.<button class="remove-step" style="display: none;">×</button></li>
+                                    <li contenteditable="false">190도로 예열된 오븐에서 30분간 구워주세요.<button class="remove-step" style="display: none;">×</button></li>
+                                </ol>
+                                <button class="add-step" style="display: none;">+ 단계 추가</button>
+                                <button class="remove-section" style="display: none;">섹션 삭제</button>
+                            </div>
+                        </div>
+                        <button class="add-section" id="addSectionBtn" style="display: none;">+ 요리법 섹션 추가</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 푸터 include -->
+    <div th:replace="common/footer :: footer"></div>
+
+    <script src="/js/myrecipe-detail.js"></script>
+</body>
+</html>
