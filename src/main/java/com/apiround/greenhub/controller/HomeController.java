@@ -101,4 +101,15 @@ public class HomeController {
         return "order-detail";
     }
 
+    @GetMapping("/review")
+    public String review() {
+        return "review";
+    }
+
+    @GetMapping("/review-write")
+    public String reviewWrite() {
+        return "review-write";
+    }
+
+
 }
