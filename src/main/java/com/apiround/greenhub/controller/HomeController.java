@@ -101,8 +101,4 @@ public class HomeController {
         return "order-detail";
     }
 
-    @GetMapping("/shoppinglist")
-    public String shoppinglist() {
-        return "shoppinglist";
-    }
 }
