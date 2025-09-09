@@ -60,8 +60,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 리뷰작성 페이지로 이동
     function showReviewWrite() {
-        alert('리뷰작성 페이지로 이동합니다.');
-        // window.location.href = '/review-write';
+        window.location.href = '/review';
     }
     
     // 장바구니 페이지로 이동

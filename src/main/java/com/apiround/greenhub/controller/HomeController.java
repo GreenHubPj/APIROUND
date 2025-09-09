@@ -46,12 +46,6 @@ public class HomeController {
         return "recipe";
     }
 
-
-    @GetMapping("/recipe-detail")
-    public String recipeDetail() {
-        return "recipe-detail";
-    }
-
     @GetMapping("/find-id")
     public String findId() {
         return "find-id";
@@ -62,11 +56,6 @@ public class HomeController {
         return "find-password";
     }
 
-    @GetMapping("/event")
-    public String event() {
-        return "event";
-    }
-
     @GetMapping("/mypage")
     public String mypage() {
         return "mypage";
@@ -75,6 +64,21 @@ public class HomeController {
     @GetMapping("/mypage-company")
     public String mypageCompany() {
         return "mypage_company";
+    }
+
+    @GetMapping("/recipe-detail")
+    public String recipeDetail() {
+        return "recipe-detail";
+    }
+
+    @GetMapping("/shoppinglist")
+    public String shoppinglist() {
+        return "shoppinglist";
+    }
+
+    @GetMapping("/event")
+    public String event() {
+        return "event";
     }
 
     @GetMapping("/profile-edit")
