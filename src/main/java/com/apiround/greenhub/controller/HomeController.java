@@ -47,9 +47,6 @@ public class HomeController {
         return "recipe";
     }
 
-
-
-
     @GetMapping("/find-id")
     public String findId() {
         return "find-id";
@@ -132,6 +129,11 @@ public class HomeController {
         return "refund";
     }
 
+    @GetMapping("/refund-management")
+    public String refundManagement() {
+        return "refund-management";
+    }
+
     @GetMapping("/order-detail")
     public String orderDetail() {
         return "order-detail";
@@ -145,6 +147,11 @@ public class HomeController {
     @GetMapping("/region-detail")
     public String regionDetail(@RequestParam(required = false) String id) {
         return "region-detail";
+    }
+
+    @GetMapping("/review-management")
+    public String reviewManagement() {
+        return "review-management";
     }
 
 }
