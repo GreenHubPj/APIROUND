@@ -42,10 +42,34 @@
 
         <!-- 컨텐츠 영역 -->
         <div class="content-wrapper">
+            <!-- 카테고리 필터 -->
+            <section class="category-filter-section">
+                <div class="category-filter-container">
+                    <h3 class="filter-title">상품 카테고리</h3>
+                    <div class="category-buttons">
+                        <button class="category-btn active" data-category="all">
+                            <span>전체</span>
+                        </button>
+                        <button class="category-btn" data-category="농산물">
+                            <span>농산물</span>
+                        </button>
+                        <button class="category-btn" data-category="축산물">
+                            <span>축산물</span>
+                        </button>
+                        <button class="category-btn" data-category="수산물">
+                            <span>수산물</span>
+                        </button>
+                        <button class="category-btn" data-category="가공식품">
+                            <span>가공식품</span>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
             <!-- 상품 목록 -->
              <section class="products-section" id="productsSection">
                  <!-- 경북 상품들 -->
-                 <div class="product-card" data-region="gyeongbuk">
+                 <div class="product-card" data-region="gyeongbuk" data-product-id="3" data-category="농산물">
                      <div class="product-image">
                          <img src="/images/제철 사과.jpg" alt="문경 사과">
                          <p class="product-place">경상북도 문경</p>
@@ -72,7 +96,7 @@
                      </div>
                  </div>
 
-                 <div class="product-card" data-region="gyeongbuk">
+                 <div class="product-card" data-region="gyeongbuk" data-product-id="4" data-category="농산물">
                      <div class="product-image">
                          <img src="/images/제철 마늘.jpg" alt="영천 마늘">
                          <p class="product-place">경상북도 영천</p>
@@ -99,7 +123,7 @@
                  </div>
 
                  <!-- 경남 상품들 -->
-                 <div class="product-card" data-region="gyeongnam">
+                 <div class="product-card" data-region="gyeongnam" data-product-id="5" data-category="수산물">
                      <div class="product-image">
                          <img src="/images/제철 새우.jpg" alt="통영 새우">
                          <p class="product-place">경상남도 통영</p>
@@ -125,7 +149,7 @@
                      </div>
                  </div>
 
-                 <div class="product-card" data-region="gyeongnam">
+                 <div class="product-card" data-region="gyeongnam" data-product-id="5" data-category="수산물">
                      <div class="product-image">
                          <img src="/images/제철 마늘.jpg" alt="남해 마늘">
                          <p class="product-place">경상남도 남해</p>
@@ -152,7 +176,7 @@
                  </div>
 
                  <!-- 강원 상품들 -->
-                 <div class="product-card" data-region="gangwon">
+                 <div class="product-card" data-region="gangwon" data-product-id="2" data-category="농산물">
                      <div class="product-image">
                          <img src="/images/제철 감자.jpg" alt="평창 감자">
                          <p class="product-place">강원도 평창</p>
@@ -178,7 +202,7 @@
                      </div>
                  </div>
 
-                 <div class="product-card" data-region="gangwon">
+                 <div class="product-card" data-region="gangwon" data-product-id="2" data-category="농산물">
                      <div class="product-image">
                          <img src="/images/제철 사과.jpg" alt="춘천 사과">
                          <p class="product-place">강원도 춘천</p>
@@ -205,7 +229,7 @@
                  </div>
 
                  <!-- 경기 상품들 -->
-                 <div class="product-card" data-region="gyeonggi">
+                 <div class="product-card" data-region="gyeonggi" data-product-id="6" data-category="농산물">
                      <div class="product-image">
                          <img src="/images/제철 배.jpg" alt="안성 배">
                          <p class="product-place">경기도 안성</p>
@@ -231,7 +255,7 @@
                      </div>
                  </div>
 
-                 <div class="product-card" data-region="gyeonggi">
+                 <div class="product-card" data-region="gyeonggi" data-product-id="6" data-category="농산물">
                      <div class="product-image">
                          <img src="/images/제철 멜론.jpg" alt="이천 멜론">
                          <p class="product-place">경기도 이천</p>
@@ -258,7 +282,7 @@
                  </div>
 
                  <!-- 전남 상품들 -->
-                 <div class="product-card" data-region="jeonnam">
+                 <div class="product-card" data-region="jeonnam" data-product-id="7" data-category="축산물">
                      <div class="product-image">
                          <img src="/images/제철 돼지.jpg" alt="담양 돼지고기">
                          <p class="product-place">전라남도 담양</p>
@@ -284,7 +308,7 @@
                      </div>
                  </div>
 
-                 <div class="product-card" data-region="jeonnam">
+                 <div class="product-card" data-region="jeonnam" data-product-id="7" data-category="축산물">
                      <div class="product-image">
                          <img src="/images/제철 새우.jpg" alt="여수 새우">
                          <p class="product-place">전라남도 여수</p>
@@ -311,7 +335,7 @@
                  </div>
 
                  <!-- 전북 상품들 -->
-                 <div class="product-card" data-region="jeonbuk">
+                 <div class="product-card" data-region="jeonbuk" data-product-id="8" data-category="축산물">
                      <div class="product-image">
                          <img src="/images/제철 돼지.jpg" alt="완주 한우">
                          <p class="product-place">전라북도 완주</p>
@@ -337,7 +361,7 @@
                      </div>
                  </div>
 
-                 <div class="product-card" data-region="jeonbuk">
+                 <div class="product-card" data-region="jeonbuk" data-product-id="8" data-category="축산물">
                      <div class="product-image">
                          <img src="/images/제철 천도복숭아.jpg" alt="영주 천도복숭아">
                          <p class="product-place">전라북도 영주</p>
@@ -364,7 +388,7 @@
                  </div>
 
                  <!-- 제주 상품들 -->
-                 <div class="product-card" data-region="jeju">
+                 <div class="product-card" data-region="jeju" data-product-id="1" data-category="축산물">
                      <div class="product-image">
                          <img src="/images/제철 돼지.jpg" alt="제주 흑돼지">
                          <p class="product-place">제주도</p>
@@ -390,7 +414,7 @@
                      </div>
                  </div>
 
-                 <div class="product-card" data-region="jeju">
+                 <div class="product-card" data-region="jeju" data-product-id="1" data-category="축산물">
                      <div class="product-image">
                          <img src="/images/제철 귤.jpg" alt="제주 감귤">
                          <p class="product-place">제주도</p>
@@ -417,7 +441,7 @@
                  </div>
 
                  <!-- 충남 상품들 -->
-                 <div class="product-card" data-region="chungnam">
+                 <div class="product-card" data-region="chungnam" data-product-id="9" data-category="농산물">
                      <div class="product-image">
                          <img src="/images/제철 당근.jpg" alt="서산 당근">
                          <p class="product-place">충청남도 서산</p>
@@ -443,7 +467,7 @@
                      </div>
                  </div>
 
-                 <div class="product-card" data-region="chungnam">
+                 <div class="product-card" data-region="chungnam" data-product-id="9" data-category="농산물">
                      <div class="product-image">
                          <img src="/images/제철 사과.jpg" alt="아산 사과">
                          <p class="product-place">충청남도 아산</p>
@@ -470,7 +494,7 @@
                  </div>
 
                  <!-- 충북 상품들 -->
-                 <div class="product-card" data-region="chungbuk">
+                 <div class="product-card" data-region="chungbuk" data-product-id="10" data-category="농산물">
                      <div class="product-image">
                          <img src="/images/제철 배.jpg" alt="청주 배">
                          <p class="product-place">충청북도 청주</p>
@@ -496,7 +520,7 @@
                      </div>
                  </div>
 
-                 <div class="product-card" data-region="chungbuk">
+                 <div class="product-card" data-region="chungbuk" data-product-id="10" data-category="농산물">
                      <div class="product-image">
                          <img src="/images/제철 감자.jpg" alt="충주 감자">
                          <p class="product-place">충청북도 충주</p>

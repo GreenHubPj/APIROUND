@@ -9,6 +9,7 @@ function initializeProfileEdit() {
     setupLocationSelects();
     setupProfilePictureUpload();
     setupFormSubmission();
+    loadExistingData();
     console.log('정보수정 페이지가 초기화되었습니다.');
 }
 
@@ -18,6 +19,11 @@ function setupFormValidation() {
     const inputs = form.querySelectorAll('.form-input');
     
     inputs.forEach(input => {
+        // readonly나 disabled 필드는 이벤트 리스너에서 제외
+        if (input.readOnly || input.disabled) {
+            return;
+        }
+        
         // 실시간 유효성 검사
         input.addEventListener('blur', function() {
             validateField(this);
@@ -29,15 +35,31 @@ function setupFormValidation() {
     });
 }
 
+// 필수 필드 정의 (페이지별로 다름)
+function getRequiredFields() {
+    const isCompanyPage = window.location.pathname.includes('company');
+    if (isCompanyPage) {
+        return ['companyName', 'password', 'contactPerson', 'contactNumber'];
+    } else {
+        return ['name', 'password', 'city', 'district', 'detailAddress'];
+    }
+}
+
 // 필드 유효성 검사
 function validateField(field) {
+    // readonly나 disabled 필드는 유효성 검사에서 제외
+    if (field.readOnly || field.disabled) {
+        return true;
+    }
+    
     const value = field.value.trim();
     const fieldName = field.id;
     
     clearFieldError(field);
     
     // 필수 필드 검사
-    if (field.hasAttribute('required') && !value) {
+    const requiredFields = getRequiredFields();
+    if (requiredFields.includes(fieldName) && !value) {
         showFieldError(field, '필수 입력 항목입니다.');
         return false;
     }
@@ -65,6 +87,18 @@ function validateField(field) {
         const businessRegex = /^\d{3}-\d{2}-\d{5}$/;
         if (!businessRegex.test(value)) {
             showFieldError(field, '올바른 사업자등록번호 형식을 입력해주세요. (예: 123-45-67890)');
+            return false;
+        }
+    }
+    
+    // 비밀번호 형식 검사
+    if (fieldName === 'password' && value) {
+        if (value.length < 8) {
+            showFieldError(field, '비밀번호는 8자 이상 입력해주세요.');
+            return false;
+        }
+        if (!/(?=.*[a-zA-Z])(?=.*\d)/.test(value)) {
+            showFieldError(field, '비밀번호는 영문과 숫자를 포함해야 합니다.');
             return false;
         }
     }
@@ -197,13 +231,16 @@ function setupFormSubmission() {
     form.addEventListener('submit', function(e) {
         e.preventDefault();
         
-        // 모든 필드 유효성 검사
+        // 모든 필드 유효성 검사 (readonly/disabled 필드 제외)
         const inputs = form.querySelectorAll('.form-input');
         let isValid = true;
         
         inputs.forEach(input => {
-            if (!validateField(input)) {
-                isValid = false;
+            // readonly나 disabled 필드는 유효성 검사에서 제외
+            if (!input.readOnly && !input.disabled) {
+                if (!validateField(input)) {
+                    isValid = false;
+                }
             }
         });
         
@@ -214,7 +251,8 @@ function setupFormSubmission() {
             // 저장 처리
             saveProfileData(formData);
         } else {
-            showMessage('입력 정보를 확인해주세요.', 'error');
+            const saveBtn = document.querySelector('.save-btn');
+            showMessage('입력 정보를 확인해주세요.', 'error', saveBtn);
         }
     });
 }
@@ -226,8 +264,9 @@ function collectFormData() {
     
     const inputs = form.querySelectorAll('.form-input, .form-select');
     inputs.forEach(input => {
-        if (input.value && !input.readOnly && !input.disabled) {
-            formData[input.id] = input.value;
+        // readonly나 disabled 필드는 제외
+        if (!input.readOnly && !input.disabled) {
+            formData[input.id] = input.value.trim();
         }
     });
     
@@ -236,6 +275,21 @@ function collectFormData() {
 
 // 프로필 데이터 저장
 function saveProfileData(formData) {
+    // 필수 필드 검사
+    const requiredFields = getRequiredFields();
+    const missingFields = [];
+    requiredFields.forEach(fieldName => {
+        if (!formData[fieldName] || formData[fieldName].trim() === '') {
+            missingFields.push(fieldName);
+        }
+    });
+    
+    if (missingFields.length > 0) {
+        const saveBtn = document.querySelector('.save-btn');
+        showMessage('필수 입력 항목을 모두 입력해주세요.', 'error', saveBtn);
+        return;
+    }
+    
     // 로딩 상태 표시
     const saveBtn = document.querySelector('.save-btn');
     const originalText = saveBtn.innerHTML;
@@ -264,8 +318,8 @@ function saveProfileData(formData) {
     }, 1500);
 }
 
-// 메시지 표시
-function showMessage(message, type) {
+// 메시지 표시 (입력 필드 근처에 표시)
+function showMessage(message, type, targetElement = null) {
     // 기존 메시지 제거
     const existingMessage = document.querySelector('.page-message');
     if (existingMessage) {
@@ -276,24 +330,72 @@ function showMessage(message, type) {
     const messageDiv = document.createElement('div');
     messageDiv.className = `page-message ${type}`;
     messageDiv.textContent = message;
+    
+    // 기본 스타일
     messageDiv.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        padding: 15px 20px;
+        position: absolute;
+        padding: 12px 16px;
         border-radius: 8px;
         color: white;
         font-weight: 600;
         z-index: 1000;
-        animation: slideInRight 0.3s ease-out;
-        ${type === 'success' ? 'background: #27ae60;' : 'background: #e74c3c;'}
+        animation: slideInUp 0.3s ease-out;
+        max-width: 300px;
+        word-wrap: break-word;
+        font-size: 14px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        pointer-events: none;
     `;
+    
+    // 타입별 색상
+    if (type === 'success') {
+        messageDiv.style.background = '#27ae60';
+    } else {
+        messageDiv.style.background = '#e74c3c';
+    }
+    
+    // 타겟 요소가 있으면 그 근처에 표시, 없으면 폼 위에 표시
+    if (targetElement) {
+        const rect = targetElement.getBoundingClientRect();
+        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+        
+        // 입력 필드 아래쪽에 표시
+        messageDiv.style.left = (rect.left + scrollLeft) + 'px';
+        messageDiv.style.top = (rect.bottom + scrollTop + 10) + 'px';
+        
+        // 화면 밖으로 나가지 않도록 조정
+        if (rect.left < 150) {
+            messageDiv.style.left = '150px';
+        } else if (rect.right > window.innerWidth - 150) {
+            messageDiv.style.left = (window.innerWidth - 150) + 'px';
+        }
+    } else {
+        // 폼 위쪽에 표시
+        const form = document.getElementById('profileEditForm');
+        if (form) {
+            const rect = form.getBoundingClientRect();
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            
+            messageDiv.style.left = (rect.left + 20) + 'px';
+            messageDiv.style.top = (rect.top + scrollTop - 60) + 'px';
+        } else {
+            // 폼이 없으면 화면 중앙 상단에 표시
+            messageDiv.style.cssText += `
+                position: fixed;
+                top: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                animation: slideInDown 0.3s ease-out;
+            `;
+        }
+    }
     
     document.body.appendChild(messageDiv);
     
     // 3초 후 자동 제거
     setTimeout(() => {
-        messageDiv.style.animation = 'slideOutRight 0.3s ease-out';
+        messageDiv.style.animation = 'slideOutUp 0.3s ease-out';
         setTimeout(() => {
             if (messageDiv.parentNode) {
                 messageDiv.remove();
@@ -305,26 +407,130 @@ function showMessage(message, type) {
 // CSS 애니메이션 추가
 const style = document.createElement('style');
 style.textContent = `
-    @keyframes slideInRight {
+    @keyframes slideInUp {
         from {
-            transform: translateX(100%);
+            transform: translateY(20px);
             opacity: 0;
         }
         to {
-            transform: translateX(0);
+            transform: translateY(0);
             opacity: 1;
         }
     }
     
-    @keyframes slideOutRight {
+    @keyframes slideOutUp {
         from {
-            transform: translateX(0);
+            transform: translateY(0);
             opacity: 1;
         }
         to {
-            transform: translateX(100%);
+            transform: translateY(-20px);
             opacity: 0;
+        }
+    }
+    
+    @keyframes slideInDown {
+        from {
+            transform: translateY(-20px);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
         }
     }
 `;
 document.head.appendChild(style);
+
+// 기존 데이터 로드
+function loadExistingData() {
+    // 실제로는 서버에서 사용자 데이터를 가져와야 하지만, 
+    // 여기서는 예시 데이터를 사용합니다.
+    const existingData = {
+        name: '홍길동',
+        userId: 'hong123',
+        city: '서울',
+        district: '강남구',
+        detailAddress: '테헤란로 123',
+        // 기업 페이지의 경우
+        companyName: '그린허브 농산물',
+        contactPerson: '김담당',
+        contactNumber: '010-1234-5678'
+    };
+    
+    // 페이지별로 해당하는 필드만 설정
+    const isCompanyPage = window.location.pathname.includes('company');
+    
+    if (isCompanyPage) {
+        // 기업 페이지
+        setFieldValue('companyName', existingData.companyName);
+        setFieldValue('userId', existingData.userId);
+        setFieldValue('contactPerson', existingData.contactPerson);
+        setFieldValue('contactNumber', existingData.contactNumber);
+        // 비밀번호는 사용자가 새로 입력해야 하므로 설정하지 않음
+    } else {
+        // 일반 사용자 페이지
+        setFieldValue('name', existingData.name);
+        setFieldValue('userId', existingData.userId);
+        setFieldValue('city', existingData.city);
+        setFieldValue('district', existingData.district);
+        setFieldValue('detailAddress', existingData.detailAddress);
+        // 비밀번호는 사용자가 새로 입력해야 하므로 설정하지 않음
+    }
+}
+
+// 필드 값 설정
+function setFieldValue(fieldId, value) {
+    const field = document.getElementById(fieldId);
+    if (field && value) {
+        field.value = value;
+        
+        // select 필드의 경우 옵션을 동적으로 생성해야 할 수 있음
+        if (field.tagName === 'SELECT' && fieldId === 'district') {
+            // 시/도가 선택되면 해당하는 동/구 옵션들을 생성
+            const cityField = document.getElementById('city');
+            if (cityField && cityField.value) {
+                updateDistrictOptions(cityField.value);
+            }
+        }
+    }
+}
+
+// 동/구 옵션 업데이트
+function updateDistrictOptions(cityValue) {
+    const districtSelect = document.getElementById('district');
+    if (!districtSelect) return;
+    
+    // 기존 옵션들 제거 (첫 번째 옵션 제외)
+    districtSelect.innerHTML = '<option value="">동 선택</option>';
+    
+    // 시/도별 동 목록 (setupLocationSelects에서 사용하는 것과 동일)
+    const districts = {
+        '서울': ['강남구', '강동구', '강북구', '강서구', '관악구', '광진구', '구로구', '금천구', '노원구', '도봉구', '동대문구', '동작구', '마포구', '서대문구', '서초구', '성동구', '성북구', '송파구', '양천구', '영등포구', '용산구', '은평구', '종로구', '중구', '중랑구'],
+        '부산': ['강서구', '금정구', '남구', '동구', '동래구', '부산진구', '북구', '사상구', '사하구', '서구', '수영구', '연제구', '영도구', '중구', '해운대구', '기장군'],
+        '대구': ['남구', '달서구', '달성군', '동구', '북구', '서구', '수성구', '중구'],
+        '인천': ['계양구', '남구', '남동구', '동구', '부평구', '서구', '연수구', '중구', '강화군', '옹진군'],
+        '광주': ['광산구', '남구', '동구', '북구', '서구'],
+        '대전': ['대덕구', '동구', '서구', '유성구', '중구'],
+        '울산': ['남구', '동구', '북구', '울주군', '중구'],
+        '세종': ['세종특별자치시'],
+        '경기': ['수원시', '성남시', '의정부시', '안양시', '부천시', '광명시', '평택시', '과천시', '오산시', '시흥시', '군포시', '의왕시', '하남시', '용인시', '파주시', '이천시', '안성시', '김포시', '화성시', '광주시', '여주시', '양평군', '고양시', '의정부시', '동두천시', '가평군', '연천군'],
+        '강원': ['춘천시', '원주시', '강릉시', '동해시', '태백시', '속초시', '삼척시', '홍천군', '횡성군', '영월군', '평창군', '정선군', '철원군', '화천군', '양구군', '인제군', '고성군', '양양군'],
+        '충북': ['청주시', '충주시', '제천시', '보은군', '옥천군', '영동군', '증평군', '진천군', '괴산군', '음성군', '단양군'],
+        '충남': ['천안시', '공주시', '보령시', '아산시', '서산시', '논산시', '계룡시', '당진시', '금산군', '부여군', '서천군', '청양군', '홍성군', '예산군', '태안군'],
+        '전북': ['전주시', '군산시', '익산시', '정읍시', '남원시', '김제시', '완주군', '진안군', '무주군', '장수군', '임실군', '순창군', '고창군', '부안군'],
+        '전남': ['목포시', '여수시', '순천시', '나주시', '광양시', '담양군', '곡성군', '구례군', '고흥군', '보성군', '화순군', '장흥군', '강진군', '해남군', '영암군', '무안군', '함평군', '영광군', '장성군', '완도군', '진도군', '신안군'],
+        '경북': ['포항시', '경주시', '김천시', '안동시', '구미시', '영주시', '영천시', '상주시', '문경시', '경산시', '군위군', '의성군', '청송군', '영양군', '영덕군', '청도군', '고령군', '성주군', '칠곡군', '예천군', '봉화군', '울진군', '울릉군'],
+        '경남': ['창원시', '진주시', '통영시', '사천시', '김해시', '밀양시', '거제시', '양산시', '의령군', '함안군', '창녕군', '고성군', '남해군', '하동군', '산청군', '함양군', '거창군', '합천군'],
+        '제주': ['제주시', '서귀포시']
+    };
+    
+    if (cityValue && districts[cityValue]) {
+        districts[cityValue].forEach(district => {
+            const option = document.createElement('option');
+            option.value = district;
+            option.textContent = district;
+            districtSelect.appendChild(option);
+        });
+    }
+}

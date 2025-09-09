@@ -66,14 +66,46 @@ public class HomeController {
         return "mypage_company";
     }
 
-    @GetMapping("/recipe-detail")
-    public String recipeDetail() {
-        return "recipe-detail";
+    @GetMapping("/myrecipe")
+    public String myrecipe() {
+        return "myrecipe";
+    }
+
+    @GetMapping("/myrecipe-detail")
+    public String myrecipeDetail(@RequestParam(required = false) String id,
+                                @RequestParam(required = false) String name,
+                                @RequestParam(required = false) String mode) {
+        return "myrecipe-detail";
+    }
+
+    @GetMapping("/newrecipe")
+    public String newrecipe() {
+        return "newrecipe";
+    }
+
+    @GetMapping("/orderhistory")
+    public String orderhistory() {
+        return "orderhistory";
     }
 
     @GetMapping("/shoppinglist")
     public String shoppinglist() {
         return "shoppinglist";
+    }
+
+    @GetMapping("/orderdetails")
+    public String orderdetails(@RequestParam(required = false) String id) {
+        return "orderdetails";
+    }
+
+    @GetMapping("/review")
+    public String review() {
+        return "review";
+    }
+
+    @GetMapping("/review-write")
+    public String reviewWrite() {
+        return "review-write";
     }
 
     @GetMapping("/event")
@@ -106,14 +138,14 @@ public class HomeController {
         return "order-detail";
     }
 
-    @GetMapping("/review")
-    public String review() {
-        return "review";
+    @GetMapping("/item-management")
+    public String itemManagement() {
+        return "item-management";
     }
 
-    @GetMapping("/review-write")
-    public String reviewWrite() {
-        return "review-write";
+    @GetMapping("/region-detail")
+    public String regionDetail(@RequestParam(required = false) String id) {
+        return "region-detail";
     }
 
     @GetMapping("/review-management")

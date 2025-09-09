@@ -2,8 +2,14 @@
 document.addEventListener('DOMContentLoaded', function() {
     console.log('GreenHub 지역별 특산품 페이지가 로드되었습니다.');
 
+    // URL 파라미터에서 지역 및 카테고리 정보 가져오기
+    const urlParams = new URLSearchParams(window.location.search);
+    const regionFromUrl = urlParams.get('region');
+    const categoryFromUrl = urlParams.get('category');
+
     // 지역 필터링 관련 변수
-    let currentRegion = 'all'; // 현재 선택된 지역
+    let currentRegion = regionFromUrl || 'all'; // URL에서 지역 정보가 있으면 사용, 없으면 'all'
+    let currentCategory = categoryFromUrl || 'all'; // URL에서 카테고리 정보가 있으면 사용, 없으면 'all'
     const itemsPerPage = 5; // 한 페이지에 표시할 상품 수
     let displayedCount = 0; // 현재 표시된 상품 수
 
@@ -11,10 +17,39 @@ document.addEventListener('DOMContentLoaded', function() {
     const productCards = document.querySelectorAll('.product-card');
     const productsSection = document.getElementById('productsSection');
     const regionLabels = document.querySelectorAll('.region-label');
+    const categoryButtons = document.querySelectorAll('.category-btn');
 
     // 검색 기능
     const searchInput = document.querySelector('.search-input');
     const searchBtn = document.querySelector('.search-btn');
+
+    // 상품 카드 클릭 이벤트
+    productCards.forEach(card => {
+        card.addEventListener('click', function() {
+            const productId = this.getAttribute('data-product-id');
+            const region = this.getAttribute('data-region');
+            if (productId) {
+                window.location.href = `/region-detail?id=${productId}&region=${region}`;
+            }
+        });
+    });
+
+    // 카테고리 버튼 클릭 이벤트
+    categoryButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            // 모든 카테고리 버튼에서 active 클래스 제거
+            categoryButtons.forEach(btn => btn.classList.remove('active'));
+            
+            // 클릭한 버튼에 active 클래스 추가
+            this.classList.add('active');
+            
+            // 현재 카테고리 업데이트
+            currentCategory = this.getAttribute('data-category');
+            
+            // 상품 필터링
+            filterProducts();
+        });
+    });
 
     // 검색 버튼 클릭 이벤트
     if (searchBtn) {
@@ -35,14 +70,49 @@ document.addEventListener('DOMContentLoaded', function() {
     // 검색 실행 함수
     function performSearch() {
         const searchTerm = searchInput.value.trim();
-        if (searchTerm) {
-            console.log('검색어:', searchTerm);
-            // 검색어로 필터링
-            filterProductsBySearch(searchTerm);
-        } else {
-            // 검색어가 없으면 현재 지역의 모든 상품 표시
-            filterProductsByRegion(currentRegion);
-        }
+        console.log('검색어:', searchTerm);
+        // 통합 필터링 함수 사용
+        filterProducts();
+    }
+
+    // 통합 상품 필터링 (지역 + 카테고리 + 검색)
+    function filterProducts() {
+        displayedCount = 0; // 표시된 상품 수 초기화
+        
+        productCards.forEach(card => {
+            const cardRegion = card.getAttribute('data-region');
+            const cardCategory = card.getAttribute('data-category');
+            const cardTitle = card.querySelector('.product-title').textContent.toLowerCase();
+            const searchTerm = searchInput ? searchInput.value.trim().toLowerCase() : '';
+            
+            let shouldShow = true;
+            
+            // 지역 필터링
+            if (currentRegion !== 'all' && cardRegion !== currentRegion) {
+                shouldShow = false;
+            }
+            
+            // 카테고리 필터링
+            if (currentCategory !== 'all' && cardCategory !== currentCategory) {
+                shouldShow = false;
+            }
+            
+            // 검색어 필터링
+            if (searchTerm && !cardTitle.includes(searchTerm)) {
+                shouldShow = false;
+            }
+            
+            if (shouldShow) {
+                card.classList.remove('hidden');
+            } else {
+                card.classList.add('hidden');
+            }
+        });
+        
+        // 페이지네이션 적용
+        applyPagination();
+        updateLoadMoreButton();
+        animateVisibleCards();
     }
 
     // 검색어로 상품 필터링
@@ -221,8 +291,11 @@ document.addEventListener('DOMContentLoaded', function() {
             regionLabels.forEach(l => l.classList.remove('active'));
             this.classList.add('active');
             
-            // 해당 지역 상품 필터링
-            filterProductsByRegion(regionName);
+            // 현재 지역 업데이트
+            currentRegion = regionName;
+            
+            // 통합 필터링 함수 사용
+            filterProducts();
             
             // 지도 오버레이 표시
             showRegionSelection(regionName);
@@ -416,14 +489,51 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
+    // URL에서 지역 정보가 있으면 해당 지역 자동 선택
+    if (regionFromUrl) {
+        console.log('URL에서 지역 정보 감지:', regionFromUrl);
+        
+        // 해당 지역 라벨 찾기 및 활성화
+        const targetRegionLabel = document.querySelector(`[data-region="${regionFromUrl}"]`);
+        if (targetRegionLabel) {
+            // 모든 지역 라벨에서 active 클래스 제거
+            regionLabels.forEach(label => label.classList.remove('active'));
+            
+            // 해당 지역 라벨에 active 클래스 추가
+            targetRegionLabel.classList.add('active');
+            
+            // 지도 오버레이 표시
+            showRegionSelection(regionFromUrl);
+            
+            console.log('지역 자동 선택 완료:', regionFromUrl);
+        }
+    }
+
+    // URL에서 카테고리 정보가 있으면 해당 카테고리 자동 선택
+    if (categoryFromUrl) {
+        console.log('URL에서 카테고리 정보 감지:', categoryFromUrl);
+        
+        // 해당 카테고리 버튼 찾기 및 활성화
+        const targetCategoryButton = document.querySelector(`[data-category="${categoryFromUrl}"]`);
+        if (targetCategoryButton) {
+            // 모든 카테고리 버튼에서 active 클래스 제거
+            categoryButtons.forEach(button => button.classList.remove('active'));
+            
+            // 해당 카테고리 버튼에 active 클래스 추가
+            targetCategoryButton.classList.add('active');
+            
+            console.log('카테고리 자동 선택 완료:', categoryFromUrl);
+        }
+    }
+    
     // 윈도우 리사이즈 이벤트
     window.addEventListener('resize', function() {
         // 반응형 처리
-        filterProductsByRegion(currentRegion);
+        filterProducts();
     });
     
     // 초기 로드 시 페이징 적용
-    filterProductsByRegion('all');
+    filterProducts();
     
     console.log('지역별 특산품 페이지 초기화 완료');
 });
