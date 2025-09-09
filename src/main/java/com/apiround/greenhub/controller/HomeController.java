@@ -46,11 +46,6 @@ public class HomeController {
         return "recipe";
     }
 
-    @GetMapping("/recipe-detail")
-    public String recipeDetail() {
-        return "recipe-detail";
-    }
-
     @GetMapping("/find-id")
     public String findId() {
         return "find-id";
@@ -101,8 +96,19 @@ public class HomeController {
         return "profile-edit";
     }
 
-    @GetMapping("/shoppinglist")
-    public String shoppinglist() {
-        return "shoppinglist";
+    @GetMapping("/profile-edit-company")
+    public String profileEditCompany() {
+        return "profile-edit-company";
     }
+
+    @GetMapping("/refund")
+    public String refund() {
+        return "refund";
+    }
+
+    @GetMapping("/order-detail")
+    public String orderDetail() {
+        return "order-detail";
+    }
+
 }

@@ -1,7 +1,7 @@
 // 메인 페이지 JavaScript
 
 document.addEventListener('DOMContentLoaded', function() {
-    // 검색 기능 - 메시지창 제거
+    // 검색 기능
     const searchInput = document.querySelector('.search-input');
     const searchBtn = document.querySelector('.search-btn');
     
@@ -9,8 +9,7 @@ document.addEventListener('DOMContentLoaded', function() {
         searchBtn.addEventListener('click', function() {
             const searchTerm = searchInput.value.trim();
             if (searchTerm) {
-                // 검색 기능 구현 예정
-                console.log(`검색어: ${searchTerm}`);
+                alert(`"${searchTerm}" 검색 기능은 준비 중입니다.`);
             }
         });
     }
@@ -24,10 +23,8 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // 로그인/회원가입 버튼 - 메시지창 제거, 기본 링크 동작 허용
-    
-    // 네비게이션 링크 - 메시지창 제거, 기본 링크 동작 허용
-    
+    // 헤더 관련 기능은 header.js에서 처리
+
     // 카테고리 아이템 클릭
     const categoryItems = document.querySelectorAll('.category-item');
     categoryItems.forEach(item => {
@@ -36,7 +33,7 @@ document.addEventListener('DOMContentLoaded', function() {
             alert(`${categoryName} 카테고리로 이동합니다.`);
         });
     });
-    
+
     // 상품 아이템 클릭
     const productItems = document.querySelectorAll('.product-item');
     productItems.forEach(item => {
@@ -45,7 +42,7 @@ document.addEventListener('DOMContentLoaded', function() {
             alert(`${productName} 상세 페이지로 이동합니다.`);
         });
     });
-    
+
     // 요리법 아이템 클릭
     const recipeItems = document.querySelectorAll('.recipe-item');
     recipeItems.forEach(item => {
@@ -54,7 +51,7 @@ document.addEventListener('DOMContentLoaded', function() {
             alert(`${recipeName} 요리법 페이지로 이동합니다.`);
         });
     });
-    
+
     // 추천 요리 클릭
     const recommendedRecipe = document.querySelector('.recommended-recipe');
     if (recommendedRecipe) {
@@ -73,7 +70,7 @@ document.addEventListener('DOMContentLoaded', function() {
             console.warn('이미지 로딩 실패:', this.src);
         });
     });
-    
+
     // 페이지 로딩 완료 후 애니메이션
     setTimeout(() => {
         document.body.style.opacity = '1';
@@ -104,12 +101,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div id="modal-step3" class="modal-step hidden">
                         <div class="recommendation-card">
                             <h2 id="menu-name" class="dish-name"></h2>
-                            
+
                             <div class="origin-tag">
                                 <span class="location-icon">📍</span>
                                 <span id="menu-region" class="origin-text"></span>
                             </div>
-                            
+
                             <div class="ingredients-section">
                                 <h3 class="ingredients-title">
                                     <span class="ingredients-icon">⚫</span>
@@ -117,9 +114,9 @@ document.addEventListener('DOMContentLoaded', function() {
                                 </h3>
                                 <div id="menu-ingredients" class="ingredients-tags"></div>
                             </div>
-                            
+
                             <p id="menu-description" class="dish-description"></p>
-                            
+
                             <div class="action-buttons">
                                 <button class="action-btn recipe-btn">레시피 보기</button>
                                 <button class="action-btn shopping-btn">장보기 리스트</button>
