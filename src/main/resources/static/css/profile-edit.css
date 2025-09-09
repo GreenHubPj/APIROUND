@@ -297,6 +297,15 @@
     box-shadow: 0 0 0 3px rgba(39, 174, 96, 0.1);
 }
 
+/* readonly/disabled 필드는 error/success 스타일 적용 안함 */
+.form-input:read-only.error,
+.form-input:disabled.error,
+.form-input:read-only.success,
+.form-input:disabled.success {
+    border-color: #ddd;
+    box-shadow: none;
+}
+
 .error-message {
     color: #e74c3c;
     font-size: 0.8rem;

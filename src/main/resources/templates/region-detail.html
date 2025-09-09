@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>상품 상세 - GreenHub</title>
+    <link rel="stylesheet" th:href="@{/css/header.css}">
+    <link rel="stylesheet" th:href="@{/css/footer.css}">
+    <link rel="stylesheet" th:href="@{/css/region-detail.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- 헤더 -->
+    <div th:replace="common/header :: header"></div>
+
+    <!-- 메인 컨텐츠 -->
+    <main class="main-content">
+        <div class="container">
+            <!-- 상품 상세 정보 -->
+            <div class="product-detail-section">
+                <div class="product-detail-container">
+                    <!-- 상품 이미지 -->
+                    <div class="product-images">
+                        <div class="main-image-container">
+                            <img id="mainImage" src="" alt="상품 이미지" class="main-image">
+                            <div class="image-nav">
+                                <button class="nav-btn prev-btn" id="prevBtn">‹</button>
+                                <button class="nav-btn next-btn" id="nextBtn">›</button>
+                            </div>
+                        </div>
+                        <div class="thumbnail-container" id="thumbnailContainer">
+                            <!-- 썸네일 이미지들이 여기에 동적으로 추가됩니다 -->
+                        </div>
+                    </div>
+
+                    <!-- 상품 정보 -->
+                    <div class="product-info">
+                        <div class="product-header">
+                            <div class="product-header-top">
+                                <button class="back-btn" id="backBtn">
+                                    <span>←</span> 목록으로 돌아가기
+                                </button>
+                            </div>
+                            <h1 class="product-title" id="productTitle">상품명</h1>
+                            <div class="product-tags" id="productTags">
+                                <!-- 태그들이 여기에 동적으로 추가됩니다 -->
+                            </div>
+                        </div>
+
+                        <div class="product-price-section">
+                            <h3 class="price-title">가격 옵션</h3>
+                            <div class="price-options" id="priceOptions">
+                                <!-- 가격 옵션들이 여기에 동적으로 추가됩니다 -->
+                            </div>
+                        </div>
+
+                        <div class="product-details">
+                            <div class="detail-item">
+                                <span class="detail-label">재고수량:</span>
+                                <span class="detail-value" id="stockInfo">-</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">원산지:</span>
+                                <span class="detail-value" id="originInfo">-</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">유통기한:</span>
+                                <span class="detail-value" id="expiryInfo">-</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">보관방법:</span>
+                                <span class="detail-value" id="storageInfo">-</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">제철기간:</span>
+                                <span class="detail-value" id="seasonInfo">-</span>
+                            </div>
+                        </div>
+
+                        <div class="product-description">
+                            <h3 class="description-title">상품 설명</h3>
+                            <p class="description-text" id="descriptionText">상품 설명이 여기에 표시됩니다.</p>
+                        </div>
+
+                        <div class="purchase-section">
+                            <div class="quantity-selector">
+                                <label for="quantity">수량 선택:</label>
+                                <div class="quantity-controls">
+                                    <button class="quantity-btn" id="decreaseBtn">-</button>
+                                    <input type="number" id="quantity" value="1" min="1" class="quantity-input">
+                                    <button class="quantity-btn" id="increaseBtn">+</button>
+                                </div>
+                            </div>
+                            <div class="price-option-selector">
+                                <label for="priceOptionSelect">가격 옵션:</label>
+                                <select id="priceOptionSelect" class="price-select">
+                                    <option value="">가격 옵션을 선택하세요</option>
+                                </select>
+                            </div>
+                            <div class="total-price">
+                                <span class="total-label">총 가격:</span>
+                                <span class="total-amount" id="totalAmount">0원</span>
+                            </div>
+                            <div class="purchase-buttons">
+                                <button class="btn-cart" id="addToCartBtn">장바구니 담기</button>
+                                <button class="btn-buy" id="buyNowBtn">바로 구매</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 관련 상품 섹션 -->
+            <div class="related-products-section">
+                <h2 class="section-title">관련 상품</h2>
+                <div class="related-products-grid" id="relatedProductsGrid">
+                    <!-- 관련 상품들이 여기에 동적으로 추가됩니다 -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 푸터 -->
+    <div th:replace="common/footer :: footer"></div>
+
+    <script th:src="@{/js/region-detail.js}"></script>
+</body>
+</html>

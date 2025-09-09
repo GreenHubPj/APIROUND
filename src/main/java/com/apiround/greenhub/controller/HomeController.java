@@ -2,6 +2,7 @@ package com.apiround.greenhub.controller;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
 public class HomeController {
@@ -47,10 +48,7 @@ public class HomeController {
     }
 
 
-    @GetMapping("/recipe-detail")
-    public String recipeDetail() {
-        return "recipe-detail";
-    }
+
 
     @GetMapping("/find-id")
     public String findId() {
@@ -60,11 +58,6 @@ public class HomeController {
     @GetMapping("/find-password")
     public String findPassword() {
         return "find-password";
-    }
-
-    @GetMapping("/event")
-    public String event() {
-        return "event";
     }
 
     @GetMapping("/mypage")
@@ -77,9 +70,36 @@ public class HomeController {
         return "mypage_company";
     }
 
+    @GetMapping("/myrecipe")
+    public String myrecipe() {
+        return "myrecipe";
+    }
+
+    @GetMapping("/myrecipe-detail")
+    public String myrecipeDetail(@RequestParam(required = false) String id,
+                                @RequestParam(required = false) String name,
+                                @RequestParam(required = false) String mode) {
+        return "myrecipe-detail";
+    }
+
+    @GetMapping("/newrecipe")
+    public String newrecipe() {
+        return "newrecipe";
+    }
+
+    @GetMapping("/orderhistory")
+    public String orderhistory() {
+        return "orderhistory";
+    }
+
     @GetMapping("/shoppinglist")
     public String shoppinglist() {
         return "shoppinglist";
+    }
+
+    @GetMapping("/orderdetails")
+    public String orderdetails(@RequestParam(required = false) String id) {
+        return "orderdetails";
     }
 
     @GetMapping("/review")
@@ -92,7 +112,10 @@ public class HomeController {
         return "review-write";
     }
 
-
+    @GetMapping("/event")
+    public String event() {
+        return "event";
+    }
 
     @GetMapping("/profile-edit")
     public String profileEdit() {
@@ -112,6 +135,16 @@ public class HomeController {
     @GetMapping("/order-detail")
     public String orderDetail() {
         return "order-detail";
+    }
+
+    @GetMapping("/item-management")
+    public String itemManagement() {
+        return "item-management";
+    }
+
+    @GetMapping("/region-detail")
+    public String regionDetail(@RequestParam(required = false) String id) {
+        return "region-detail";
     }
 
 }

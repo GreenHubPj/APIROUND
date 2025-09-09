@@ -65,8 +65,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 업체정보수정 페이지로 이동
     function showCompanyEdit() {
-        alert('업체정보수정 페이지로 이동합니다.');
-        // window.location.href = '/company/edit';
+        window.location.href = '/profile-edit-company';
     }
     
     // 환불처리 페이지로 이동
@@ -77,8 +76,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 상품관리 페이지로 이동
     function showProductManagement() {
-        alert('상품관리 페이지로 이동합니다.');
-        // window.location.href = '/company/products';
+        window.location.href = '/item-management';
     }
     
     // 업체 정보 로드 (실제 구현 시 서버에서 데이터 가져오기)
