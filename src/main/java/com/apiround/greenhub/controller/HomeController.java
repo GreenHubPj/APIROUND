@@ -134,4 +134,14 @@ public class HomeController {
         return "order-detail";
     }
 
+    @GetMapping("/item-management")
+    public String itemManagement() {
+        return "item-management";
+    }
+
+    @GetMapping("/region-detail")
+    public String regionDetail(@RequestParam(required = false) String id) {
+        return "region-detail";
+    }
+
 }

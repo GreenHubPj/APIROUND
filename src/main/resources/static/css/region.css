@@ -208,7 +208,7 @@ body {
     display: flex;
     flex-direction: column;
     gap: 30px;
-    margin: 25px;
+    margin: 0 25px 25px 25px;
     max-width: 800px;
 }
 
@@ -635,4 +635,125 @@ body {
 
 .region-label.active::before {
     background: rgba(255, 255, 255, 0.2);
+}
+
+/* 카테고리 필터 섹션 */
+.category-filter-section {
+    padding: 25px;
+    border-radius: 12px;
+}
+
+.category-filter-container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.filter-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+.category-buttons {
+    display: flex;
+    justify-content: space-between;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.category-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 15px 50px;
+    background: white;
+    border: 2px solid #e1e8ed;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-width: 100px;
+    text-decoration: none;
+    color: #2c3e50;
+}
+
+.category-btn:hover {
+    border-color: #ff8c42;
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(255, 140, 66, 0.2);
+}
+
+.category-btn.active {
+    background: linear-gradient(135deg, #ff8c42, #ff6b35);
+    border-color: #ff8c42;
+    color: white;
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(255, 140, 66, 0.3);
+}
+
+.category-btn-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.category-btn.active .category-btn-icon {
+    border-color: rgba(255, 255, 255, 0.8);
+}
+
+.category-btn span {
+    font-size: 0.9rem;
+    font-weight: 500;
+    text-align: center;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+    .category-buttons {
+        gap: 10px;
+    }
+    
+    .category-btn {
+        min-width: 80px;
+        padding: 12px 15px;
+    }
+    
+    .category-btn-icon {
+        width: 35px;
+        height: 35px;
+    }
+    
+    .category-btn span {
+        font-size: 0.8rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .category-filter-section {
+        margin: 15px;
+        padding: 20px 15px;
+    }
+    
+    .category-buttons {
+        gap: 8px;
+    }
+    
+    .category-btn {
+        min-width: 70px;
+        padding: 10px 12px;
+    }
+    
+    .category-btn-icon {
+        width: 30px;
+        height: 30px;
+    }
+    
+    .filter-title {
+        font-size: 1.1rem;
+        margin-bottom: 12px;
+    }
 }

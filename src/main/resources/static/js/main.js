@@ -30,7 +30,8 @@ document.addEventListener('DOMContentLoaded', function() {
     categoryItems.forEach(item => {
         item.addEventListener('click', function() {
             const categoryName = this.querySelector('.category-label').textContent;
-            alert(`${categoryName} 카테고리로 이동합니다.`);
+            // region 페이지로 이동하면서 해당 카테고리 선택
+            window.location.href = `/region?category=${encodeURIComponent(categoryName)}`;
         });
     });
 

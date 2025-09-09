@@ -193,18 +193,35 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
 
-    // 레시피 삭제 버튼 이벤트
-    document.addEventListener('click', function(e) {
-        if (e.target.closest('.delete-btn')) {
-            e.stopPropagation(); // 카드 클릭 이벤트 방지
-            const recipeCard = e.target.closest('.recipe-card');
+    // 레시피 액션 영역 클릭 이벤트 방지
+    const recipeActions = document.querySelectorAll('.recipe-actions');
+    recipeActions.forEach(action => {
+        action.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+            return false;
+        });
+    });
+
+    // 레시피 삭제 버튼 이벤트 - 직접 이벤트 리스너 추가
+    const deleteButtons = document.querySelectorAll('.delete-btn');
+    deleteButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault(); // 기본 동작 방지
+            e.stopPropagation(); // 이벤트 전파 방지
+            e.stopImmediatePropagation(); // 즉시 이벤트 전파 방지
+            
+            const recipeCard = this.closest('.recipe-card');
             const recipeId = recipeCard.getAttribute('data-recipe-id');
             const recipeName = recipeCard.querySelector('.recipe-name').textContent;
             
             if (confirm(`"${recipeName}" 레시피를 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.`)) {
                 deleteRecipe(recipeCard, recipeId, recipeName);
             }
-        }
+            
+            return false; // 추가적인 이벤트 방지
+        });
     });
 
     // 레시피 삭제 함수
