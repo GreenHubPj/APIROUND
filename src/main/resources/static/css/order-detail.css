@@ -1,0 +1,484 @@
+/* 주문 상세 페이지 스타일 */
+
+.order-detail-container {
+    min-height: 100vh;
+    background: #f8f9fa;
+    padding: 40px 20px;
+}
+
+.order-detail-content {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+/* 뒤로가기 버튼 */
+.back-button {
+    margin-bottom: 30px;
+}
+
+.back-btn {
+    background: white;
+    border: 2px solid #ff8c42;
+    color: #ff8c42;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+}
+
+.back-btn:hover {
+    background: #ff8c42;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 140, 66, 0.3);
+}
+
+.back-icon {
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+/* 페이지 제목 */
+.page-title {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.page-title h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #333;
+    margin: 0;
+}
+
+/* 카드 공통 스타일 */
+.order-info-card,
+.product-info-card,
+.process-history-card,
+.refund-info-card,
+.exchange-info-card,
+.customer-service-card {
+    background: white;
+    border-radius: 16px;
+    margin-bottom: 30px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.order-info-card:hover,
+.product-info-card:hover,
+.process-history-card:hover,
+.refund-info-card:hover,
+.exchange-info-card:hover,
+.customer-service-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+/* 카드 헤더 */
+.card-header {
+    background: linear-gradient(135deg, #ffb366, #ff8c42);
+    color: white;
+    padding: 20px 30px;
+}
+
+.card-header h2 {
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+/* 카드 컨텐츠 */
+.card-content {
+    padding: 30px;
+}
+
+/* 정보 행 */
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 0;
+    border-bottom: 1px solid #f1f3f4;
+}
+
+.info-row:last-child {
+    border-bottom: none;
+}
+
+.info-label {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #666;
+    min-width: 120px;
+}
+
+.info-value {
+    font-size: 1rem;
+    font-weight: 500;
+    color: #333;
+    text-align: right;
+}
+
+/* 상태 배지 */
+.status-badge {
+    background: #d4edda;
+    color: #28a745;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.status-badge.exchange {
+    background: #cce7ff;
+    color: #007bff;
+}
+
+/* 상품 정보 */
+.product-item {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+}
+
+.product-image {
+    flex-shrink: 0;
+}
+
+.product-placeholder {
+    width: 80px;
+    height: 80px;
+    background: #f8f9fa;
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.product-icon {
+    font-size: 2rem;
+}
+
+.product-details {
+    flex: 1;
+}
+
+.product-name {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 8px;
+}
+
+.product-desc {
+    font-size: 1rem;
+    color: #666;
+    margin-bottom: 12px;
+}
+
+.product-price {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+.quantity {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #333;
+}
+
+.price {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #ff8c42;
+}
+
+/* 타임라인 */
+.timeline {
+    position: relative;
+    padding-left: 30px;
+}
+
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: 15px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #e9ecef;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 30px;
+}
+
+.timeline-item:last-child {
+    margin-bottom: 0;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: -22px;
+    top: 5px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #e9ecef;
+    border: 3px solid white;
+    box-shadow: 0 0 0 2px #e9ecef;
+}
+
+.timeline-item.completed .timeline-marker {
+    background: #28a745;
+    box-shadow: 0 0 0 2px #28a745;
+}
+
+.timeline-item.exchange .timeline-marker {
+    background: #007bff;
+    box-shadow: 0 0 0 2px #007bff;
+}
+
+.timeline-content {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 12px;
+    border-left: 4px solid #e9ecef;
+}
+
+.timeline-item.completed .timeline-content {
+    border-left-color: #28a745;
+}
+
+.timeline-item.exchange .timeline-content {
+    border-left-color: #007bff;
+}
+
+.timeline-date {
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 5px;
+}
+
+.timeline-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 5px;
+}
+
+.timeline-desc {
+    font-size: 0.95rem;
+    color: #666;
+}
+
+/* 환불 금액 */
+.refund-amount {
+    color: #28a745 !important;
+    font-weight: 700 !important;
+    font-size: 1.1rem !important;
+}
+
+/* 고객센터 */
+.service-info {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.service-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+}
+
+.service-item:hover {
+    background: #e9ecef;
+    transform: translateX(5px);
+}
+
+.service-icon {
+    font-size: 1.5rem;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: white;
+    border-radius: 50%;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.service-details {
+    flex: 1;
+}
+
+.service-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 3px;
+}
+
+.service-desc {
+    font-size: 0.95rem;
+    color: #666;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+    .order-detail-container {
+        padding: 20px 15px;
+    }
+    
+    .page-title h1 {
+        font-size: 2rem;
+    }
+    
+    .card-header {
+        padding: 15px 20px;
+    }
+    
+    .card-header h2 {
+        font-size: 1.2rem;
+    }
+    
+    .card-content {
+        padding: 20px;
+    }
+    
+    .info-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+    }
+    
+    .info-label {
+        min-width: auto;
+    }
+    
+    .info-value {
+        text-align: left;
+    }
+    
+    .product-item {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .product-placeholder {
+        width: 100px;
+        height: 100px;
+    }
+    
+    .product-icon {
+        font-size: 2.5rem;
+    }
+    
+    .timeline {
+        padding-left: 20px;
+    }
+    
+    .timeline::before {
+        left: 10px;
+    }
+    
+    .timeline-marker {
+        left: -17px;
+    }
+    
+    .service-info {
+        gap: 15px;
+    }
+    
+    .service-item {
+        flex-direction: column;
+        text-align: center;
+        gap: 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .page-title h1 {
+        font-size: 1.8rem;
+    }
+    
+    .card-header {
+        padding: 12px 15px;
+    }
+    
+    .card-header h2 {
+        font-size: 1.1rem;
+    }
+    
+    .card-content {
+        padding: 15px;
+    }
+    
+    .product-name {
+        font-size: 1.2rem;
+    }
+    
+    .product-desc {
+        font-size: 0.9rem;
+    }
+    
+    .price {
+        font-size: 1.1rem;
+    }
+    
+    .timeline-content {
+        padding: 15px;
+    }
+    
+    .timeline-title {
+        font-size: 1rem;
+    }
+    
+    .timeline-desc {
+        font-size: 0.9rem;
+    }
+}
+
+/* 애니메이션 */
+.order-info-card,
+.product-info-card,
+.process-history-card,
+.refund-info-card,
+.exchange-info-card,
+.customer-service-card {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* 카드별 애니메이션 지연 */
+.order-info-card { animation-delay: 0.1s; }
+.product-info-card { animation-delay: 0.2s; }
+.process-history-card { animation-delay: 0.3s; }
+.refund-info-card { animation-delay: 0.4s; }
+.exchange-info-card { animation-delay: 0.4s; }
+.customer-service-card { animation-delay: 0.5s; }

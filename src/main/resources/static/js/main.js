@@ -1,7 +1,7 @@
 // 메인 페이지 JavaScript
 
 document.addEventListener('DOMContentLoaded', function() {
-    // 검색 기능 - 메시지창 제거
+    // 검색 기능
     const searchInput = document.querySelector('.search-input');
     const searchBtn = document.querySelector('.search-btn');
     
@@ -9,8 +9,7 @@ document.addEventListener('DOMContentLoaded', function() {
         searchBtn.addEventListener('click', function() {
             const searchTerm = searchInput.value.trim();
             if (searchTerm) {
-                // 검색 기능 구현 예정
-                console.log(`검색어: ${searchTerm}`);
+                alert(`"${searchTerm}" 검색 기능은 준비 중입니다.`);
             }
         });
     }
@@ -24,40 +23,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // 로그인/회원가입 버튼 - 메시지창 제거, 기본 링크 동작 허용
-
-    // 네비게이션 링크 - 메시지창 제거, 기본 링크 동작 허용
-
-    // 로그인/회원가입 버튼
-    const loginBtn = document.querySelector('.btn-login');
-    const signupBtn = document.querySelector('.btn-signup');
-
-    if (loginBtn) {
-        loginBtn.addEventListener('click', function() {
-            alert('로그인 페이지로 이동합니다.');
-        });
-    }
-
-    if (signupBtn) {
-        signupBtn.addEventListener('click', function() {
-            alert('회원가입 페이지로 이동합니다.');
-        });
-    }
-
-    // 네비게이션 링크 (제철특산품 제외)
-    const navLinks = document.querySelectorAll('.nav-link');
-    navLinks.forEach(link => {
-        link.addEventListener('click', function(e) {
-            // 제철특산품 링크는 실제 페이지로 이동하도록 허용
-            if (this.textContent === '제철특산품') {
-                return; // 기본 동작 허용
-            }
-            e.preventDefault();
-            const linkText = this.textContent;
-            alert(`${linkText} 페이지로 이동합니다.`);
-        });
-    });
-
     // 헤더 관련 기능은 header.js에서 처리
 
     // 카테고리 아이템 클릭
