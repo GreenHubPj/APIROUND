@@ -14,12 +14,6 @@ function initializeRegionDetail() {
     loadProductDetail();
     setupEventListeners();
     console.log('상품 상세 페이지가 초기화되었습니다.');
-    
-    // 테스트용 메시지 (3초 후 표시)
-    setTimeout(() => {
-        console.log('테스트 메시지 표시 시도');
-        showMessage('페이지가 로드되었습니다.', 'success');
-    }, 3000);
 }
 
 // URL에서 상품 ID 가져오기
@@ -292,6 +286,117 @@ function loadRelatedProducts() {
     ];
 
     renderRelatedProducts(relatedProducts);
+    
+    // 리뷰 데이터 로드
+    loadReviews();
+    
+    // 리뷰보기 버튼 이벤트 리스너
+    setupReviewButton();
+}
+
+// 리뷰보기 버튼 설정
+function setupReviewButton() {
+    const viewAllReviewsBtn = document.getElementById('viewAllReviewsBtn');
+    if (viewAllReviewsBtn) {
+        viewAllReviewsBtn.addEventListener('click', function() {
+            // 현재 상품 ID를 localStorage에 저장
+            const productId = getProductIdFromUrl();
+            localStorage.setItem('currentProductId', productId);
+            
+            // reviewlist 페이지로 이동
+            window.location.href = '/reviewlist';
+        });
+    }
+}
+
+// 리뷰 데이터 로드
+function loadReviews() {
+    // 더미 리뷰 데이터 (더 많은 리뷰 추가)
+    const allReviews = [
+        {
+            id: 1,
+            reviewerName: '김사과',
+            rating: 5,
+            date: '2025-09-05',
+            text: '정말 맛있는 사과였어요! 아삭하고 달콤한 맛이 일품입니다. 신선도도 최고고, 포장도 깔끔하게 잘 되어있었습니다. 다음에도 주문할 예정이에요!'
+        },
+        {
+            id: 2,
+            reviewerName: '이과일',
+            rating: 4,
+            date: '2025-09-03',
+            text: '품질이 좋네요. 크기도 적당하고 맛도 달콤합니다. 배송도 빠르게 왔어요. 추천합니다!'
+        },
+        {
+            id: 3,
+            reviewerName: '박농부',
+            rating: 5,
+            date: '2025-09-01',
+            text: '문경 사과의 진짜 맛을 느낄 수 있었습니다. 아삭한 식감과 달콤한 맛이 정말 좋아요. 가족들이 모두 만족했어요.'
+        },
+        {
+            id: 4,
+            reviewerName: '최고객',
+            rating: 4,
+            date: '2025-08-28',
+            text: '신선하고 맛있어요. 포장 상태도 좋고, 배송도 빠르게 왔습니다. 다음에도 주문하겠습니다.'
+        },
+        {
+            id: 5,
+            reviewerName: '정맛있',
+            rating: 5,
+            date: '2025-08-25',
+            text: '사과가 정말 크고 맛있어요! 아이들이 너무 좋아합니다. 다음에도 꼭 주문할게요.'
+        },
+        {
+            id: 6,
+            reviewerName: '홍사과',
+            rating: 4,
+            date: '2025-08-22',
+            text: '품질이 우수하고 신선해요. 배송도 빠르고 포장도 깔끔했습니다.'
+        },
+        {
+            id: 7,
+            reviewerName: '김달콤',
+            rating: 5,
+            date: '2025-08-20',
+            text: '달콤하고 아삭한 맛이 정말 좋아요! 가족 모두 만족했습니다.'
+        }
+    ];
+    
+    // 최신 3개 리뷰만 표시
+    const recentReviews = allReviews.slice(0, 3);
+    renderReviews(recentReviews);
+    
+    // 전체 리뷰 데이터를 localStorage에 저장 (review 페이지에서 사용)
+    localStorage.setItem('allReviews', JSON.stringify(allReviews));
+}
+
+// 리뷰 렌더링
+function renderReviews(reviews) {
+    const reviewList = document.getElementById('reviewList');
+    reviewList.innerHTML = '';
+    
+    reviews.forEach(review => {
+        const reviewItem = document.createElement('div');
+        reviewItem.className = 'review-item';
+        
+        // 별점 생성
+        const stars = '★'.repeat(review.rating) + '☆'.repeat(5 - review.rating);
+        
+        reviewItem.innerHTML = `
+            <div class="review-header">
+                <span class="reviewer-name">${review.reviewerName}</span>
+                <span class="review-date">${review.date}</span>
+            </div>
+            <div class="review-rating">
+                ${stars.split('').map(star => `<span class="star">${star}</span>`).join('')}
+            </div>
+            <div class="review-text">${review.text}</div>
+        `;
+        
+        reviewList.appendChild(reviewItem);
+    });
 }
 
 // 관련 상품 렌더링
@@ -439,24 +544,35 @@ function addToCart(event) {
 
 // 바로 구매
 function buyNow(event) {
+    console.log('구매하기 버튼 클릭됨');
+    console.log('selectedPriceOption:', selectedPriceOption);
+    
     if (!selectedPriceOption) {
+        console.log('가격 옵션 미선택 - 에러 메시지 표시');
         showMessageAtPosition('가격 옵션을 선택해주세요.', 'error', event.target);
         return;
     }
 
     // 주문 데이터 생성
-    const orderData = {
-        productId: currentProduct.id,
-        productName: currentProduct.name,
-        priceOption: selectedPriceOption,
-        quantity: quantity,
-        totalPrice: selectedPriceOption.price * quantity,
-        image: currentProduct.images[0].src
+    const orderItem = {
+        id: currentProduct.id,
+        name: currentProduct.name,
+        quantity: `${selectedPriceOption.quantity}${selectedPriceOption.unit}`,
+        price: `${selectedPriceOption.price.toLocaleString()}원`,
+        timestamp: new Date().toISOString()
     };
 
-    // 주문 페이지로 이동 (실제로는 주문 페이지 URL)
-    showMessageAtPosition('주문 페이지로 이동합니다.', 'success', event.target);
-    // window.location.href = `/order?productId=${currentProduct.id}&quantity=${quantity}&priceOption=${currentProduct.priceOptions.indexOf(selectedPriceOption)}`;
+    console.log('주문 데이터 생성됨:', orderItem);
+
+    // 주문 정보를 localStorage에 저장
+    localStorage.setItem('currentOrder', JSON.stringify([orderItem]));
+    console.log('localStorage에 주문 정보 저장됨');
+
+    // 구매 페이지로 이동
+    showMessageAtPosition('구매 페이지로 이동합니다...', 'success', event.target);
+    setTimeout(() => {
+        window.location.href = '/buying';
+    }, 1500);
 }
 
 // 메시지 표시 (기본 위치)

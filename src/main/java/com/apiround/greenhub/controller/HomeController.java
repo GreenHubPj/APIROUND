@@ -2,6 +2,7 @@ package com.apiround.greenhub.controller;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
 public class HomeController {
@@ -46,6 +47,11 @@ public class HomeController {
         return "recipe";
     }
 
+    @GetMapping("/recipe-detail")
+    public String recipeDetail(@RequestParam(required = false) String id) {
+        return "recipe-detail";
+    }
+
     @GetMapping("/find-id")
     public String findId() {
         return "find-id";
@@ -72,7 +78,7 @@ public class HomeController {
     }
 
     @GetMapping("/myrecipe-detail")
-    public String myrecipeDetail(@RequestParam(required = false) String id,
+    public String myrecipeDetail(@RequestParam(required = false) String id, 
                                 @RequestParam(required = false) String name,
                                 @RequestParam(required = false) String mode) {
         return "myrecipe-detail";
@@ -128,14 +134,14 @@ public class HomeController {
         return "refund";
     }
 
-    @GetMapping("/refund-management")
-    public String refundManagement() {
-        return "refund-management";
+    @GetMapping("/buying")
+    public String buying() {
+        return "buying";
     }
 
-    @GetMapping("/order-detail")
-    public String orderDetail() {
-        return "order-detail";
+    @GetMapping("/reviewlist")
+    public String reviewlist() {
+        return "review";
     }
 
     @GetMapping("/item-management")
