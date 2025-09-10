@@ -57,10 +57,9 @@ document.addEventListener('DOMContentLoaded', function() {
         // window.location.href = '/company/delivery';
     }
     
-    // 게시물 관리 페이지로 이동
+    // 리뷰 관리 페이지로 이동
     function showPostManagement() {
-        alert('게시물 관리 페이지로 이동합니다.');
-        // window.location.href = '/company/posts';
+        window.location.href = '/review-management';
     }
     
     // 업체정보수정 페이지로 이동

@@ -39,4 +39,15 @@ public class SpecialtyProductController {
         return "region";
     }
 
+    @GetMapping("/region-detail")
+    public String productDetail(@RequestParam Integer id, Model model) {
+        Region product = regionService.getProductById(id);
+        if (product == null) {
+            return "redirect:/region";
+        }
+        
+        model.addAttribute("product", product);
+        return "region-detail";
+    }
+
 }

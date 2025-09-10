@@ -46,8 +46,8 @@ function loadProductDetail() {
         return;
     }
 
-    // 더미 데이터에서 상품 찾기 (실제로는 API 호출)
-    currentProduct = getProductById(productId);
+    // 서버에서 전달된 상품 데이터 사용
+    currentProduct = getProductFromServer();
     
     if (!currentProduct) {
         showMessage('상품을 찾을 수 없습니다.', 'error');
@@ -56,6 +56,109 @@ function loadProductDetail() {
 
     renderProductDetail();
     loadRelatedProducts();
+}
+
+// 서버에서 전달된 상품 데이터 가져오기
+function getProductFromServer() {
+    // Thymeleaf로 전달된 데이터를 JavaScript에서 사용
+    const productName = document.getElementById('productTitle').textContent;
+    const productType = document.querySelector('.product-tag').textContent;
+    const regionText = document.querySelectorAll('.product-tag')[1].textContent;
+    const description = document.getElementById('descriptionText').textContent;
+    const thumbnailUrl = document.getElementById('mainImage').src;
+    const harvestSeason = document.getElementById('seasonInfo').textContent;
+    
+    // 상품 ID는 URL에서 가져오기
+    const productId = getProductIdFromUrl();
+    
+    // 랜덤 가격 생성 (상품 타입에 따라 다른 가격대)
+    const priceOptions = generateRandomPrices(productType);
+    
+    // 랜덤 업체 정보 생성
+    const companyInfo = generateRandomCompany(regionText);
+    
+    return {
+        id: parseInt(productId),
+        name: productName,
+        category: productType,
+        region: regionText,
+        description: description,
+        thumbnailUrl: thumbnailUrl,
+        harvestSeason: harvestSeason,
+        priceOptions: priceOptions,
+        companyInfo: companyInfo,
+        // 기본 이미지 배열
+        images: [
+            { id: 1, src: thumbnailUrl, alt: productName }
+        ]
+    };
+}
+
+// 상품 타입에 따른 랜덤 가격 생성
+function generateRandomPrices(productType) {
+    const basePrices = {
+        '농산물': { min: 5000, max: 15000 },
+        '축산물': { min: 15000, max: 35000 },
+        '수산물': { min: 10000, max: 25000 },
+        '가공식품': { min: 3000, max: 12000 }
+    };
+    
+    const priceRange = basePrices[productType] || { min: 5000, max: 20000 };
+    
+    // 랜덤 가격 생성
+    const price1 = Math.floor(Math.random() * (priceRange.max - priceRange.min + 1)) + priceRange.min;
+    const price2 = Math.floor(price1 * 1.8); // 1.8배
+    const price3 = Math.floor(price1 * 2.5); // 2.5배
+    
+    return [
+        { quantity: 1, unit: 'kg', price: price1 },
+        { quantity: 2, unit: 'kg', price: price2 },
+        { quantity: 3, unit: 'kg', price: price3 }
+    ];
+}
+
+// 지역별 랜덤 업체 정보 생성
+function generateRandomCompany(regionText) {
+    const companyNames = [
+        '농협', '농업협동조합', '지역농협', '특산품직판장', '농산물유통센터',
+        '친환경농장', '전통농업', '청정농업', '자연농업', '유기농업',
+        '지역특산품', '농가직판', '농산물도매', '신선농산물', '제철농산물'
+    ];
+    
+    const companySuffixes = [
+        '협동조합', '농장', '직판장', '유통센터', '농협', '농업회사',
+        '특산품센터', '농산물센터', '친환경농업', '자연농업'
+    ];
+    
+    // 지역명에서 앞 2글자 추출
+    const regionPrefix = regionText.substring(0, 2);
+    
+    // 랜덤 업체명 생성
+    const randomName = companyNames[Math.floor(Math.random() * companyNames.length)];
+    const randomSuffix = companySuffixes[Math.floor(Math.random() * companySuffixes.length)];
+    const companyName = `${regionPrefix}${randomName}${randomSuffix}`;
+    
+    // 랜덤 전화번호 생성 (지역번호 기반)
+    const areaCodes = {
+        '서울': '02', '경기': '031', '인천': '032', '강원': '033',
+        '충북': '043', '충남': '041', '대전': '042', '전북': '063',
+        '전남': '061', '광주': '062', '경북': '054', '경남': '055',
+        '대구': '053', '울산': '052', '부산': '051', '제주': '064'
+    };
+    
+    const areaCode = areaCodes[regionPrefix] || '02';
+    const phoneNumber = `${areaCode}-${Math.floor(Math.random() * 9000) + 1000}-${Math.floor(Math.random() * 9000) + 1000}`;
+    
+    // 랜덤 이메일 생성
+    const emailDomains = ['naver.com', 'gmail.com', 'daum.net', 'coop.co.kr', 'farm.co.kr'];
+    const randomDomain = emailDomains[Math.floor(Math.random() * emailDomains.length)];
+    const email = `${companyName.toLowerCase().replace(/[^a-z0-9]/g, '')}@${randomDomain}`;
+    
+    return {
+        name: companyName,
+        phone: phoneNumber,
+        email: email
+    };
 }
 
 // 상품 ID로 상품 정보 가져오기
@@ -167,8 +270,36 @@ function renderProductDetail() {
     // 상품 설명
     document.getElementById('descriptionText').textContent = currentProduct.description;
 
+    // 업체 정보 렌더링
+    renderCompanyInfo();
+
     // 상품 이미지
     renderProductImages();
+}
+
+// 업체 정보 렌더링
+function renderCompanyInfo() {
+    if (!currentProduct.companyInfo) return;
+    
+    const companyInfo = currentProduct.companyInfo;
+    
+    // 업체명
+    const companyNameElement = document.getElementById('companyName');
+    if (companyNameElement) {
+        companyNameElement.textContent = companyInfo.name;
+    }
+    
+    // 전화번호
+    const companyPhoneElement = document.getElementById('companyPhone');
+    if (companyPhoneElement) {
+        companyPhoneElement.textContent = companyInfo.phone;
+    }
+    
+    // 이메일
+    const companyEmailElement = document.getElementById('companyEmail');
+    if (companyEmailElement) {
+        companyEmailElement.textContent = companyInfo.email;
+    }
 }
 
 // 가격 옵션 렌더링
