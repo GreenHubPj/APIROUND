@@ -76,4 +76,9 @@ public class RegionService {
                 return regionRepository.findByRegionLike(regionCode);
         }
     }
+
+    // ID로 상품 조회
+    public Region getProductById(Integer id) {
+        return regionRepository.findById(id).orElse(null);
+    }
 }

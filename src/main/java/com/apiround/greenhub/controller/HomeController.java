@@ -109,6 +109,11 @@ public class HomeController {
         return "review-write";
     }
 
+    @GetMapping("/review-management")
+    public String reviewManagement() {
+        return "review-management";
+    }
+
     @GetMapping("/event")
     public String event() {
         return "event";
@@ -136,7 +141,12 @@ public class HomeController {
 
     @GetMapping("/reviewlist")
     public String reviewlist() {
-        return "review";
+        return "reviewlist";
+    }
+
+    @GetMapping("/reviewwrite")
+    public String reviewwrite() {
+        return "reviewwrite";
 
     }
 
@@ -145,15 +155,6 @@ public class HomeController {
         return "item-management";
     }
 
-    @GetMapping("/region-detail")
-    public String regionDetail(@RequestParam(required = false) String id) {
-        return "region-detail";
-    }
-
-    @GetMapping("/review-management")
-    public String reviewManagement() {
-        return "review-management";
-    }
 
     @GetMapping("/sellerDelivery")
     public String sellerDelivery() {

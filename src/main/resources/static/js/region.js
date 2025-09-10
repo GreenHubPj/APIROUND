@@ -300,6 +300,11 @@ document.addEventListener('DOMContentLoaded', function() {
     function showNextProducts() {
         const visibleCards = [];
         
+        console.log('showNextProducts 호출됨');
+        console.log('현재 지역:', currentRegion);
+        console.log('현재 카테고리:', currentCategory);
+        console.log('현재 표시된 수:', displayedCount);
+        
         productCards.forEach(card => {
             const cardRegion = card.getAttribute('data-region');
             const cardCategory = card.getAttribute('data-category');
@@ -333,17 +338,25 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
         
+        console.log('필터링된 상품 수:', visibleCards.length);
+        
         // 현재 표시된 수부터 itemsPerPage만큼 더 표시
         const endIndex = Math.min(displayedCount + itemsPerPage, visibleCards.length);
+        console.log('표시할 범위:', displayedCount, '~', endIndex);
         
         for (let i = displayedCount; i < endIndex; i++) {
             visibleCards[i].classList.remove('hidden');
+            console.log('상품 표시됨:', i, visibleCards[i].querySelector('.product-title').textContent);
         }
         
         displayedCount = endIndex;
+        console.log('업데이트된 표시된 수:', displayedCount);
         
         // 더 표시할 상품이 있는지 반환
-        return displayedCount < visibleCards.length;
+        const hasMore = displayedCount < visibleCards.length;
+        console.log('더 표시할 상품이 있는가:', hasMore);
+        
+        return hasMore;
     }
     
     // 더보기 버튼 상태 업데이트
@@ -432,24 +445,32 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 더보기 버튼 클릭 이벤트
     const loadMoreBtn = document.getElementById('loadMoreBtn');
+    console.log('더보기 버튼 요소:', loadMoreBtn);
+    
     if (loadMoreBtn) {
         loadMoreBtn.addEventListener('click', function() {
-            console.log('더보기 버튼 클릭');
+            console.log('더보기 버튼 클릭됨');
+            console.log('현재 표시된 상품 수:', displayedCount);
             
             // 다음 상품들을 표시
             const hasMore = showNextProducts();
+            console.log('더 표시할 상품이 있는가:', hasMore);
+            console.log('클릭 후 표시된 상품 수:', displayedCount);
             
             // 더보기 버튼 상태 업데이트
             updateLoadMoreButton();
             
             // 더 이상 상품이 없으면 메시지 표시
             if (!hasMore) {
+                console.log('더 이상 표시할 상품이 없음');
                 showNoMoreProductsMessage();
             }
             
             // 애니메이션 적용
             animateVisibleCards();
         });
+    } else {
+        console.error('더보기 버튼을 찾을 수 없습니다!');
     }
 
     // 더 이상 상품이 없을 때 메시지 표시
@@ -556,6 +577,8 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     // 초기 로드 시 페이징 적용
+    console.log('초기 로드 시작');
+    console.log('총 상품 카드 수:', productCards.length);
     filterProducts();
     
     console.log('지역별 특산품 페이지 초기화 완료');

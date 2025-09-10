@@ -33,7 +33,7 @@
                             <!-- 썸네일 이미지들이 여기에 동적으로 추가됩니다 -->
                         </div>
                         <div class="main-image-container">
-                            <img id="mainImage" src="" alt="상품 이미지" class="main-image">
+                            <img id="mainImage" th:src="${product.thumbnailUrl}" th:alt="${product.productName}" class="main-image">
                             <div class="image-nav">
                                 <button class="nav-btn prev-btn" id="prevBtn">‹</button>
                                 <button class="nav-btn next-btn" id="nextBtn">›</button>
@@ -76,9 +76,10 @@
                 <div class="right-section">
                     <div class="product-info">
                         <div class="product-header">
-                            <h1 class="product-title" id="productTitle">상품명</h1>
+                            <h1 class="product-title" id="productTitle" th:text="${product.productName}">상품명</h1>
                             <div class="product-tags" id="productTags">
-                                <!-- 태그들이 여기에 동적으로 추가됩니다 -->
+                                <span class="product-tag" th:text="${product.productType}">카테고리</span>
+                                <span class="product-tag" th:text="${product.regionText}">지역</span>
                             </div>
                         </div>
 
@@ -91,30 +92,22 @@
 
                         <div class="product-details">
                             <div class="detail-item">
-                                <span class="detail-label">재고수량:</span>
-                                <span class="detail-value" id="stockInfo">-</span>
-                            </div>
-                            <div class="detail-item">
                                 <span class="detail-label">원산지:</span>
-                                <span class="detail-value" id="originInfo">-</span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="detail-label">유통기한:</span>
-                                <span class="detail-value" id="expiryInfo">-</span>
-                            </div>
-                            <div class="detail-item">
-                                <span class="detail-label">보관방법:</span>
-                                <span class="detail-value" id="storageInfo">-</span>
+                                <span class="detail-value" id="originInfo" th:text="${product.regionText}">-</span>
                             </div>
                             <div class="detail-item">
                                 <span class="detail-label">제철기간:</span>
-                                <span class="detail-value" id="seasonInfo">-</span>
+                                <span class="detail-value" id="seasonInfo" th:text="${product.harvestSeason}">-</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">상품 유형:</span>
+                                <span class="detail-value" id="typeInfo" th:text="${product.productType}">-</span>
                             </div>
                         </div>
 
                         <div class="product-description">
                             <h3 class="description-title">상품 설명</h3>
-                            <p class="description-text" id="descriptionText">상품 설명이 여기에 표시됩니다.</p>
+                            <p class="description-text" id="descriptionText" th:text="${product.description}">상품 설명이 여기에 표시됩니다.</p>
                         </div>
 
                         <div class="purchase-section">

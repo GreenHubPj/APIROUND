@@ -73,7 +73,8 @@
                       class="product-card" 
                       th:data-region="${product.regionText}" 
                       th:data-product-id="${product.productId}" 
-                      th:data-category="${product.productType}">
+                      th:data-category="${product.productType}"
+                      th:onclick="'location.href=\'/region-detail?id=' + ${product.productId} + '\''">
                      <div class="product-image">
                          <img th:src="${product.thumbnailUrl}" th:alt="${product.productName}">
                          <p class="product-place" th:text="${product.regionText}"></p>
