@@ -32,11 +32,6 @@ public class HomeController {
         return "signup";
     }
 
-    @GetMapping("/region")
-    public String region() {
-        return "region";
-    }
-
     @GetMapping("/popular")
     public String popular() {
         return "popular";
@@ -114,6 +109,11 @@ public class HomeController {
         return "review-write";
     }
 
+    @GetMapping("/review-management")
+    public String reviewManagement() {
+        return "review-management";
+    }
+
     @GetMapping("/event")
     public String event() {
         return "event";
@@ -141,7 +141,12 @@ public class HomeController {
 
     @GetMapping("/reviewlist")
     public String reviewlist() {
-        return "review";
+        return "reviewlist";
+    }
+
+    @GetMapping("/reviewwrite")
+    public String reviewwrite() {
+        return "reviewwrite";
     }
 
     @GetMapping("/item-management")
@@ -149,10 +154,6 @@ public class HomeController {
         return "item-management";
     }
 
-    @GetMapping("/region-detail")
-    public String regionDetail(@RequestParam(required = false) String id) {
-        return "region-detail";
-    }
 
     @GetMapping("/review-management")
     public String reviewManagement() {

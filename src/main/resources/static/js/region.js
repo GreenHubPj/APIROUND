@@ -51,6 +51,41 @@ document.addEventListener('DOMContentLoaded', function() {
         return regionMap[regionCode] || regionCode;
     }
 
+    // 지역명 매칭 함수 (다양한 형태의 지역명을 매칭)
+    function isRegionMatch(regionCode, regionText) {
+        if (!regionText) return false;
+        
+        const regionTextLower = regionText.toLowerCase();
+        
+        // 지역 코드에 따른 매칭 패턴
+        const regionPatterns = {
+            'seoul': ['서울', '서울특별시', '서울시'],
+            'gyeonggi': ['경기', '경기도', '경기시'],
+            'incheon': ['인천', '인천광역시', '인천시'],
+            'gangwon': ['강원', '강원도', '강원시'],
+            'chungbuk': ['충북', '충청북도', '충북시'],
+            'chungnam': ['충남', '충청남도', '충남시'],
+            'daejeon': ['대전', '대전광역시', '대전시'],
+            'jeonbuk': ['전북', '전라북도', '전북시'],
+            'jeonnam': ['전남', '전라남도', '전남시'],
+            'gwangju': ['광주', '광주광역시', '광주시'],
+            'gyeongbuk': ['경북', '경상북도', '경북시'],
+            'gyeongnam': ['경남', '경상남도', '경남시'],
+            'daegu': ['대구', '대구광역시', '대구시'],
+            'ulsan': ['울산', '울산광역시', '울산시'],
+            'busan': ['부산', '부산광역시', '부산시'],
+            'jeju': ['제주', '제주도', '제주특별자치도']
+        };
+        
+        const patterns = regionPatterns[regionCode];
+        if (!patterns) return false;
+        
+        // 패턴 중 하나라도 매칭되면 true
+        return patterns.some(pattern => 
+            regionTextLower.includes(pattern.toLowerCase())
+        );
+    }
+
     // 선택된 지역 표시 함수
     function showSelectedRegion(regionName) {
         if (selectedRegionSection && selectedRegionName) {
@@ -144,40 +179,24 @@ document.addEventListener('DOMContentLoaded', function() {
     function filterProducts() {
         displayedCount = 0; // 표시된 상품 수 초기화
         
+        // 먼저 모든 상품을 숨김
         productCards.forEach(card => {
-            const cardRegion = card.getAttribute('data-region');
-            const cardCategory = card.getAttribute('data-category');
-            const cardTitle = card.querySelector('.product-title').textContent.toLowerCase();
-            const searchTerm = searchInput ? searchInput.value.trim().toLowerCase() : '';
-            
-            let shouldShow = true;
-            
-            // 지역 필터링
-            if (currentRegion !== 'all' && cardRegion !== currentRegion) {
-                shouldShow = false;
-            }
-            
-            // 카테고리 필터링
-            if (currentCategory !== 'all' && cardCategory !== currentCategory) {
-                shouldShow = false;
-            }
-            
-            // 검색어 필터링
-            if (searchTerm && !cardTitle.includes(searchTerm)) {
-                shouldShow = false;
-            }
-            
-            if (shouldShow) {
-                card.classList.remove('hidden');
-            } else {
-                card.classList.add('hidden');
-            }
+            card.classList.add('hidden');
         });
         
-        // 페이지네이션 적용
-        applyPagination();
+        // 필터링된 상품들을 처음 5개만 표시
+        showNextProducts();
+        
+        // 더보기 버튼 상태 업데이트
         updateLoadMoreButton();
         animateVisibleCards();
+    }
+
+    // 페이지네이션 적용 함수
+    function applyPagination() {
+        // 현재 표시된 상품 수를 초기화하고 처음 5개만 표시
+        displayedCount = 0;
+        showNextProducts();
     }
 
     // 검색어로 상품 필터링
@@ -281,28 +300,63 @@ document.addEventListener('DOMContentLoaded', function() {
     function showNextProducts() {
         const visibleCards = [];
         
+        console.log('showNextProducts 호출됨');
+        console.log('현재 지역:', currentRegion);
+        console.log('현재 카테고리:', currentCategory);
+        console.log('현재 표시된 수:', displayedCount);
+        
         productCards.forEach(card => {
-            if (currentRegion === 'all') {
-                visibleCards.push(card);
-            } else {
-                const cardRegion = card.getAttribute('data-region');
-                if (cardRegion === currentRegion) {
-                    visibleCards.push(card);
+            const cardRegion = card.getAttribute('data-region');
+            const cardCategory = card.getAttribute('data-category');
+            const cardTitle = card.querySelector('.product-title').textContent.toLowerCase();
+            const searchTerm = searchInput ? searchInput.value.trim().toLowerCase() : '';
+            
+            let shouldShow = true;
+            
+            // 지역 필터링
+            if (currentRegion !== 'all') {
+                const regionTextElement = card.querySelector('.product-place');
+                const regionText = regionTextElement ? regionTextElement.textContent : '';
+                
+                if (!isRegionMatch(currentRegion, regionText) && cardRegion !== currentRegion) {
+                    shouldShow = false;
                 }
+            }
+            
+            // 카테고리 필터링
+            if (currentCategory !== 'all' && cardCategory !== currentCategory) {
+                shouldShow = false;
+            }
+            
+            // 검색어 필터링
+            if (searchTerm && !cardTitle.includes(searchTerm)) {
+                shouldShow = false;
+            }
+            
+            if (shouldShow) {
+                visibleCards.push(card);
             }
         });
         
+        console.log('필터링된 상품 수:', visibleCards.length);
+        
         // 현재 표시된 수부터 itemsPerPage만큼 더 표시
         const endIndex = Math.min(displayedCount + itemsPerPage, visibleCards.length);
+        console.log('표시할 범위:', displayedCount, '~', endIndex);
         
         for (let i = displayedCount; i < endIndex; i++) {
             visibleCards[i].classList.remove('hidden');
+            console.log('상품 표시됨:', i, visibleCards[i].querySelector('.product-title').textContent);
         }
         
         displayedCount = endIndex;
+        console.log('업데이트된 표시된 수:', displayedCount);
         
         // 더 표시할 상품이 있는지 반환
-        return displayedCount < visibleCards.length;
+        const hasMore = displayedCount < visibleCards.length;
+        console.log('더 표시할 상품이 있는가:', hasMore);
+        
+        return hasMore;
     }
     
     // 더보기 버튼 상태 업데이트
@@ -313,13 +367,35 @@ document.addEventListener('DOMContentLoaded', function() {
         const visibleCards = [];
         
         productCards.forEach(card => {
-            if (currentRegion === 'all') {
-                visibleCards.push(card);
-            } else {
-                const cardRegion = card.getAttribute('data-region');
-                if (cardRegion === currentRegion) {
-                    visibleCards.push(card);
+            const cardRegion = card.getAttribute('data-region');
+            const cardCategory = card.getAttribute('data-category');
+            const cardTitle = card.querySelector('.product-title').textContent.toLowerCase();
+            const searchTerm = searchInput ? searchInput.value.trim().toLowerCase() : '';
+            
+            let shouldShow = true;
+            
+            // 지역 필터링
+            if (currentRegion !== 'all') {
+                const regionTextElement = card.querySelector('.product-place');
+                const regionText = regionTextElement ? regionTextElement.textContent : '';
+                
+                if (!isRegionMatch(currentRegion, regionText) && cardRegion !== currentRegion) {
+                    shouldShow = false;
                 }
+            }
+            
+            // 카테고리 필터링
+            if (currentCategory !== 'all' && cardCategory !== currentCategory) {
+                shouldShow = false;
+            }
+            
+            // 검색어 필터링
+            if (searchTerm && !cardTitle.includes(searchTerm)) {
+                shouldShow = false;
+            }
+            
+            if (shouldShow) {
+                visibleCards.push(card);
             }
         });
         
@@ -369,31 +445,32 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 더보기 버튼 클릭 이벤트
     const loadMoreBtn = document.getElementById('loadMoreBtn');
+    console.log('더보기 버튼 요소:', loadMoreBtn);
+    
     if (loadMoreBtn) {
         loadMoreBtn.addEventListener('click', function() {
-            console.log('더보기 버튼 클릭');
+            console.log('더보기 버튼 클릭됨');
+            console.log('현재 표시된 상품 수:', displayedCount);
             
-            // 검색어가 있는지 확인
-            const searchTerm = searchInput ? searchInput.value.trim() : '';
+            // 다음 상품들을 표시
+            const hasMore = showNextProducts();
+            console.log('더 표시할 상품이 있는가:', hasMore);
+            console.log('클릭 후 표시된 상품 수:', displayedCount);
             
-            if (searchTerm) {
-                // 검색 결과에서 더보기
-                const hasMore = showNextProductsBySearch(searchTerm);
-                updateLoadMoreButtonBySearch(searchTerm);
-                if (!hasMore) {
-                    showNoMoreProductsMessage();
-                }
-            } else {
-                // 지역 필터에서 더보기
-                const hasMore = showNextProducts();
-                updateLoadMoreButton();
-                if (!hasMore) {
-                    showNoMoreProductsMessage();
-                }
+            // 더보기 버튼 상태 업데이트
+            updateLoadMoreButton();
+            
+            // 더 이상 상품이 없으면 메시지 표시
+            if (!hasMore) {
+                console.log('더 이상 표시할 상품이 없음');
+                showNoMoreProductsMessage();
             }
             
+            // 애니메이션 적용
             animateVisibleCards();
         });
+    } else {
+        console.error('더보기 버튼을 찾을 수 없습니다!');
     }
 
     // 더 이상 상품이 없을 때 메시지 표시
@@ -500,6 +577,8 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     // 초기 로드 시 페이징 적용
+    console.log('초기 로드 시작');
+    console.log('총 상품 카드 수:', productCards.length);
     filterProducts();
     
     console.log('지역별 특산품 페이지 초기화 완료');

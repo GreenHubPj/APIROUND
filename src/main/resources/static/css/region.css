@@ -281,6 +281,7 @@ body {
     gap: 25px;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     align-items: flex-start;
+    cursor: pointer;
 }
 
 .product-card:hover {
@@ -354,6 +355,10 @@ body {
     width: 100%;
     height: 100%;
     object-fit: cover;
+}
+
+.product-place {
+    display: none;
 }
 
 .product-content {
