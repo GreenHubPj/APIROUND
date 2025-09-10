@@ -32,11 +32,6 @@ public class HomeController {
         return "signup";
     }
 
-    @GetMapping("/region")
-    public String region() {
-        return "region";
-    }
-
     @GetMapping("/popular")
     public String popular() {
         return "popular";

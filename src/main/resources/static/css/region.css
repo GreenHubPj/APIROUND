@@ -356,6 +356,10 @@ body {
     object-fit: cover;
 }
 
+.product-place {
+    display: none;
+}
+
 .product-content {
     flex: 1;
     display: flex;
