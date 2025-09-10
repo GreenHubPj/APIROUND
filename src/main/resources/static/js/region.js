@@ -18,10 +18,68 @@ document.addEventListener('DOMContentLoaded', function() {
     const productsSection = document.getElementById('productsSection');
     const regionLabels = document.querySelectorAll('.region-label');
     const categoryButtons = document.querySelectorAll('.category-btn');
+    
+    // 선택된 지역 표시 관련 요소들
+    const selectedRegionSection = document.getElementById('selectedRegionSection');
+    const selectedRegionName = document.getElementById('selectedRegionName');
+    const clearSelectionBtn = document.getElementById('clearSelectionBtn');
 
     // 검색 기능
     const searchInput = document.querySelector('.search-input');
     const searchBtn = document.querySelector('.search-btn');
+
+    // 지역명을 한글로 변환하는 함수
+    function getKoreanRegionName(regionCode) {
+        const regionMap = {
+            'seoul': '서울',
+            'gyeonggi': '경기도',
+            'incheon': '인천',
+            'gangwon': '강원도',
+            'chungbuk': '충청북도',
+            'chungnam': '충청남도',
+            'daejeon': '대전',
+            'jeonbuk': '전라북도',
+            'jeonnam': '전라남도',
+            'gwangju': '광주',
+            'gyeongbuk': '경상북도',
+            'gyeongnam': '경상남도',
+            'daegu': '대구',
+            'ulsan': '울산',
+            'busan': '부산',
+            'jeju': '제주도'
+        };
+        return regionMap[regionCode] || regionCode;
+    }
+
+    // 선택된 지역 표시 함수
+    function showSelectedRegion(regionName) {
+        if (selectedRegionSection && selectedRegionName) {
+            const koreanName = getKoreanRegionName(regionName);
+            selectedRegionName.textContent = koreanName;
+            selectedRegionSection.style.display = 'block';
+        }
+    }
+
+    // 선택된 지역 숨기기 함수
+    function hideSelectedRegion() {
+        if (selectedRegionSection) {
+            selectedRegionSection.style.display = 'none';
+        }
+    }
+
+    // 선택 취소 함수
+    function clearRegionSelection() {
+        currentRegion = 'all';
+        hideSelectedRegion();
+        
+        // 모든 지역 라벨에서 active 클래스 제거
+        regionLabels.forEach(label => {
+            label.classList.remove('active');
+        });
+        
+        // 상품 필터링 다시 실행
+        filterProducts();
+    }
 
     // 상품 카드 클릭 이벤트
     productCards.forEach(card => {
@@ -33,6 +91,13 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+
+    // 선택 취소 버튼 이벤트 리스너
+    if (clearSelectionBtn) {
+        clearSelectionBtn.addEventListener('click', function() {
+            clearRegionSelection();
+        });
+    }
 
     // 카테고리 버튼 클릭 이벤트
     categoryButtons.forEach(button => {
@@ -294,11 +359,11 @@ document.addEventListener('DOMContentLoaded', function() {
             // 현재 지역 업데이트
             currentRegion = regionName;
             
+            // 선택된 지역 표시
+            showSelectedRegion(regionName);
+            
             // 통합 필터링 함수 사용
             filterProducts();
-            
-            // 지도 오버레이 표시
-            showRegionSelection(regionName);
         });
     });
 
@@ -357,105 +422,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 지도 관련 변수들
     const koreaMap = document.querySelector('#koreaMap');
-    const overlays = {
-        gangwon: document.querySelector('#gangwonOverlay'),
-        gyeonggi: document.querySelector('#gyeonggiOverlay'),
-        gyeongnam: document.querySelector('#gyeongnamOverlay'),
-        gyeongbuk: document.querySelector('#gyeongbukOverlay'),
-        gwangju: document.querySelector('#gwangjuOverlay'),
-        daegu: document.querySelector('#daeguOverlay'),
-        daejeon: document.querySelector('#daejeonOverlay'),
-        busan: document.querySelector('#busanOverlay'),
-        seoul: document.querySelector('#seoulOverlay'),
-        ulsan: document.querySelector('#ulsanOverlay'),
-        incheon: document.querySelector('#incheonOverlay'),
-        jeonnam: document.querySelector('#jeonnamOverlay'),
-        jeonbuk: document.querySelector('#jeonbukOverlay'),
-        jeju: document.querySelector('#jejuOverlay'),
-        chungnam: document.querySelector('#chungnamOverlay'),
-        chungbuk: document.querySelector('#chungbukOverlay')
-    };
     
-    // 지역 선택 표시 함수
-    function showRegionSelection(region) {
-        const overlay = overlays[region];
-        if (overlay) {
-            // 지도에 선택 효과 적용 (블러)
-            if (koreaMap) {
-                koreaMap.classList.add('selected');
-            }
-            
-            // 오버레이 표시
-            overlay.style.display = 'flex';
-            
-            // 애니메이션 재시작
-            const provinceMap = overlay.querySelector('.province-map');
-            const selectionMessage = overlay.querySelector('.selection-message');
-            
-            if (provinceMap && selectionMessage) {
-                provinceMap.style.animation = 'none';
-                selectionMessage.style.animation = 'none';
-                
-                // 강제 리플로우
-                provinceMap.offsetHeight;
-                selectionMessage.offsetHeight;
-                
-                // 애니메이션 재시작
-                provinceMap.style.animation = 'scaleIn 0.5s ease-out';
-                selectionMessage.style.animation = 'fadeInUp 0.6s ease-out 0.3s both';
-            }
-            
-            // 3초 후 자동으로 숨기기
-            setTimeout(() => {
-                hideRegionSelection(region);
-            }, 3000);
-            
-            console.log(`${region}이(가) 선택되었습니다`);
-        }
-    }
-    
-    // 지역 선택 숨기기 함수
-    function hideRegionSelection(region) {
-        const overlay = overlays[region];
-        if (overlay) {
-            // 지도 선택 효과 제거
-            if (koreaMap) {
-                koreaMap.classList.remove('selected');
-            }
-            
-            overlay.style.display = 'none';
-        }
-    }
-    
-    // 모든 오버레이 숨기기 함수
-    function hideAllOverlays() {
-        if (koreaMap) {
-            koreaMap.classList.remove('selected');
-        }
-        Object.values(overlays).forEach(overlay => {
-            if (overlay) {
-                overlay.style.display = 'none';
-            }
-        });
-    }
-    
-    // 오버레이 외부 클릭 시 숨기기
-    document.addEventListener('click', function(e) {
-        const isOverlayVisible = Object.values(overlays).some(overlay => 
-            overlay && overlay.style.display === 'flex'
-        );
-        
-        if (isOverlayVisible) {
-            const clickedOverlay = Object.values(overlays).find(overlay => 
-                overlay && overlay.contains(e.target)
-            );
-            
-            // 클릭된 요소가 오버레이나 한국 지도가 아니면 모든 오버레이 숨김
-            if (!clickedOverlay && !koreaMap?.contains(e.target) && !e.target.classList.contains('region-label')) {
-                hideAllOverlays();
-            }
-        }
-    });
     
     // 스크롤 시 헤더 고정 효과
     let lastScrollTop = 0;
@@ -502,8 +469,8 @@ document.addEventListener('DOMContentLoaded', function() {
             // 해당 지역 라벨에 active 클래스 추가
             targetRegionLabel.classList.add('active');
             
-            // 지도 오버레이 표시
-            showRegionSelection(regionFromUrl);
+            // 선택된 지역 표시
+            showSelectedRegion(regionFromUrl);
             
             console.log('지역 자동 선택 완료:', regionFromUrl);
         }
