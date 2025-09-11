@@ -38,9 +38,10 @@ document.addEventListener('DOMContentLoaded', function () {
   // 카드 클릭/호버
   productCards.forEach(card => {
     card.addEventListener('click', () => {
-      const nameEl = card.querySelector('.product-name');
-      const productName = nameEl ? nameEl.textContent.trim() : '상품';
-      alert(`${productName} 상세 정보를 보여드립니다!`);
+      const productId = card.getAttribute('data-product-id');
+      if (productId) {
+        goToProductDetail(productId);
+      }
     });
     card.addEventListener('mouseenter', () => { card.style.transform = 'translateY(-5px)'; });
     card.addEventListener('mouseleave', () => { card.style.transform = 'translateY(0)'; });
@@ -165,5 +166,11 @@ document.addEventListener('DOMContentLoaded', function () {
       const seasonNames = ['겨울철','봄철','봄철','봄철','여름철','여름철','여름철','여름철','가을철','가을철','가을철','겨울철'];
       pageSubtitle.textContent = `${month}월, ${seasonNames[month - 1]} 최고의 신선함을 만나보세요`;
     }
+  }
+
+  // 상품 상세 페이지로 이동하는 함수
+  function goToProductDetail(productId) {
+    console.log('상품 상세 페이지로 이동:', productId);
+    window.location.href = `/region-detail?id=${productId}`;
   }
 });
