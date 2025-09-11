@@ -32,13 +32,11 @@ public class HomeController {
         return "redirect:/specialties/monthly";
     }
 
-    @GetMapping("/login")
-    public String login() { return "login"; }
+    // ✅ /login 은 AuthController가 처리하므로 제거
+    // @GetMapping("/login")
+    // public String login() { return "login"; }
 
-    @GetMapping("/signup")
-    public String signup() { return "signup"; }
-
-    // ⚠️ /region 제거
+    // ⚠️ /region 제거 (주석으로 유지)
     // @GetMapping("/region") public String region() { return "region"; }
 
     @GetMapping("/popular")
