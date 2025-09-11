@@ -1,19 +1,25 @@
 package com.apiround.greenhub.controller;
 
-import com.apiround.greenhub.entity.User;
-import com.apiround.greenhub.repository.UserRepository;
-import com.apiround.greenhub.service.EmailCodeService;
-import com.apiround.greenhub.util.PasswordUtil;
-import jakarta.servlet.http.HttpSession;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.util.HashMap;
-import java.util.Map;
+import com.apiround.greenhub.entity.User;
+import com.apiround.greenhub.repository.UserRepository;
+import com.apiround.greenhub.service.EmailCodeService;
+import com.apiround.greenhub.util.PasswordUtil;
+
+import jakarta.servlet.http.HttpSession;
 
 @Controller
 public class AuthController {
@@ -32,6 +38,12 @@ public class AuthController {
     @ModelAttribute("user")
     public User user() {
         return new User();
+    }
+
+    // 모든 뷰에 로그인 사용자 정보 주입
+    @ModelAttribute("LOGIN_USER")
+    public User loginUser(HttpSession session) {
+        return (User) session.getAttribute("LOGIN_USER");
     }
 
     // ─────────────────  View  ─────────────────
@@ -181,12 +193,31 @@ public class AuthController {
             // 로그인 성공: 세션에 저장(필요 시)
             session.setAttribute("loginUserId", u.getUserId());
             session.setAttribute("loginUserName", u.getName());
+            session.setAttribute("LOGIN_USER", u);  // 헤더에서 사용하는 객체
 
             return "redirect:/";
         } catch (Exception e) {
             ra.addFlashAttribute("error", "아이디 또는 비밀번호를 확인해주세요.");
             return "redirect:/login";
         }
+    }
+
+    // ─────────────────  로그아웃  ─────────────────
+    @PostMapping("/api/auth/logout")
+    @ResponseBody
+    public Map<String, Object> logout(HttpSession session) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            // 세션 무효화
+            session.invalidate();
+            response.put("success", true);
+            response.put("message", "로그아웃되었습니다.");
+        } catch (Exception e) {
+            log.error("로그아웃 처리 중 오류", e);
+            response.put("success", false);
+            response.put("message", "로그아웃 처리 중 오류가 발생했습니다.");
+        }
+        return response;
     }
 
     // ─────────────────  유틸  ─────────────────

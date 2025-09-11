@@ -27,41 +27,20 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  // ✅ 로그인 폼 제출 -> 서버로 POST
+  // ✅ 로그인 폼 제출 -> 서버로 POST (일반 폼 제출 사용)
   if (loginForm) {
-    loginForm.addEventListener('submit', async function (e) {
-      e.preventDefault();
-
+    loginForm.addEventListener('submit', function (e) {
       const loginId = document.getElementById('loginId').value.trim();
       const loginPassword = document.getElementById('loginPassword').value.trim();
+      
       if (!loginId || !loginPassword) {
+        e.preventDefault();
         alert('아이디와 비밀번호를 모두 입력해주세요.');
         return;
       }
-
-      try {
-        const params = new URLSearchParams();
-        params.append('loginId', loginId);
-        params.append('password', loginPassword);
-
-        const res = await fetch('/api/auth/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-          body: params.toString()
-        });
-
-        const data = await res.json().catch(() => ({}));
-
-        if (!res.ok || !data.ok) {
-          alert((data && data.message) || '아이디 또는 비밀번호가 일치하지 않습니다.');
-          return;
-        }
-
-        // 로그인 성공
-        window.location.href = '/';
-      } catch (err) {
-        alert('네트워크 오류입니다.');
-      }
+      
+      // 폼 제출을 막지 않고 서버로 전송
+      // 서버에서 성공/실패에 따라 리다이렉트 처리
     });
   }
 
