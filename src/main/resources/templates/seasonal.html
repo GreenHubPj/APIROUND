@@ -23,7 +23,9 @@
 
     <div class="products-grid" id="productsGrid">
         <!-- 🔁 DB에서 불러온 Region 리스트 -->
-        <div class="product-card" th:each="region : ${regions}">
+        <div class="product-card" th:each="region : ${regions}" 
+             th:data-product-id="${region.productId}" 
+             th:onclick="'goToProductDetail(' + ${region.productId} + ')'">
             <!-- 썸네일 -->
             <img th:src="${region.thumbnailUrl != null ? region.thumbnailUrl : '/images/default.png'}"
                  th:alt="${region.productName}" class="product-image">
