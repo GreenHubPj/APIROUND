@@ -10,8 +10,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
 </head>
 <body>
-<!-- 헤더 포함 -->
-<div th:replace="common/header :: header"></div>
+<!-- 헤더 포함 (신규 문법) -->
+<div th:replace="~{common/header :: header}"></div>
 
 <div class="signup-container">
     <div class="signup-header">
@@ -33,18 +33,18 @@
         <div class="form-section">
             <div class="form-group">
                 <label class="form-label" for="individualName">이름(실명) *</label>
-                <input type="text" id="individualName" class="form-input" placeholder="실명을 입력해주세요" required>
+                <input type="text" id="individualName" name="name" class="form-input" placeholder="실명을 입력해주세요" required>
             </div>
 
             <div class="form-group">
                 <label class="form-label" for="individualId">아이디 *</label>
-                <input type="text" id="individualId" class="form-input" placeholder="아이디를 입력해주세요" required>
+                <input type="text" id="individualId" name="loginId" class="form-input" placeholder="아이디를 입력해주세요" required>
             </div>
 
             <div class="form-group">
                 <label class="form-label" for="individualPassword">비밀번호 *</label>
                 <div class="password-input-container">
-                    <input type="password" id="individualPassword" class="form-input" placeholder="비밀번호를 입력해주세요" required>
+                    <input type="password" id="individualPassword" name="password" class="form-input" placeholder="비밀번호를 입력해주세요" required>
                     <button type="button" class="password-toggle">
                         <img src="/images/감은눈.png" alt="비밀번호 보기">
                     </button>
@@ -65,7 +65,7 @@
                 <label class="form-label" for="individualEmail">이메일 *</label>
                 <div class="verification-container">
                     <div class="verification-input">
-                        <input type="email" id="individualEmail" class="form-input" placeholder="이메일을 입력해주세요" required>
+                        <input type="email" id="individualEmail" name="email" class="form-input" placeholder="이메일을 입력해주세요" required>
                     </div>
                     <button type="button" class="verification-btn" id="sendEmailCodeBtn">인증번호 전송</button>
                 </div>
@@ -74,13 +74,13 @@
 
             <div class="form-group">
                 <label class="form-label" for="individualPhone">휴대폰번호 *</label>
-                <input type="tel" id="individualPhone" class="form-input" placeholder="예) 010-1234-5678" required>
+                <input type="tel" id="individualPhone" name="phone" class="form-input" placeholder="예) 010-1234-5678" required>
             </div>
 
             <!-- 선택항목: 성별 / 생년월일 -->
             <div class="form-group">
                 <label class="form-label" for="gender">성별 (선택)</label>
-                <select id="gender" class="form-input">
+                <select id="gender" name="gender" class="form-input">
                     <option value="">선택 안함</option>
                     <option value="남성">남성</option>
                     <option value="여성">여성</option>
@@ -90,12 +90,12 @@
 
             <div class="form-group">
                 <label class="form-label" for="birthDate">생년월일 (선택)</label>
-                <input type="date" id="birthDate" class="form-input">
+                <input type="date" id="birthDate" name="birthDate" class="form-input">
             </div>
         </div>
     </div>
 
-    <!-- 판매 회원 가입 폼 (디자인만 유지, 실제 가입은 개인회원 먼저 완성) -->
+    <!-- 판매 회원 가입 폼 (디자인만) -->
     <div id="sellerForm" class="signup-form" style="display: none;">
         <h2 class="section-title">판매 회원은 추후 연동 예정</h2>
         <p class="required-text">현재는 개인 회원 가입만 처리됩니다.</p>
@@ -136,34 +136,34 @@
         <div class="agreement-list">
             <div class="agreement-item">
                 <label>
-                    <input type="checkbox" class="required-agreement">
+                    <input type="checkbox" class="required-agreement" id="age15">
                     <span class="agreement-text">[필수] 만 15세 이상입니다</span>
                 </label>
             </div>
             <div class="agreement-item">
                 <label>
-                    <input type="checkbox" class="required-agreement">
+                    <input type="checkbox" class="required-agreement" id="tosAgree">
                     <span class="agreement-text">[필수] 이용약관 동의</span>
                 </label>
                 <a href="#" class="agreement-link">내용보기</a>
             </div>
             <div class="agreement-item">
                 <label>
-                    <input type="checkbox" class="required-agreement">
+                    <input type="checkbox" class="required-agreement" id="privacyAgree">
                     <span class="agreement-text">[필수] 개인정보 수집 및 이용 동의</span>
                 </label>
                 <a href="#" class="agreement-link">내용보기</a>
             </div>
             <div class="agreement-item">
                 <label>
-                    <input type="checkbox" class="optional-agreement">
+                    <input type="checkbox" class="optional-agreement" id="marketingEmailConsent">
                     <span class="agreement-text">[선택] 광고성 정보 이메일 수신 동의</span>
                 </label>
                 <a href="#" class="agreement-link">내용보기</a>
             </div>
             <div class="agreement-item">
                 <label>
-                    <input type="checkbox" class="optional-agreement">
+                    <input type="checkbox" class="optional-agreement" id="marketingSmsConsent">
                     <span class="agreement-text">[선택] 광고성 정보 SMS 수신 동의</span>
                 </label>
                 <a href="#" class="agreement-link">내용보기</a>
@@ -171,7 +171,7 @@
         </div>
     </div>
 
-    <!-- 개인정보 유효기간 -->
+    <!-- 개인정보 유효기간 (UI만, 서버 전송 X) -->
     <div class="retention-section">
         <div class="retention-title">
             <span>개인정보 유효기간 선택</span>
@@ -197,7 +197,7 @@
 </div>
 
 <!-- 푸터 포함 -->
-<div th:replace="common/footer :: footer"></div>
+<div th:replace="~{common/footer :: footer}"></div>
 
 <script src="/js/signup.js"></script>
 </body>
