@@ -21,6 +21,10 @@ public class Recipe {
     @Column(name = "recipe_id")
     private Long recipeId;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
+
     @Column(name = "title", nullable = false, length = 200)
     private String title;
 
