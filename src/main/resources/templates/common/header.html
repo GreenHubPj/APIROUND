@@ -1,36 +1,45 @@
 <!DOCTYPE html>
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8" />
     <title>Header Fragment</title>
-    <link rel="stylesheet" href="/css/header.css">
+    <link rel="stylesheet" href="/css/header.css" />
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <!-- 헤더/네비게이션 바 -->
-    <header class="header" th:fragment="header">
-        <div class="container">
-            <div class="nav-brand">
-                <a href="/" style="text-decoration: none; color: inherit; display: flex; align-items: center;">
-                    <img src="/images/로고 트럭.png" alt="로고" class="logo">
-                    <span class="brand-text">GreenHub</span>
-                </a>
-            </div>
-            <nav class="nav-menu">
-                <a href="/region" class="nav-link">지역별 특산품</a>
-                <a href="/popular" class="nav-link">인기 특산품</a>
-                <a href="/seasonal" class="nav-link">제철특산품</a>
-                <a href="/recipe" class="nav-link">요리법</a>
-                <a href="/event" class="nav-link">이벤트</a>
-            </nav>
-            <div class="nav-auth">
-                <a href="/login" class="btn-login">로그인</a>
-                <a href="/signup" class="btn-signup">회원가입</a>
-            </div>
+<!-- 헤더/네비게이션 바 -->
+<header class="header" th:fragment="header">
+    <div class="container">
+        <div class="nav-brand">
+            <a href="/" style="text-decoration: none; color: inherit; display: flex; align-items: center;">
+                <img src="/images/로고 트럭.png" alt="로고" class="logo">
+                <span class="brand-text">GreenHub</span>
+            </a>
         </div>
-    </header>
-    
-    <script src="/js/header.js"></script>
-    
+
+        <nav class="nav-menu">
+            <a href="/region" class="nav-link">지역별 특산품</a>
+            <a href="/popular" class="nav-link">인기 특산품</a>
+            <a href="/seasonal" class="nav-link">제철특산품</a>
+            <a href="/recipe" class="nav-link">요리법</a>
+            <a href="/event" class="nav-link">이벤트</a>
+        </nav>
+
+        <!-- 미로그인: 로그인/회원가입 -->
+        <div class="nav-auth" th:if="${session.LOGIN_USER == null}">
+            <a href="/login" class="btn-login">로그인</a>
+            <a href="/signup" class="btn-signup">회원가입</a>
+        </div>
+
+        <!-- 로그인: 환영문구/마이페이지/로그아웃 -->
+        <div class="nav-auth" th:if="${session.LOGIN_USER != null}">
+            <span class="welcome" th:text="${session.LOGIN_USER.name + '님'}">홍길동님</span>
+            <a href="/mypage" class="btn-mypage">마이페이지</a>
+            <a href="#" class="btn-logout" id="btnLogout">로그아웃</a>
+        </div>
+    </div>
+</header>
+
+<script src="/js/header.js"></script>
 </body>
 </html>

@@ -1,254 +1,148 @@
-// 회원가입 페이지 JavaScript
+// 회원가입 페이지 JavaScript (서버 연동 버전)
+document.addEventListener('DOMContentLoaded', function () {
+  // 탭 전환
+  const memberTypeTabs = document.querySelectorAll('.member-type-tab');
+  const individualForm = document.getElementById('individualForm');
+  const sellerForm = document.getElementById('sellerForm');
 
-document.addEventListener('DOMContentLoaded', function() {
-    // 회원 유형 탭 전환
-    const memberTypeTabs = document.querySelectorAll('.member-type-tab');
-    const individualForm = document.getElementById('individualForm');
-    const sellerForm = document.getElementById('sellerForm');
-    
-    memberTypeTabs.forEach(tab => {
-        tab.addEventListener('click', function() {
-            // 탭 활성화
-            memberTypeTabs.forEach(t => t.classList.remove('active'));
-            this.classList.add('active');
-            
-            // 폼 전환
-            const type = this.getAttribute('data-type');
-            if (type === 'individual') {
-                individualForm.style.display = 'block';
-                sellerForm.style.display = 'none';
-            } else if (type === 'seller') {
-                individualForm.style.display = 'none';
-                sellerForm.style.display = 'block';
-            }
-        });
+  memberTypeTabs.forEach(tab => {
+    tab.addEventListener('click', function () {
+      memberTypeTabs.forEach(t => t.classList.remove('active'));
+      this.classList.add('active');
+      const type = this.getAttribute('data-type');
+      if (type === 'individual') {
+        individualForm.style.display = 'block';
+        sellerForm.style.display = 'none';
+      } else {
+        individualForm.style.display = 'none';
+        sellerForm.style.display = 'block';
+      }
     });
-    
-    // 비밀번호 보기/숨기기 토글
-    const passwordToggles = document.querySelectorAll('.password-toggle');
-    passwordToggles.forEach(toggle => {
-        toggle.addEventListener('click', function() {
-            const passwordInput = this.parentElement.querySelector('input');
-            const eyeImg = this.querySelector('img');
-            
-            if (passwordInput.type === 'password') {
-                passwordInput.type = 'text';
-                eyeImg.src = '/images/뜬눈.png';
-            } else {
-                passwordInput.type = 'password';
-                eyeImg.src = '/images/감은눈.png';
-            }
-        });
+  });
+
+  // 비밀번호 보기/숨기기
+  document.querySelectorAll('.password-toggle').forEach(toggle => {
+    toggle.addEventListener('click', function () {
+      const input = this.parentElement.querySelector('input');
+      const eye = this.querySelector('img');
+      if (input.type === 'password') {
+        input.type = 'text';
+        eye.src = '/images/뜬눈.png';
+      } else {
+        input.type = 'password';
+        eye.src = '/images/감은눈.png';
+      }
     });
-    
-    // 전체 동의 체크박스
-    const agreeAllCheckbox = document.getElementById('agreeAll');
-    const requiredAgreements = document.querySelectorAll('.required-agreement');
-    const optionalAgreements = document.querySelectorAll('.optional-agreement');
-    
-    agreeAllCheckbox.addEventListener('change', function() {
-        const isChecked = this.checked;
-        requiredAgreements.forEach(checkbox => {
-            checkbox.checked = isChecked;
-        });
-        optionalAgreements.forEach(checkbox => {
-            checkbox.checked = isChecked;
-        });
+  });
+
+  // 전체동의
+  const agreeAll = document.getElementById('agreeAll');
+  const requiredAgreements = document.querySelectorAll('.required-agreement');
+  const optionalAgreements = document.querySelectorAll('.optional-agreement');
+
+  agreeAll.addEventListener('change', function () {
+    const checked = this.checked;
+    [...requiredAgreements, ...optionalAgreements].forEach(cb => (cb.checked = checked));
+  });
+
+  [...requiredAgreements, ...optionalAgreements].forEach(cb => {
+    cb.addEventListener('change', function () {
+      const reqOk = Array.from(requiredAgreements).every(r => r.checked);
+      const optOk = Array.from(optionalAgreements).every(o => o.checked);
+      agreeAll.checked = reqOk && optOk;
     });
-    
-    // 개별 동의 체크박스 변경 시 전체 동의 상태 업데이트
-    const allAgreements = document.querySelectorAll('.required-agreement, .optional-agreement');
-    allAgreements.forEach(checkbox => {
-        checkbox.addEventListener('change', function() {
-            const checkedRequired = Array.from(requiredAgreements).every(cb => cb.checked);
-            const checkedOptional = Array.from(optionalAgreements).every(cb => cb.checked);
-            agreeAllCheckbox.checked = checkedRequired && checkedOptional;
-        });
-    });
-    
-    // 메시지 표시 함수
-    function showMessage(messageElement, message, type = 'info') {
-        messageElement.textContent = message;
-        messageElement.className = `verification-message ${type}`;
-        
-        // 3초 후 메시지 자동 숨김 (성공/에러 메시지 제외)
-        if (type === 'info' || type === 'warning') {
-            setTimeout(() => {
-                messageElement.textContent = '';
-                messageElement.className = 'verification-message';
-            }, 3000);
-        }
+  });
+
+  // 가입하기
+  document.getElementById('signupBtn').addEventListener('click', async function () {
+    // 개인/판매 탭 중 활성화 확인
+    const activeTab = document.querySelector('.member-type-tab.active');
+    const memberType = activeTab ? activeTab.getAttribute('data-type') : 'individual';
+    if (memberType !== 'individual') {
+      alert('현재는 개인 회원만 가입 처리됩니다.');
+      return;
     }
 
-    // 인증번호 전송 버튼
-    const verificationSendBtns = document.querySelectorAll('.verification-btn');
-    verificationSendBtns.forEach(btn => {
-        if (btn.textContent === '인증번호 전송') {
-            btn.addEventListener('click', function() {
-                const emailInput = this.parentElement.querySelector('input');
-                const email = emailInput.value.trim();
-                
-                // 메시지 요소 찾기
-                const messageElement = this.closest('.form-group').querySelector('.verification-message');
-                
-                if (!email) {
-                    showMessage(messageElement, '이메일을 입력해주세요.', 'error');
-                    return;
-                }
-                
-                // 이메일 형식 검증
-                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                if (!emailRegex.test(email)) {
-                    showMessage(messageElement, '올바른 이메일 형식을 입력해주세요.', 'error');
-                    return;
-                }
-                
-                // 인증번호 전송 시뮬레이션
-                showMessage(messageElement, '인증번호가 전송되었습니다. 이메일을 확인해주세요.', 'success');
-                this.textContent = '재전송';
-                this.classList.add('secondary');
-            });
-        }
-    });
-    
-    // 인증번호 확인 버튼
-    const verificationConfirmBtns = document.querySelectorAll('.verification-btn');
-    verificationConfirmBtns.forEach(btn => {
-        if (btn.textContent === '확인') {
-            btn.addEventListener('click', function() {
-                const verificationInput = this.parentElement.querySelector('input');
-                const verificationCode = verificationInput.value.trim();
-                
-                // 메시지 요소 찾기
-                const messageElement = this.closest('.form-group').querySelector('.verification-message');
-                
-                if (!verificationCode) {
-                    showMessage(messageElement, '인증번호를 입력해주세요.', 'error');
-                    return;
-                }
-                
-                // 인증번호 확인 시뮬레이션
-                showMessage(messageElement, '인증이 완료되었습니다.', 'success');
-                this.textContent = '인증완료';
-                this.style.background = '#4CAF50';
-                this.disabled = true;
-            });
-        }
-    });
-    
-    // 재전송 버튼
-    const resendBtns = document.querySelectorAll('.verification-btn.secondary');
-    resendBtns.forEach(btn => {
-        if (btn.textContent === '재전송') {
-            btn.addEventListener('click', function() {
-                // 메시지 요소 찾기
-                const messageElement = this.closest('.form-group').querySelector('.verification-message');
-                showMessage(messageElement, '인증번호가 재전송되었습니다.', 'info');
-            });
-        }
-    });
-    
-    // 소셜 로그인 버튼
-    const socialBtns = document.querySelectorAll('.social-btn');
-    socialBtns.forEach(btn => {
-        btn.addEventListener('click', function() {
-            const socialType = this.textContent.includes('카카오') ? '카카오' : '구글';
-            alert(`${socialType} 로그인 기능은 준비 중입니다.`);
-        });
-    });
-    
-    // 가입하기 버튼
-    const signupBtn = document.querySelector('.signup-btn');
-    signupBtn.addEventListener('click', function() {
-        const activeTab = document.querySelector('.member-type-tab.active');
-        const memberType = activeTab.getAttribute('data-type');
-        
-        // 필수 동의 항목 확인
-        const checkedRequired = Array.from(requiredAgreements).every(cb => cb.checked);
-        if (!checkedRequired) {
-            alert('필수 동의 항목에 모두 동의해주세요.');
-            return;
-        }
-        
-        // 폼 유효성 검사
-        if (memberType === 'individual') {
-            validateIndividualForm();
-        } else if (memberType === 'seller') {
-            validateSellerForm();
-        }
-    });
-    
-    // 개인 회원 폼 유효성 검사
-    function validateIndividualForm() {
-        const name = document.getElementById('individualName').value.trim();
-        const id = document.getElementById('individualId').value.trim();
-        const password = document.getElementById('individualPassword').value.trim();
-        const passwordConfirm = document.getElementById('individualPasswordConfirm').value.trim();
-        const phone = document.getElementById('individualPhone').value.trim();
-        
-        if (!name || !id || !password || !passwordConfirm || !phone) {
-            alert('모든 필수 항목을 입력해주세요.');
-            return;
-        }
-        
-        if (password !== passwordConfirm) {
-            alert('비밀번호가 일치하지 않습니다.');
-            return;
-        }
-        
-        if (password.length < 8) {
-            alert('비밀번호는 8자 이상 입력해주세요.');
-            return;
-        }
-        
-        // 가입 완료 시뮬레이션
-        alert('개인 회원 가입이 완료되었습니다!');
-        window.location.href = '/';
+    // 필수 동의 확인
+    const requiredOk = Array.from(requiredAgreements).every(cb => cb.checked);
+    if (!requiredOk) {
+      alert('필수 동의 항목에 모두 동의해주세요.');
+      return;
     }
-    
-    // 판매 회원 폼 유효성 검사
-    function validateSellerForm() {
-        const id = document.getElementById('sellerId').value.trim();
-        const password = document.getElementById('sellerPassword').value.trim();
-        const passwordConfirm = document.getElementById('sellerPasswordConfirm').value.trim();
-        const companyName = document.getElementById('companyName').value.trim();
-        const businessNumber = document.getElementById('businessNumber').value.trim();
-        const contactName = document.getElementById('contactName').value.trim();
-        const phone = document.getElementById('sellerPhone').value.trim();
-        
-        if (!id || !password || !passwordConfirm || !companyName || !businessNumber || !contactName || !phone) {
-            alert('모든 필수 항목을 입력해주세요.');
-            return;
-        }
-        
-        if (password !== passwordConfirm) {
-            alert('비밀번호가 일치하지 않습니다.');
-            return;
-        }
-        
-        if (password.length < 8) {
-            alert('비밀번호는 8자 이상 입력해주세요.');
-            return;
-        }
-        
-        // 사업자등록번호 형식 검증
-        const businessRegex = /^[0-9]{3}-[0-9]{2}-[0-9]{5}$/;
-        if (!businessRegex.test(businessNumber)) {
-            alert('올바른 사업자등록번호 형식을 입력해주세요. (예: 123-45-67890)');
-            return;
-        }
-        
-        // 가입 완료 시뮬레이션
-        alert('판매 회원 가입이 완료되었습니다!');
-        window.location.href = '/';
+
+    // 입력값 수집
+    const name = (document.getElementById('individualName').value || '').trim();
+    const loginId = (document.getElementById('individualId').value || '').trim();
+    const password = (document.getElementById('individualPassword').value || '').trim();
+    const passwordConfirm = (document.getElementById('individualPasswordConfirm').value || '').trim();
+    const email = (document.getElementById('individualEmail').value || '').trim();
+    const phone = (document.getElementById('individualPhone').value || '').trim();
+    const gender = (document.getElementById('gender').value || '').trim();
+    const birthDate = (document.getElementById('birthDate').value || '').trim();
+
+    // 유효성 검사(최소)
+    if (!name || !loginId || !password || !passwordConfirm || !email || !phone) {
+      alert('별표(*) 표시된 필수 항목을 모두 입력해주세요.');
+      return;
     }
-    
-    // 동의 항목 내용보기 링크
-    const agreementLinks = document.querySelectorAll('.agreement-link');
-    agreementLinks.forEach(link => {
-        link.addEventListener('click', function(e) {
-            e.preventDefault();
-            alert('이용약관 내용은 준비 중입니다.');
-        });
+    if (password !== passwordConfirm) {
+      alert('비밀번호가 일치하지 않습니다.');
+      return;
+    }
+    if (password.length < 8) {
+      alert('비밀번호는 8자 이상 입력해주세요.');
+      return;
+    }
+    const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRe.test(email)) {
+      alert('올바른 이메일 형식을 입력해주세요.');
+      return;
+    }
+
+    // 서버 전송
+    try {
+      const res = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          loginId,
+          password,
+          name,
+          email,
+          phone,
+          gender: gender || null,
+          birthDate: birthDate || null
+        })
+      });
+
+      if (res.ok) {
+        alert('회원가입이 완료되었습니다! 로그인 페이지로 이동합니다.');
+        window.location.href = '/login';
+        return;
+      }
+
+      // 에러 메시지 처리
+      const data = await res.json().catch(() => ({}));
+      if (res.status === 409) {
+        alert(data.message || '이미 사용 중인 아이디/이메일입니다.');
+      } else if (res.status === 400) {
+        alert(data.message || '입력값이 올바르지 않습니다.');
+      } else {
+        alert(data.message || '회원가입 처리 중 오류가 발생했습니다.');
+      }
+    } catch (e) {
+      console.error(e);
+      alert('네트워크 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+    }
+  });
+
+  // (옵션) 인증번호 전송 버튼은 안내만 유지
+  const sendCodeBtn = document.getElementById('sendEmailCodeBtn');
+  if (sendCodeBtn) {
+    sendCodeBtn.addEventListener('click', () => {
+      const email = (document.getElementById('individualEmail').value || '').trim();
+      if (!email) return alert('이메일을 입력해주세요.');
+      alert('인증번호 전송은 데모 상태입니다.');
     });
+  }
 });

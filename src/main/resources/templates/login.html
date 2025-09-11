@@ -10,78 +10,78 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <!-- 헤더 include -->
-    <div th:replace="common/header :: header"></div>
+<!-- 헤더 include -->
+<div th:replace="common/header :: header"></div>
 
-    <div class="login-container">
-        <div class="login-header">
-            <h1 class="login-title">로그인</h1>
-            <p class="login-subtitle">GreenHub에 오신 것을 환영합니다!</p>
-        </div>
-        
-        <!-- 회원 유형 선택 -->
-        <div class="member-type-tabs">
-            <button class="member-type-tab active" data-type="individual">개인 회원</button>
-            <button class="member-type-tab" data-type="seller">판매 회원</button>
-        </div>
-        
-        <!-- 소셜 로그인 섹션 (개인회원만) -->
-        <div class="social-login-section" id="socialLoginSection">
-            <h2 class="section-title">소셜로 간편하게 로그인하세요</h2>
-            <p class="social-login-text">소셜로 간편하게 로그인하세요</p>
-            <div class="social-buttons">
-                <button class="social-btn kakao-btn">
-                    <span>💬</span>
-                    카카오 로그인
-                </button>
-                <button class="social-btn google-btn">
-                    <span>G</span>
-                    구글 로그인
-                </button>
-            </div>
-        </div>
-        
-        <!-- 일반 로그인 폼 -->
-        <div class="login-form-section">
-            <h2 class="section-title">일반 로그인</h2>
-            
-            <form id="loginForm" class="login-form">
-                <div class="form-group">
-                    <label class="form-label" for="loginId">아이디 *</label>
-                    <input type="text" id="loginId" class="form-input" placeholder="아이디를 입력해주세요" required>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label" for="loginPassword">비밀번호 *</label>
-                    <div class="password-input-container">
-                        <input type="password" id="loginPassword" class="form-input" placeholder="비밀번호를 입력해주세요" required>
-                        <button type="button" class="password-toggle">
-                            <img src="/images/감은눈.png" alt="비밀번호 보기">
-                        </button>
-                    </div>
-                </div>
-                
-                <button type="submit" class="login-btn">로그인</button>
-            </form>
-        </div>
-        
-        <!-- 추가 링크들 -->
-        <div class="login-links">
-            <div class="forgot-links">
-                <a href="/find-id" class="forgot-link">아이디 찾기</a>
-                <span>|</span>
-                <a href="/find-password" class="forgot-link">비밀번호 찾기</a>
-            </div>
-            
-            <div class="signup-link">
-                <p>아직 계정이 없으신가요? <a href="/signup" class="signup-link-text">회원가입</a></p>
-            </div>
+<div class="login-container">
+    <div class="login-header">
+        <h1 class="login-title">로그인</h1>
+        <p class="login-subtitle">GreenHub에 오신 것을 환영합니다!</p>
+    </div>
+
+    <!-- 플래시 메시지 -->
+    <div class="message" th:if="${loginError}" th:text="${loginError}" style="color:#d33; margin-bottom:12px;"></div>
+    <div class="message success" th:if="${signupSuccess}" th:text="${signupSuccess}" style="color:#2c7; margin-bottom:12px;"></div>
+
+    <!-- 회원 유형 선택 (UI용) -->
+    <div class="member-type-tabs">
+        <button class="member-type-tab active" data-type="individual">개인 회원</button>
+        <button class="member-type-tab" data-type="seller">판매 회원</button>
+    </div>
+
+    <!-- 소셜 로그인 (UI) -->
+    <div class="social-login-section" id="socialLoginSection">
+        <h2 class="section-title">소셜로 간편하게 로그인하세요</h2>
+        <p class="social-login-text">소셜로 간편하게 로그인하세요</p>
+        <div class="social-buttons">
+            <button class="social-btn kakao-btn"><span>💬</span>카카오 로그인</button>
+            <button class="social-btn google-btn"><span>G</span>구글 로그인</button>
         </div>
     </div>
 
-    <!-- 푸터 include -->
-    <div th:replace="common/footer :: footer"></div>
+    <!-- 일반 로그인 폼 -->
+    <div class="login-form-section">
+        <h2 class="section-title">일반 로그인</h2>
 
-    <script src="/js/login.js"></script>
+        <!-- ★ action / method / name 추가 -->
+        <form id="loginForm" class="login-form" th:action="@{/login}" method="post">
+            <div class="form-group">
+                <label class="form-label" for="loginId">아이디 *</label>
+                <input type="text" id="loginId" name="loginId" class="form-input" placeholder="아이디를 입력해주세요" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="loginPassword">비밀번호 *</label>
+                <div class="password-input-container">
+                    <input type="password" id="loginPassword" name="password" class="form-input" placeholder="비밀번호를 입력해주세요" required>
+                    <button type="button" class="password-toggle">
+                        <img src="/images/감은눈.png" alt="비밀번호 보기">
+                    </button>
+                </div>
+            </div>
+
+            <button type="submit" class="login-btn">로그인</button>
+        </form>
+    </div>
+
+    <!-- 추가 링크들 -->
+    <div class="login-links">
+        <div class="forgot-links">
+            <a href="/find-id" class="forgot-link">아이디 찾기</a>
+            <span>|</span>
+            <a href="/find-password" class="forgot-link">비밀번호 찾기</a>
+        </div>
+
+        <div class="signup-link">
+            <p>아직 계정이 없으신가요? <a href="/signup" class="signup-link-text">회원가입</a></p>
+        </div>
+    </div>
+</div>
+
+<!-- 푸터 include -->
+<div th:replace="common/footer :: footer"></div>
+
+<!-- JS가 폼 전송 막지 않도록: 기존 login.js가 fetch로 가로채면 주석처리/삭제 -->
+<script src="/js/login.js"></script>
 </body>
 </html>
