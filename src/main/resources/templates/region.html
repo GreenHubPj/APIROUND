@@ -85,10 +85,8 @@
                              <div class="title-info">
                                  <p class="product-description" th:text="${product.description}"></p>
                              </div>
-                             <div class="product-prices">
-                                 <p class="price">1kg 9,900</p>
-                                 <p class="price">2kg 15,000</p>
-                                 <p class="price">3kg 23,000</p>
+                             <div class="product-prices" th:data-product-type="${product.productType}">
+                                 <!-- 가격이 JavaScript로 동적으로 생성됩니다 -->
                              </div>
                          </div>
                      </div>
