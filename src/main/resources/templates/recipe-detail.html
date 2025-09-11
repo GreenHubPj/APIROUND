@@ -3,124 +3,94 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>요리법 - GreenHub</title>
+    <title th:text="${recipe.title}">요리법 - GreenHub</title>
     <link rel="stylesheet" href="/css/header.css">
     <link rel="stylesheet" href="/css/recipe-detail.css">
     <link rel="stylesheet" href="/css/footer.css">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <!-- 헤더 include -->
-    <div th:replace="common/header :: header"></div>
+<!-- 헤더 include -->
+<div th:replace="common/header :: header"></div>
 
-    <!-- 메인 콘텐츠 -->
-    <main class="main-content">
+<!-- 메인 콘텐츠 -->
+<main class="main-content">
+    <section class="recipe-section">
+        <div class="recipe-card">
 
-        <!-- 요리법 카드 - 책 형태 -->
-        <section class="recipe-section">
-            <div class="recipe-card">
-                <div class="recipe-header">
-                    <h1 class="recipe-title">달콤한 사과로 만드는 애플파이</h1>
-                    <div class="recipe-servings">4인분</div>
-                </div>
+            <div class="recipe-header">
+                <h1 class="recipe-title" th:text="${recipe.title}">레시피 제목</h1>
+                <div class="recipe-servings" th:text="${recipe.servings != null ? recipe.servings : '인분 미정'}">인분</div>
+            </div>
 
-                <div class="book-layout">
-                    <!-- 왼쪽 페이지 - 재료와 이미지 -->
-                    <div class="left-page">
-                        <div class="recipe-image">
-                            <img src="/images/애플파이.jpg" alt="달콤한 애플파이" class="recipe-main-image">
-                        </div>
+            <div class="book-layout">
+                <!-- 왼쪽: 메인 이미지 + 재료 -->
+                <div class="left-page">
+                    <div class="recipe-image">
+                        <img class="recipe-main-image"
+                             th:src="${recipe.heroImageUrl != null} ? ${recipe.heroImageUrl} : '/images/placeholder.jpg'"
+                             th:alt="${recipe.title}">
+                    </div>
 
-                        <div class="ingredients-section">
-                            <h3 class="ingredients-title">재료</h3>
-                            <ul class="ingredients-list">
-                                <li class="ingredient-item">
-                                    <span class="ingredient-name">박력분</span>
-                                    <span class="ingredient-amount">230g</span>
-                                </li>
-                                <li class="ingredient-item">
-                                    <span class="ingredient-name">차가운 버터</span>
-                                    <span class="ingredient-amount">120g</span>
-                                </li>
-                                <li class="ingredient-item">
-                                    <span class="ingredient-name">차가운 물</span>
-                                    <span class="ingredient-amount">50g</span>
-                                </li>
-                                <li class="ingredient-item">
-                                    <span class="ingredient-name">소금</span>
-                                    <span class="ingredient-amount">2g</span>
-                                </li>
-                                <li class="ingredient-item">
-                                    <span class="ingredient-name">사과</span>
-                                    <span class="ingredient-amount">2~3개</span>
-                                </li>
-                                <li class="ingredient-item">
-                                    <span class="ingredient-name">설탕</span>
-                                    <span class="ingredient-amount">70g</span>
-                                </li>
-                                <li class="ingredient-item">
-                                    <span class="ingredient-name">레몬즙</span>
-                                    <span class="ingredient-amount">1큰술</span>
-                                </li>
-                                <li class="ingredient-item">
-                                    <span class="ingredient-name">계피가루</span>
-                                    <span class="ingredient-amount">1티스푼</span>
-                                </li>
-                                <li class="ingredient-item">
-                                    <span class="ingredient-name">계란</span>
-                                    <span class="ingredient-amount">1개</span>
-                                </li>
-                            </ul>
-                            <div class="ingredient-note">
-                                <img src="/images/사과.jpg" alt="문경 사과" class="recipe-product-image">
-                                <p>문경 사과</p>
+                    <div class="ingredients-section">
+                        <h3 class="ingredients-title">재료</h3>
+                        <ul class="ingredients-list">
+                            <li class="ingredient-item" th:each="ing : ${ingredients}">
+                                <span class="ingredient-name" th:text="${ing.nameText}">재료명</span>
+                                <span class="ingredient-amount"
+                                      th:text="|${#numbers.formatDecimal(ing.qtyValue,0,'COMMA',2,'POINT')} ${ing.unitCode != null ? ing.unitCode : ''}|">수량</span>
+                                <small th:if="${ing.note != null}" th:text="'(' + ${ing.note} + ')'"></small>
+                            </li>
+                        </ul>
+
+                        <!-- 연결 상품(옵션) -->
+                        <div class="ingredient-note" th:if="${products != null}">
+                            <div th:if="${!#lists.isEmpty(products)}">
+                                <img src="/images/상품샘플.jpg" alt="연결 상품" class="recipe-product-image">
+                                <p th:text="'product_id: ' + ${products.get(0).productId} + ' • ' + ${products.get(0).relationType}">상품</p>
                             </div>
                         </div>
                     </div>
+                </div>
 
-                    <!-- 오른쪽 페이지 - 요리법 설명 -->
-                    <div class="right-page">
-                        <div class="recipe-instructions">
-                            <div class="instruction-section">
-                                <h3 class="instruction-title">파이지 만들기</h3>
-                                <ol class="instruction-steps">
-                                    <li>박력분과 소금을 체에 쳐서 볼에 넣고 섞어주세요.</li>
-                                    <li>차가운 버터를 작은 조각으로 잘라 넣고 손가락으로 비벼가며 밀가루와 섞어주세요.</li>
-                                    <li>차가운 물을 조금씩 넣어가며 반죽을 만들어주세요.</li>
-                                    <li>반죽을 랩으로 싸서 냉장고에서 30분간 휴지시켜주세요.</li>
-                                </ol>
-                            </div>
-
-                            <div class="instruction-section">
-                                <h3 class="instruction-title">사과 필링 만들기</h3>
-                                <ol class="instruction-steps">
-                                    <li>사과를 껍질을 벗기고 적당한 크기로 썰어주세요.</li>
-                                    <li>팬에 사과, 설탕, 레몬즙을 넣고 중불에서 끓여주세요.</li>
-                                    <li>사과가 갈색이 되고 부드러워질 때까지 끓여주세요.</li>
-                                    <li>계피가루를 넣고 수분이 없어질 때까지 더 끓여주세요.</li>
-                                </ol>
-                            </div>
-
-                            <div class="instruction-section">
-                                <h3 class="instruction-title">애플파이 만들기</h3>
-                                <ol class="instruction-steps">
-                                    <li>휴지한 반죽을 밀대로 펴서 타르트 팬에 깔아주세요.</li>
-                                    <li>만들어둔 사과 필링을 넣어주세요.</li>
-                                    <li>남은 반죽으로 격자무늬를 만들어 위에 올려주세요.</li>
-                                    <li>계란을 풀어서 격자무늬 위에 발라주세요.</li>
-                                    <li>190도로 예열된 오븐에서 30분간 구워주세요.</li>
-                                </ol>
-                            </div>
+                <!-- 오른쪽: 조리 단계 -->
+                <div class="right-page">
+                    <div class="recipe-instructions">
+                        <div class="instruction-section">
+                            <h3 class="instruction-title">조리 순서</h3>
+                            <ol class="instruction-steps">
+                                <li th:each="st : ${steps}">
+                                    <div th:text="${st.stepNo} + '. ' + ${st.instruction}">1. 설명</div>
+                                    <div th:if="${st.stepImageUrl != null}" style="margin-top:6px;">
+                                        <img th:src="${st.stepImageUrl}" alt="step" class="step-image">
+                                    </div>
+                                </li>
+                            </ol>
                         </div>
+                    </div>
+
+                    <!-- 메타 정보 -->
+                    <div class="recipe-meta">
+                        <span class="chip" th:text="'난이도: ' + (${recipe.difficulty} != null ? ${recipe.difficulty} : '정보 없음')">난이도</span>
+                        <span class="chip" th:text="'조리 ' + (${recipe.cookMinutes} != null ? ${recipe.cookMinutes} : '-') + '분'">조리 시간</span>
+                    </div>
+
+                    <div class="back-to-list">
+                        <a href="/view/recipes">← 목록으로</a>
+                        <span style="margin-left:8px;">
+                <a th:href="@{'/recipes/' + ${recipe.recipeId}}">(JSON 보기)</a>
+              </span>
                     </div>
                 </div>
             </div>
-        </section>
-    </main>
 
-    <!-- 푸터 include -->
-    <div th:replace="common/footer :: footer"></div>
+        </div>
+    </section>
+</main>
 
-    <script src="/js/recipe-detail.js"></script>
+<!-- 푸터 include -->
+<div th:replace="common/footer :: footer"></div>
+
+<script src="/js/recipe-detail.js"></script>
 </body>
 </html>

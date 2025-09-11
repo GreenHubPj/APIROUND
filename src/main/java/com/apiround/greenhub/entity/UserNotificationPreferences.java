@@ -1,34 +1,42 @@
 package com.apiround.greenhub.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import lombok.Data;
-
+import jakarta.persistence.*;
+import lombok.*;
 import java.time.LocalDateTime;
 
-@Data
+@Getter @Setter
+@NoArgsConstructor @AllArgsConstructor @Builder
 @Entity
 @Table(name = "user_notification_preferences")
 public class UserNotificationPreferences {
 
-        @Id
-        @Column(name = "user_noti_pref")
-        private Long id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "user_noti_pref")
+    private Long id;
 
-        @Column(name = "user_id", nullable = false)
-        private Long userId;
+    // user.user_id (BIGINT) 참조 — 여기서는 단순 숫자 필드로만 관리
+    @Column(name = "user_id", nullable = false)
+    private Long userId;
 
-        private Boolean seasonalAlerts;
-        private Boolean eventAlerts;
-        private Boolean sellerAlerts;
-        private Boolean emailAlerts;
-        private Boolean pushAlerts;
+    @Column(name = "seasonal_alerts")
+    private Boolean seasonalAlerts;
 
-        private LocalDateTime createdAt;
+    @Column(name = "event_alerts")
+    private Boolean eventAlerts;
 
-        @Column(name = "updated_at")
-        private LocalDateTime updatedAt;
+    @Column(name = "seller_alerts")
+    private Boolean sellerAlerts;
 
+    @Column(name = "email_alerts")
+    private Boolean emailAlerts;
+
+    @Column(name = "push_alerts")
+    private Boolean pushAlerts;
+
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
+
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
 }
