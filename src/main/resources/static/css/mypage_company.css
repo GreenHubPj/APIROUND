@@ -14,19 +14,75 @@
 /* 업체 마이페이지 타이틀 */
 .mypage-title {
     margin-bottom: 40px;
+    text-align: left;
+    position: relative;
+}
+
+.page-title-container {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.page-icon {
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-8px); }
+}
+
+.page-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.store-icon {
+    font-size: 3.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
 }
 
 .page-title {
-    font-size: 2rem;
+    font-size: 2.5rem;
     font-weight: 700;
     color: #ff6b35;
     margin: 0;
-    display: inline-block;
-    background-color: #ff6b35;
-    color: white;
-    padding: 15px 30px;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(255, 107, 53, 0.3);
+    letter-spacing: -0.01em;
+}
+
+.page-description {
+    font-size: 1rem;
+    color: #999;
+    margin: 0;
+    font-weight: 400;
+    margin-top: 5px;
+}
+
+.mypage-title::after {
+    content: '';
+    position: absolute;
+    bottom: -15px;
+    left: 0;
+    width: 50px;
+    height: 3px;
+    background: linear-gradient(90deg, #ff6b35 0%, transparent 100%);
+    border-radius: 2px;
 }
 
 /* 업체 정보 섹션 */
@@ -199,9 +255,21 @@
         padding: 0 15px;
     }
     
+    .page-icon {
+        width: 50px;
+        height: 50px;
+    }
+    
+    .store-icon {
+        font-size: 3rem;
+    }
+    
     .page-title {
         font-size: 2rem;
-        padding: 12px 24px;
+    }
+    
+    .page-description {
+        font-size: 0.9rem;
     }
     
     .company-profile {
@@ -267,6 +335,23 @@
 }
 
 @media (max-width: 480px) {
+    .page-icon {
+        width: 45px;
+        height: 45px;
+    }
+    
+    .store-icon {
+        font-size: 2.5rem;
+    }
+    
+    .page-title {
+        font-size: 1.8rem;
+    }
+    
+    .page-description {
+        font-size: 0.85rem;
+    }
+    
     .company-stats {
         grid-template-columns: 1fr;
         gap: 10px;

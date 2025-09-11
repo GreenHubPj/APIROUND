@@ -32,6 +32,11 @@ public class HomeController {
         return "signup";
     }
 
+    @GetMapping("/region")
+    public String region() {
+        return "region";
+    }
+
     @GetMapping("/popular")
     public String popular() {
         return "popular";
@@ -73,7 +78,7 @@ public class HomeController {
     }
 
     @GetMapping("/myrecipe-detail")
-    public String myrecipeDetail(@RequestParam(required = false) String id, 
+    public String myrecipeDetail(@RequestParam(required = false) String id,
                                 @RequestParam(required = false) String name,
                                 @RequestParam(required = false) String mode) {
         return "myrecipe-detail";
@@ -147,6 +152,14 @@ public class HomeController {
     @GetMapping("/reviewwrite")
     public String reviewwrite() {
         return "reviewwrite";
+    @GetMapping("/refund-management")
+    public String refundManagement() {
+        return "refund-management";
+    }
+
+    @GetMapping("/order-detail")
+    public String orderDetail() {
+        return "order-detail";
     }
 
     @GetMapping("/item-management")
@@ -154,5 +167,20 @@ public class HomeController {
         return "item-management";
     }
 
+
+    @GetMapping("/review-management")
+    public String reviewManagement() {
+        return "review-management";
+    }
+
+    @GetMapping("/sellerDelivery")
+    public String sellerDelivery() {
+        return "sellerDelivery";
+    }
+
+    @GetMapping("/customerOrder")
+    public String customerOrder() {
+        return "customerOrder";
+    }
 
 }
