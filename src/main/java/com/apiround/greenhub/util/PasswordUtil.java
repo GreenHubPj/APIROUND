@@ -6,7 +6,6 @@ import java.security.NoSuchAlgorithmException;
 
 public class PasswordUtil {
 
-    // SHA-256 해시 -> 64자리 hex 문자열
     public static String encode(String raw) {
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-256");
@@ -17,6 +16,7 @@ public class PasswordUtil {
         }
     }
 
+    // 64자리 소문자 hex면 SHA-256 해시라고 간주
     public static boolean looksHashed(String value) {
         return value != null && value.matches("^[0-9a-f]{64}$");
     }
@@ -26,7 +26,7 @@ public class PasswordUtil {
         if (looksHashed(stored)) {
             return encode(raw).equals(stored);
         } else {
-            // 예전 평문 저장본 대비
+            // 혹시 과거 평문 저장된 데이터 대비
             return raw.equals(stored);
         }
     }

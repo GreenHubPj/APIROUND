@@ -1,5 +1,26 @@
 /* 회원가입 페이지 스타일 */
 
+/* Alert 메시지 스타일 */
+.alert {
+    padding: 12px;
+    border-radius: 8px;
+    margin: 0 0 16px;
+    border: 1px solid transparent;
+    font-weight: 500;
+}
+
+.alert-error {
+    background: #fff3f3;
+    color: #c00;
+    border-color: #f3c2c2;
+}
+
+.alert-success {
+    background: #f1fff5;
+    color: #086a36;
+    border-color: #b8f1ce;
+}
+
 .signup-container {
     max-width: 800px;
     margin: 0 auto;
