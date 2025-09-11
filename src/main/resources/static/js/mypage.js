@@ -117,12 +117,14 @@ document.addEventListener('DOMContentLoaded', function() {
         const modulesGrid = document.querySelector('.modules-grid');
         const container = document.querySelector('.container');
 
-        if (window.innerWidth <= 480) {
-            modulesGrid.style.gridTemplateColumns = '1fr';
-        } else if (window.innerWidth <= 768) {
-            modulesGrid.style.gridTemplateColumns = 'repeat(2, 1fr)';
-        } else {
-            modulesGrid.style.gridTemplateColumns = 'repeat(3, 1fr)';
+        if (modulesGrid) {
+            if (window.innerWidth <= 480) {
+                modulesGrid.style.gridTemplateColumns = '1fr';
+            } else if (window.innerWidth <= 768) {
+                modulesGrid.style.gridTemplateColumns = 'repeat(2, 1fr)';
+            } else {
+                modulesGrid.style.gridTemplateColumns = 'repeat(3, 1fr)';
+            }
         }
     }
 
@@ -136,16 +138,18 @@ document.addEventListener('DOMContentLoaded', function() {
     function addAnimationToModules() {
         const modules = document.querySelectorAll('.module-item');
 
-        modules.forEach((module, index) => {
-            module.style.opacity = '0';
-            module.style.transform = 'translateY(30px)';
+        if (modules.length > 0) {
+            modules.forEach((module, index) => {
+                module.style.opacity = '0';
+                module.style.transform = 'translateY(30px)';
 
-            setTimeout(() => {
-                module.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
-                module.style.opacity = '1';
-                module.style.transform = 'translateY(0)';
-            }, index * 100);
-        });
+                setTimeout(() => {
+                    module.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+                    module.style.opacity = '1';
+                    module.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+        }
     }
 
     // 페이지 로드 시 애니메이션 실행
@@ -166,7 +170,10 @@ document.addEventListener('DOMContentLoaded', function() {
     moduleItems.forEach((item, index) => {
         item.setAttribute('tabindex', '0');
         item.setAttribute('role', 'button');
-        item.setAttribute('aria-label', `마이페이지 기능: ${item.querySelector('.module-title').textContent}`);
+        const titleElement = item.querySelector('.module-title');
+        if (titleElement) {
+            item.setAttribute('aria-label', `마이페이지 기능: ${titleElement.textContent}`);
+        }
     });
 
     // 주문/배송조회 기능 초기화
@@ -174,27 +181,32 @@ document.addEventListener('DOMContentLoaded', function() {
         // 플로우 스텝 클릭 이벤트
         const flowSteps = document.querySelectorAll('.flow-step');
 
-        flowSteps.forEach((step, index) => {
-            step.addEventListener('click', function() {
-                const stepLabel = this.querySelector('.step-label').textContent;
-                showStepDetails(stepLabel, index);
+        if (flowSteps.length > 0) {
+            flowSteps.forEach((step, index) => {
+                step.addEventListener('click', function() {
+                    const stepLabelElement = this.querySelector('.step-label');
+                    if (stepLabelElement) {
+                        const stepLabel = stepLabelElement.textContent;
+                        showStepDetails(stepLabel, index);
+                    }
+                });
+
+                // 호버 효과
+                step.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-1px)';
+                });
+
+                step.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0)';
+                });
             });
 
-            // 호버 효과
-            step.addEventListener('mouseenter', function() {
-                this.style.transform = 'translateY(-1px)';
-            });
+            // 주문 상태 업데이트 (실제 구현 시 서버에서 데이터 가져오기)
+            updateOrderStatus();
 
-            step.addEventListener('mouseleave', function() {
-                this.style.transform = 'translateY(0)';
-            });
-        });
-
-        // 주문 상태 업데이트 (실제 구현 시 서버에서 데이터 가져오기)
-        updateOrderStatus();
-
-        // 애니메이션 효과 추가
-        addTrackingAnimations();
+            // 애니메이션 효과 추가
+            addTrackingAnimations();
+        }
     }
 
     // 스텝 상세 정보 표시
@@ -224,10 +236,14 @@ document.addEventListener('DOMContentLoaded', function() {
         const stepBoxes = document.querySelectorAll('.step-box');
         const stepLabels = ['주문접수', '결제완료', '상품준비중', '배송중', '배송완료'];
 
-        stepBoxes.forEach((stepBox, index) => {
-            const count = Object.values(orderStatus)[index];
-            stepBox.textContent = count;
-        });
+        if (stepBoxes.length > 0) {
+            stepBoxes.forEach((stepBox, index) => {
+                const count = Object.values(orderStatus)[index];
+                if (stepBox) {
+                    stepBox.textContent = count;
+                }
+            });
+        }
     }
 
     // 트래킹 애니메이션 효과 추가
@@ -236,26 +252,30 @@ document.addEventListener('DOMContentLoaded', function() {
         const flowSteps = document.querySelectorAll('.flow-step');
 
         // 플로우 컨테이너 애니메이션
-        trackingFlow.style.opacity = '0';
-        trackingFlow.style.transform = 'translateY(20px)';
-
-        setTimeout(() => {
-            trackingFlow.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
-            trackingFlow.style.opacity = '1';
-            trackingFlow.style.transform = 'translateY(0)';
-        }, 300);
-
-        // 각 스텝 순차 애니메이션
-        flowSteps.forEach((step, index) => {
-            step.style.opacity = '0';
-            step.style.transform = 'scale(0.9)';
+        if (trackingFlow) {
+            trackingFlow.style.opacity = '0';
+            trackingFlow.style.transform = 'translateY(20px)';
 
             setTimeout(() => {
-                step.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
-                step.style.opacity = '1';
-                step.style.transform = 'scale(1)';
-            }, 400 + (index * 100));
-        });
+                trackingFlow.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+                trackingFlow.style.opacity = '1';
+                trackingFlow.style.transform = 'translateY(0)';
+            }, 300);
+        }
+
+        // 각 스텝 순차 애니메이션
+        if (flowSteps.length > 0) {
+            flowSteps.forEach((step, index) => {
+                step.style.opacity = '0';
+                step.style.transform = 'scale(0.9)';
+
+                setTimeout(() => {
+                    step.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+                    step.style.opacity = '1';
+                    step.style.transform = 'scale(1)';
+                }, 400 + (index * 100));
+            });
+        }
     }
 
     // 주문 상태 실시간 업데이트 (실제 구현 시)

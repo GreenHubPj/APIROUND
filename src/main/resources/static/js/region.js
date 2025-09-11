@@ -576,9 +576,65 @@ document.addEventListener('DOMContentLoaded', function() {
         filterProducts();
     });
     
+    // 상품 ID와 타입에 따른 일관된 가격 생성 (region-detail.js와 동일한 로직)
+    function generateConsistentPrices(productId, productType) {
+        const basePrices = {
+            '농산물': { min: 5000, max: 15000 },
+            '축산물': { min: 15000, max: 35000 },
+            '수산물': { min: 10000, max: 25000 },
+            '가공식품': { min: 3000, max: 12000 }
+        };
+        
+        const priceRange = basePrices[productType] || { min: 5000, max: 20000 };
+        
+        // 상품 ID를 시드로 사용하여 일관된 가격 생성
+        const seed = productId * 12345; // 간단한 시드 생성
+        const random = (seed * 9301 + 49297) % 233280; // 선형 합동 생성기
+        const normalizedRandom = random / 233280;
+        
+        const price1 = Math.floor(normalizedRandom * (priceRange.max - priceRange.min + 1)) + priceRange.min;
+        const price2 = Math.floor(price1 * 1.8); // 1.8배
+        const price3 = Math.floor(price1 * 2.5); // 2.5배
+        
+        return [
+            { quantity: 1, unit: 'kg', price: price1 },
+            { quantity: 2, unit: 'kg', price: price2 },
+            { quantity: 3, unit: 'kg', price: price3 }
+        ];
+    }
+
+    // 상품 카드에 가격 표시
+    function renderProductPrices() {
+        productCards.forEach(card => {
+            const productType = card.getAttribute('data-category');
+            const productId = card.getAttribute('data-product-id');
+            const priceContainer = card.querySelector('.product-prices');
+            
+            if (priceContainer && productType && productId) {
+                const prices = generateConsistentPrices(parseInt(productId), productType);
+                
+                // 가격을 localStorage에 저장하여 region-detail에서 사용할 수 있도록 함
+                localStorage.setItem(`product_${productId}_prices`, JSON.stringify(prices));
+                
+                priceContainer.innerHTML = '';
+                
+                prices.forEach(price => {
+                    const priceElement = document.createElement('p');
+                    priceElement.className = 'price';
+                    priceElement.textContent = `${price.quantity}${price.unit} ${price.price.toLocaleString()}`;
+                    priceContainer.appendChild(priceElement);
+                });
+            }
+        });
+    }
+
     // 초기 로드 시 페이징 적용
     console.log('초기 로드 시작');
     console.log('총 상품 카드 수:', productCards.length);
+    
+    // 가격 렌더링
+    renderProductPrices();
+    
     filterProducts();
     
     console.log('지역별 특산품 페이지 초기화 완료');

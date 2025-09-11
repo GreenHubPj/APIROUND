@@ -81,4 +81,10 @@ public class RegionService {
     public Region getProductById(Integer id) {
         return regionRepository.findById(id).orElse(null);
     }
+
+    // 이번달 특산품 조회 (더 정확한 월별 검색)
+    public List<Region> getCurrentMonthProducts(int month) {
+        // 월별 특산품 조회 (harvestSeason에 해당 월이 포함된 상품들)
+        return regionRepository.findByHarvestSeasonContaining(String.valueOf(month));
+    }
 }

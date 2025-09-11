@@ -71,8 +71,17 @@ function getProductFromServer() {
     // 상품 ID는 URL에서 가져오기
     const productId = getProductIdFromUrl();
     
-    // 랜덤 가격 생성 (상품 타입에 따라 다른 가격대)
-    const priceOptions = generateRandomPrices(productType);
+    // localStorage에서 가격 정보를 가져오거나, 없으면 새로 생성
+    let priceOptions;
+    const storedPrices = localStorage.getItem(`product_${productId}_prices`);
+    
+    if (storedPrices) {
+        priceOptions = JSON.parse(storedPrices);
+    } else {
+        // localStorage에 가격이 없으면 새로 생성하고 저장
+        priceOptions = generateConsistentPrices(parseInt(productId), productType);
+        localStorage.setItem(`product_${productId}_prices`, JSON.stringify(priceOptions));
+    }
     
     // 랜덤 업체 정보 생성
     const companyInfo = generateRandomCompany(regionText);
@@ -94,8 +103,8 @@ function getProductFromServer() {
     };
 }
 
-// 상품 타입에 따른 랜덤 가격 생성
-function generateRandomPrices(productType) {
+// 상품 ID와 타입에 따른 일관된 가격 생성
+function generateConsistentPrices(productId, productType) {
     const basePrices = {
         '농산물': { min: 5000, max: 15000 },
         '축산물': { min: 15000, max: 35000 },
@@ -105,8 +114,12 @@ function generateRandomPrices(productType) {
     
     const priceRange = basePrices[productType] || { min: 5000, max: 20000 };
     
-    // 랜덤 가격 생성
-    const price1 = Math.floor(Math.random() * (priceRange.max - priceRange.min + 1)) + priceRange.min;
+    // 상품 ID를 시드로 사용하여 일관된 가격 생성
+    const seed = productId * 12345; // 간단한 시드 생성
+    const random = (seed * 9301 + 49297) % 233280; // 선형 합동 생성기
+    const normalizedRandom = random / 233280;
+    
+    const price1 = Math.floor(normalizedRandom * (priceRange.max - priceRange.min + 1)) + priceRange.min;
     const price2 = Math.floor(price1 * 1.8); // 1.8배
     const price3 = Math.floor(price1 * 2.5); // 2.5배
     
