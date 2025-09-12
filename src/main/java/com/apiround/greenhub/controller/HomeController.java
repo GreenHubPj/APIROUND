@@ -1,20 +1,11 @@
 package com.apiround.greenhub.controller;
 
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import com.apiround.greenhub.service.item.RegionService;
-
 @Controller
 public class HomeController {
-
-    private final RegionService regionService;
-
-    public HomeController(RegionService regionService) {
-        this.regionService = regionService;
-    }
 
     @GetMapping("/")
     public String home() { return "main"; }
@@ -28,19 +19,8 @@ public class HomeController {
         return "redirect:/specialties/monthly";
     }
 
-    // ✅ /login 은 AuthController가 처리하므로 제거
-    // @GetMapping("/login")
-    // public String login() { return "login"; }
-
-    // ⚠️ /region 제거 (주석으로 유지)
-    // @GetMapping("/region") public String region() { return "region"; }
-
     @GetMapping("/popular")
     public String popular() { return "popular"; }
-
-    // ⚠️ /region-detail 제거
-    // @GetMapping("/region-detail")
-    // public String regionDetail(@RequestParam(required = false) String id) { return "region-detail"; }
 
     @GetMapping("/find-id")
     public String findId() { return "find-id"; }
@@ -48,8 +28,7 @@ public class HomeController {
     @GetMapping("/find-password")
     public String findPassword() { return "find-password"; }
 
-    @GetMapping("/mypage")
-    public String mypage() { return "mypage"; }
+    // ✅ /mypage 매핑은 MyPageController가 담당합니다 (여기서는 제거)
 
     @GetMapping("/mypage-company")
     public String mypageCompany() { return "mypage_company"; }
@@ -99,6 +78,9 @@ public class HomeController {
 
     @GetMapping("/reviewlist")
     public String reviewlist() { return "reviewlist"; }
+
+    @GetMapping("/item-management")
+    public String itemManagement() { return "item-management"; }
 
     @GetMapping("/review-management")
     public String reviewManagement() { return "review-management"; }
