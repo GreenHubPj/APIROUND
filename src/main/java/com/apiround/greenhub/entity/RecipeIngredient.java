@@ -2,7 +2,10 @@ package com.apiround.greenhub.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -10,12 +13,14 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "recipe_ingredient")
 @Data
+@NoArgsConstructor(force = true)
+@AllArgsConstructor
 public class RecipeIngredient {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ingredient_row_id")
-    private Long ingredientRowId;
+    private Integer ingredientRowId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "recipe_id", nullable = false)

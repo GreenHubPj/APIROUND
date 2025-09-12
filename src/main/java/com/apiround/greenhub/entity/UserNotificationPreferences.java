@@ -13,11 +13,11 @@ public class UserNotificationPreferences {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_noti_pref")
-    private Long id;
+    private Integer id;
 
     // user.user_id (BIGINT) 참조 — 여기서는 단순 숫자 필드로만 관리
     @Column(name = "user_id", nullable = false)
-    private Long userId;
+    private Integer userId;
 
     @Column(name = "seasonal_alerts")
     private Boolean seasonalAlerts;

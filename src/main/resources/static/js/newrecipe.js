@@ -263,46 +263,91 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 레시피 저장
     function saveRecipe() {
-        const currentData = {
-            title: document.querySelector('.recipe-title').textContent,
-            servings: document.querySelector('.recipe-servings').textContent,
-            ingredients: Array.from(document.querySelectorAll('.ingredient-item')).map(item => ({
-                name: item.querySelector('.ingredient-name').textContent,
-                amount: item.querySelector('.ingredient-amount').textContent
-            })),
-            instructions: Array.from(document.querySelectorAll('.instruction-section')).map(section => ({
-                title: section.querySelector('.instruction-title').textContent,
-                steps: Array.from(section.querySelectorAll('.instruction-steps li')).map(step => step.textContent)
-            })),
-            productNote: document.querySelector('.ingredient-note p').textContent,
-            imageSrc: document.querySelector('.recipe-main-image').src
+        // 기본 데이터 수집
+        const title = document.querySelector('.recipe-title').textContent;
+        const servings = document.querySelector('.recipe-servings').textContent;
+        const imageSrc = document.querySelector('.recipe-main-image').src;
+        
+        // 재료 데이터 수집
+        const ingredients = Array.from(document.querySelectorAll('.ingredient-item')).map(item => ({
+            name: item.querySelector('.ingredient-name').textContent,
+            amount: item.querySelector('.ingredient-amount').textContent
+        }));
+        
+        // 조리 단계 데이터 수집 (instructions를 steps로 변환)
+        const instructions = Array.from(document.querySelectorAll('.instruction-section')).map(section => ({
+            title: section.querySelector('.instruction-title').textContent,
+            steps: Array.from(section.querySelectorAll('.instruction-steps li')).map(step => step.textContent)
+        }));
+        
+        // steps 배열 생성 (instructions의 모든 단계를 하나의 배열로 합침)
+        const allSteps = [];
+        instructions.forEach((instruction, sectionIndex) => {
+            instruction.steps.forEach((stepText, stepIndex) => {
+                allSteps.push({
+                    stepOrder: allSteps.length + 1,
+                    description: stepText,
+                    imageUrl: null // 이미지 URL은 나중에 추가 가능
+                });
+            });
+        });
+
+        // DTO 구조에 맞는 데이터 생성
+        const recipeData = {
+            title: title,
+            summary: `${title} - 맛있는 요리법입니다.`, // 기본 요약 생성
+            badgeText: "신규 레시피", // 기본 배지 텍스트
+            difficulty: "EASY", // 기본 난이도 (나중에 UI에서 선택 가능)
+            cookMinutes: 30, // 기본 조리 시간 (나중에 UI에서 입력 가능)
+            totalMinutes: 45, // 기본 총 시간 (나중에 UI에서 입력 가능)
+            servings: servings,
+            heroImageUrl: imageSrc,
+            ingredients: ingredients,
+            steps: allSteps,
+            instructions: instructions
         };
 
         // 유효성 검사
-        if (!currentData.title.trim() || currentData.title === '새로운 요리법 제목을 입력하세요') {
+        if (!recipeData.title.trim() || recipeData.title === '새로운 요리법 제목을 입력하세요') {
             alert('요리법 제목을 입력해주세요.');
             return;
         }
 
-        if (currentData.ingredients.length === 0 || 
-            currentData.ingredients.every(ing => ing.name === '재료명' || ing.name === '새 재료')) {
+        if (recipeData.ingredients.length === 0 || 
+            recipeData.ingredients.every(ing => ing.name === '재료명' || ing.name === '새 재료')) {
             alert('최소 하나의 재료를 입력해주세요.');
             return;
         }
 
-        if (currentData.instructions.length === 0) {
+        if (recipeData.instructions.length === 0) {
             alert('최소 하나의 요리법 섹션을 입력해주세요.');
             return;
         }
 
-        // 저장 로직 (실제로는 서버에 전송)
-        console.log('새 레시피 저장:', currentData);
-        
-        // 성공 메시지
-        alert('새 레시피가 성공적으로 저장되었습니다!');
-        
-        // myrecipe 페이지로 이동
-        window.location.href = '/myrecipe';
+        // 서버에 전송
+        console.log('새 레시피 저장:', recipeData);
+        fetch('/mypage/recipes?userId=1', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(recipeData)
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('저장 성공:', data);
+            alert('새 레시피가 성공적으로 저장되었습니다!');
+            window.location.href = '/myrecipe';
+        })
+        .catch(error => {
+            console.error('저장 실패:', error);
+            alert('저장 중 오류가 발생했습니다: ' + error.message);
+        });
     }
 
     // 레시피 작성 취소

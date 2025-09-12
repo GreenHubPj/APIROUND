@@ -6,6 +6,7 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -19,7 +20,7 @@ public class Recipe {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "recipe_id")
-    private Long recipeId;
+    private Integer recipeId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
@@ -47,7 +48,7 @@ public class Recipe {
     @Column(name = "servings", length = 40)
     private String servings;
 
-    @Column(name = "hero_image_url", length = 500)
+    @Column(name = "hero_image_url", length = 1000)
     private String heroImageUrl;
 
     @Column(name = "status", length = 20)
@@ -61,18 +62,16 @@ public class Recipe {
 
     // 관계 매핑
     @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JsonIgnore
     private List<RecipeIngredient> ingredients;
 
     @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JsonIgnore
     private List<RecipeStep> steps;
 
     @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JsonIgnore
     private List<RecipeXProduct> recipeProducts;
 
     public enum Difficulty {
         EASY, MEDIUM, HARD
     }
+
 }

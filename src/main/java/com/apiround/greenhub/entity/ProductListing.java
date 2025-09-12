@@ -13,13 +13,13 @@ public class ProductListing {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "listing_id")
-    private Long listingId;
+    private Integer listingId;
 
     @Column(name = "product_id")
-    private Long productId;
+    private Integer productId;
 
     @Column(name = "seller_id")
-    private Long sellerId;
+    private Integer sellerId;
 
     @Column(name = "title", length = 200)
     private String title;

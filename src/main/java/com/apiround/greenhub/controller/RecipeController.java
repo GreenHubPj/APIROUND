@@ -26,7 +26,7 @@ public class RecipeController {
 
     // 상세: GET /recipe/{id}
     @GetMapping("/{id}")
-    public String detail(@PathVariable Long id, Model model) {
+    public String detail(@PathVariable Integer id, Model model) {
         Recipe recipe = recipeRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("레시피가 없습니다. id=" + id));
         model.addAttribute("recipe", recipe);

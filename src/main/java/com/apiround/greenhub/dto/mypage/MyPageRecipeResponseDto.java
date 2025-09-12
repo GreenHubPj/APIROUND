@@ -6,7 +6,7 @@ import java.util.List;
 
 @Data
 public class MyPageRecipeResponseDto {
-    private Long recipeId;
+    private Integer recipeId;
     private String title;
     private String summary;
     private String badgeText;

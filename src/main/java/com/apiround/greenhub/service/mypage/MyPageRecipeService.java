@@ -6,7 +6,7 @@ import com.apiround.greenhub.dto.mypage.MyPageRecipeResponseDto;
 import java.util.List;
 
 public interface MyPageRecipeService {
-    Long createRecipe(Long userId, MyPageRecipeRequestDto requestDto);
+    Integer createRecipe(Long userId, MyPageRecipeRequestDto requestDto);
 
     List<MyPageRecipeResponseDto> getMyRecipes(Long userId);
 

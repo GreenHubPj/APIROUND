@@ -12,8 +12,8 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Data
 public class UserNotificationPreferencesDto {
-    private Long userNotiPref;
-    private Long userId;
+    private Integer userNotiPref;
+    private Integer userId;
     private Boolean seasonalAlerts;
     private Boolean eventAlerts;
     private Boolean sellerAlerts;

@@ -12,12 +12,12 @@ public class Notification {
 
     @Id
     @Column(name = "notification_id")
-    private Long notificationId;
+    private Integer notificationId;
 
     @Column(name = "user_id", nullable = false)
-    private Long userId;
+    private Integer userId;
 
-    private Long companyId;
+    private Integer companyId;
 
     private String title;
     private String message;

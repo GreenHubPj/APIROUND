@@ -12,9 +12,9 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Data
 public class UserNotificationDto {
-    private Long userNotiId;
-    private Long notificationId;
-    private Long userId;
+    private Integer userNotiId;
+    private Integer notificationId;
+    private Integer userId;
     private Boolean isRead;
     private String deliveredVia;
     private LocalDateTime readAt;

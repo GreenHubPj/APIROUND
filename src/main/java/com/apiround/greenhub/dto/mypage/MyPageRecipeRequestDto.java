@@ -20,7 +20,7 @@ public class MyPageRecipeRequestDto {
 
     @Data
     public static class IngredientDto {
-        private String ingredientName;
+        private String name;        // ingredientName → name
         private String amount;
     }
 
@@ -29,5 +29,14 @@ public class MyPageRecipeRequestDto {
         private Integer stepOrder;
         private String description;
         private String imageUrl;
+    }
+
+    // instructions 필드 추가
+    private List<InstructionDto> instructions;
+
+    @Data
+    public static class InstructionDto {
+        private String title;
+        private List<String> steps;
     }
 }

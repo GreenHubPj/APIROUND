@@ -12,12 +12,12 @@ public class UserNotification {
 
     @Id
     @Column(name = "user_noti_id")
-    private Long id;
+    private Integer id;
     @Column(name = "notification_id")
-    private Long notificationId;
+    private Integer notificationId;
 
     @Column(name = "user_id")
-    private Long userId;
+    private Integer userId;
 
     private Boolean isRead;
 

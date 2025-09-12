@@ -12,7 +12,7 @@ public class RecipeXProduct {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "rxp_id")
-    private Long rxpId;
+    private Integer rxpId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "recipe_id", nullable = false)

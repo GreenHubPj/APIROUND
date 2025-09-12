@@ -18,10 +18,10 @@ public class MyPageRecipeController {
 
     // 레시피 생성
     @PostMapping
-    public ResponseEntity<Long> createRecipe(
+    public ResponseEntity<Integer> createRecipe(
             @RequestParam Long userId, // 보통 인증에서 뽑아내지만 우선 이렇게 받는 걸로
             @RequestBody MyPageRecipeRequestDto requestDto) {
-        Long recipeId = myPageRecipeService.createRecipe(userId, requestDto);
+        Integer recipeId = myPageRecipeService.createRecipe(userId, requestDto);
         return ResponseEntity.ok(recipeId);
     }
 

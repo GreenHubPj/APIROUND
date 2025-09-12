@@ -10,11 +10,13 @@ import com.apiround.greenhub.repository.RecipeStepRepository;
 import com.apiround.greenhub.repository.RecipeXProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class RecipeService {
 
     private final RecipeRepository recipeRepo;
@@ -28,23 +30,23 @@ public class RecipeService {
     }
 
     /** 레시피 기본 정보 */
-    public Recipe getRecipe(Long id) {
+    public Recipe getRecipe(Integer id) {
         return recipeRepo.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Recipe not found: " + id));
     }
 
     /** 재료 목록 (line_no 기준 오름차순) */
-    public List<RecipeIngredient> getIngredients(Long recipeId) {
+    public List<RecipeIngredient> getIngredients(Integer recipeId) {
         return ingredientRepo.findByRecipeRecipeIdOrderByLineNoAsc(recipeId);
     }
 
     /** 조리 단계 (step_no 기준 오름차순) */
-    public List<RecipeStep> getSteps(Long recipeId) {
+    public List<RecipeStep> getSteps(Integer recipeId) {
         return stepRepo.findByRecipeRecipeIdOrderByStepNoAsc(recipeId);
     }
 
     /** 레시피-상품 연결 (MAIN/SUB/OPTIONAL 포함) */
-    public List<RecipeXProduct> getProducts(Long recipeId) {
+    public List<RecipeXProduct> getProducts(Integer recipeId) {
         return rxpRepo.findByRecipeRecipeId(recipeId);
     }
 }
