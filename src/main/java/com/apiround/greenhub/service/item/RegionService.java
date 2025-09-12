@@ -1,11 +1,11 @@
-package com.apiround.greenhub.service;
+package com.apiround.greenhub.service.item;
 
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import com.apiround.greenhub.entity.Region;
-import com.apiround.greenhub.repository.RegionRepository;
+import com.apiround.greenhub.entity.item.Region;
+import com.apiround.greenhub.repository.item.RegionRepository;
 
 @Service
 public class RegionService {
@@ -16,14 +16,14 @@ public class RegionService {
         this.regionRepository = regionRepository;
     }
 
-    // 모든 특산품 조회
-    public List<Region> getAllProducts() {
-        return regionRepository.findAll();
+    // 모든 특산품 조회 (내림차순 정렬)
+    public List<Region> getAllProductsOrderByProductIdDesc() {
+        return regionRepository.findAllOrderByProductIdDesc();
     }
 
-    // 타입별 조회
-    public List<Region> getProductsByType(String productType) {
-        return regionRepository.findByProductType(productType);
+    // 타입별 조회 (내림차순 정렬)
+    public List<Region> getProductsByTypeOrderByProductIdDesc(String productType) {
+        return regionRepository.findByProductTypeOrderByProductIdDesc(productType);
     }
 
     // 지역별 조회
