@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>상품 상세 - GreenHub</title>
-    <link rel="stylesheet" th:href="@{/css/header.css}">
-    <link rel="stylesheet" th:href="@{/css/footer.css}">
-    <link rel="stylesheet" th:href="@{/css/region-detail.css}">
+    <link rel="stylesheet" href="/css/header.css">
+    <link rel="stylesheet" href="/css/region-detail.css">
+    <link rel="stylesheet" href="/css/footer.css">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
 </head>
 <body>
@@ -83,12 +83,20 @@
                             </div>
                         </div>
 
-                        <div class="product-price-section">
-                            <h3 class="price-title">가격 옵션</h3>
-                            <div class="price-options" id="priceOptions">
-                                <!-- 가격 옵션들이 여기에 동적으로 추가됩니다 -->
+                        <!-- 현재 코드 (문제) -->
+                        <div id="storepriceOptions" th:if="${#lists.isEmpty(product.options)}">
+                            <p class="no-price">업체에 문의해주세요</p>
+                        </div>
+
+                        <!-- 옵션 있음: 카드 렌더 + dataset 부착 -->
+                        <div id="priceOptions" th:if="${options != null and !#lists.isEmpty(options)}">
+                            <div th:each="opt : ${options}" class="price-option"
+                                 th:attr="data-quantity=${opt.quantity},data-unit=${opt.unit},data-price=${opt.price}">
+                                <span class="price-option-info" th:text="|${opt.quantity}${opt.unit}|"></span>
+                                <span class="price-option-amount" th:text="|${#numbers.formatInteger(opt.price, 0)}원|"></span>
                             </div>
                         </div>
+
 
                         <div class="product-details">
                             <div class="detail-item">
@@ -121,8 +129,15 @@
                             </div>
                             <div class="price-option-selector">
                                 <label for="priceOptionSelect">가격 옵션:</label>
-                                <select id="priceOptionSelect" class="price-select">
+                                <!-- 셀렉트 박스에도 동일 옵션 제공 -->
+                                <select id="priceOptionSelect" class="price-select"
+                                        th:disabled="${options == null or #lists.isEmpty(options)}">
                                     <option value="">가격 옵션을 선택하세요</option>
+                                    <option th:each="opt, stat : ${options}"
+                                            th:value="${stat.index}"
+                                            th:attr="data-quantity=${opt.quantity},data-unit=${opt.unit},data-price=${opt.price}"
+                                            th:text="|${opt.quantity}${opt.unit} - ${#numbers.formatInteger(opt.price, 0)}원|">
+                                    </option>
                                 </select>
                             </div>
                             <div class="total-price">
@@ -151,6 +166,12 @@
     <!-- 푸터 include -->
     <div th:replace="common/footer :: footer"></div>
 
-    <script th:src="@{/js/region-detail.js}"></script>
+    <script src="/js/region-detail.js"></script>
+
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        window.__NO_PRICE__ = /*[[${options == null or #lists.isEmpty(options)}]]*/ false;
+        /*]]>*/
+    </script>
 </body>
 </html>

@@ -2,6 +2,8 @@ package com.apiround.greenhub.controller.item;
 
 import java.util.List;
 
+import com.apiround.greenhub.dto.RegionDetailDto;
+import com.apiround.greenhub.service.item.ItemService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,9 +16,12 @@ import com.apiround.greenhub.service.item.RegionService;
 public class SpecialtyProductController {
 
     private final RegionService regionService;
+    private final ItemService itemService; // ← 서비스 빈 주입 (생성자 주입)
 
-    public SpecialtyProductController(RegionService regionService) {
+
+    public SpecialtyProductController(RegionService regionService, ItemService itemService) {
         this.regionService = regionService;
+        this.itemService = itemService;
     }
 
     @GetMapping("/region")
@@ -40,13 +45,10 @@ public class SpecialtyProductController {
     }
 
     @GetMapping("/region-detail")
-    public String productDetail(@RequestParam Integer id, Model model) {
-        Region product = regionService.getProductById(id);
-        if (product == null) {
-            return "redirect:/region";
-        }
-        
-        model.addAttribute("product", product);
+    public String regionDetail(@RequestParam("id") Integer id, Model model) {
+        RegionDetailDto dto = itemService.getProductDetail(id);
+        model.addAttribute("product", dto.getRegion());   // Region
+        model.addAttribute("options", dto.getOptions());  // List<ProductPriceOption>
         return "region-detail";
     }
 

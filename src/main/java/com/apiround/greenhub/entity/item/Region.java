@@ -3,6 +3,9 @@ package com.apiround.greenhub.entity.item;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Table(name = "specialty_product")
 @Getter @Setter
@@ -36,4 +39,8 @@ public class Region {
 
     @Column(name = "external_ref", length = 50)
     private String externalRef;
+
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name = "product_id")
+    private List<ProductPriceOption> priceOptions = new ArrayList<>();
 }

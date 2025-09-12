@@ -8,9 +8,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (searchBtn) {
         searchBtn.addEventListener('click', function() {
             const searchTerm = searchInput.value.trim();
-            if (searchTerm) {
-                alert(`"${searchTerm}" 검색 기능은 준비 중입니다.`);
-            }
+
         });
     }
     

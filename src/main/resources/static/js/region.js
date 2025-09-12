@@ -602,31 +602,20 @@ document.addEventListener('DOMContentLoaded', function() {
             { quantity: 3, unit: 'kg', price: price3 }
         ];
     }
+function renderProductPrices() {
+  productCards.forEach(card => {
+    const priceContainer = card.querySelector('.product-prices');
+    const minPrice = card.getAttribute('data-min-price'); // 서버에서 내려줄 값
 
-    // 상품 카드에 가격 표시
-    function renderProductPrices() {
-        productCards.forEach(card => {
-            const productType = card.getAttribute('data-category');
-            const productId = card.getAttribute('data-product-id');
-            const priceContainer = card.querySelector('.product-prices');
-            
-            if (priceContainer && productType && productId) {
-                const prices = generateConsistentPrices(parseInt(productId), productType);
-                
-                // 가격을 localStorage에 저장하여 region-detail에서 사용할 수 있도록 함
-                localStorage.setItem(`product_${productId}_prices`, JSON.stringify(prices));
-                
-                priceContainer.innerHTML = '';
-                
-                prices.forEach(price => {
-                    const priceElement = document.createElement('p');
-                    priceElement.className = 'price';
-                    priceElement.textContent = `${price.quantity}${price.unit} ${price.price.toLocaleString()}`;
-                    priceContainer.appendChild(priceElement);
-                });
-            }
-        });
+    priceContainer.innerHTML = '';
+    if (minPrice && parseInt(minPrice) > 0) {
+      priceContainer.innerHTML = `<p class="price">최저가 ${parseInt(minPrice).toLocaleString()}원~</p>`;
+    } else {
+      priceContainer.innerHTML = '<p class="no-price">업체에 문의해주세요</p>';
     }
+  });
+}
+
 
     // 초기 로드 시 페이징 적용
     console.log('초기 로드 시작');

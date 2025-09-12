@@ -1,7 +1,15 @@
 // 페이지 초기화
 document.addEventListener('DOMContentLoaded', function() {
     initializeRegionDetail();
-});
+
+    // 서버가 옵션을 넣어줬는지 확인
+      const optionsInSelect = document.querySelectorAll('#priceOptionSelect option[value]:not([value=""])').length;
+      if (window.__NO_PRICE__ || optionsInSelect === 0) {
+        document.getElementById('priceOptionSelect')?.setAttribute('disabled', true);
+        document.getElementById('addToCartBtn')?.setAttribute('disabled', true);
+        document.getElementById('buyNowBtn')?.setAttribute('disabled', true);
+      }
+    });
 
 // 전역 변수
 let currentProduct = null;
@@ -48,7 +56,7 @@ function loadProductDetail() {
 
     // 서버에서 전달된 상품 데이터 사용
     currentProduct = getProductFromServer();
-    
+
     if (!currentProduct) {
         showMessage('상품을 찾을 수 없습니다.', 'error');
         return;
@@ -60,113 +68,102 @@ function loadProductDetail() {
 
 // 서버에서 전달된 상품 데이터 가져오기
 function getProductFromServer() {
+
     // Thymeleaf로 전달된 데이터를 JavaScript에서 사용
-    const productName = document.getElementById('productTitle').textContent;
-    const productType = document.querySelector('.product-tag').textContent;
-    const regionText = document.querySelectorAll('.product-tag')[1].textContent;
-    const description = document.getElementById('descriptionText').textContent;
-    const thumbnailUrl = document.getElementById('mainImage').src;
-    const harvestSeason = document.getElementById('seasonInfo').textContent;
-    
-    // 상품 ID는 URL에서 가져오기
-    const productId = getProductIdFromUrl();
-    
-    // localStorage에서 가격 정보를 가져오거나, 없으면 새로 생성
-    let priceOptions;
-    const storedPrices = localStorage.getItem(`product_${productId}_prices`);
-    
-    if (storedPrices) {
-        priceOptions = JSON.parse(storedPrices);
-    } else {
-        // localStorage에 가격이 없으면 새로 생성하고 저장
-        priceOptions = generateConsistentPrices(parseInt(productId), productType);
-        localStorage.setItem(`product_${productId}_prices`, JSON.stringify(priceOptions));
-    }
-    
-    // 랜덤 업체 정보 생성
-    const companyInfo = generateRandomCompany(regionText);
-    
-    return {
-        id: parseInt(productId),
-        name: productName,
-        category: productType,
-        region: regionText,
-        description: description,
-        thumbnailUrl: thumbnailUrl,
-        harvestSeason: harvestSeason,
-        priceOptions: priceOptions,
-        companyInfo: companyInfo,
-        // 기본 이미지 배열
-        images: [
-            { id: 1, src: thumbnailUrl, alt: productName }
-        ]
-    };
+    const productName   = document.getElementById('productTitle').textContent;
+      const productTags   = document.querySelectorAll('.product-tag');
+      const productType   = productTags[0]?.textContent || '';
+      const regionText    = productTags[1]?.textContent || '';
+      const description   = document.getElementById('descriptionText').textContent;
+      const thumbnailUrl  = document.getElementById('mainImage').src;
+      const harvestSeason = document.getElementById('seasonInfo').textContent;
+      const productId     = parseInt(getProductIdFromUrl());
+
+      // ✅ DOM에서 가격 옵션 파싱
+      const priceOptions = Array.from(
+        document.querySelectorAll('#priceOptions .price-option')
+      ).map(el => ({
+        quantity: Number(el.dataset.quantity),
+        unit: el.dataset.unit,
+        price: Number(el.dataset.price)
+      }));
+
+       // 랜덤 업체정보 (원하면 유지)
+        const companyInfo = generateRandomCompany(regionText);
+
+        return {
+          id: productId,
+          name: productName,
+          category: productType,
+          region: regionText,
+          description,
+          thumbnailUrl,
+          harvestSeason,
+          priceOptions,
+          companyInfo,
+          images: [{ id: 1, src: thumbnailUrl, alt: productName }]
+        };
 }
 
-// 상품 ID와 타입에 따른 일관된 가격 생성
-function generateConsistentPrices(productId, productType) {
-    const basePrices = {
-        '농산물': { min: 5000, max: 15000 },
-        '축산물': { min: 15000, max: 35000 },
-        '수산물': { min: 10000, max: 25000 },
-        '가공식품': { min: 3000, max: 12000 }
-    };
-    
-    const priceRange = basePrices[productType] || { min: 5000, max: 20000 };
-    
-    // 상품 ID를 시드로 사용하여 일관된 가격 생성
-    const seed = productId * 12345; // 간단한 시드 생성
-    const random = (seed * 9301 + 49297) % 233280; // 선형 합동 생성기
-    const normalizedRandom = random / 233280;
-    
-    const price1 = Math.floor(normalizedRandom * (priceRange.max - priceRange.min + 1)) + priceRange.min;
-    const price2 = Math.floor(price1 * 1.8); // 1.8배
-    const price3 = Math.floor(price1 * 2.5); // 2.5배
-    
-    return [
-        { quantity: 1, unit: 'kg', price: price1 },
-        { quantity: 2, unit: 'kg', price: price2 },
-        { quantity: 3, unit: 'kg', price: price3 }
-    ];
+function renderPriceOptions() {
+  const priceOptionsContainer = document.getElementById('priceOptions');
+  const priceSelect = document.getElementById('priceOptionSelect');
+
+  priceOptionsContainer.innerHTML = '';
+  priceSelect.innerHTML = '<option value="">가격 옵션을 선택하세요</option>';
+
+  if (!currentProduct.priceOptions || currentProduct.priceOptions.length === 0) {
+    renderPriceOptions(); // 클라이언트 fallback
+  }
+
+
+  currentProduct.priceOptions.forEach((option, index) => {
+    // 카드
+    const optionElement = document.createElement('div');
+    optionElement.className = 'price-option';
+    optionElement.innerHTML = `
+      <span class="price-option-info">${option.quantity}${option.unit}</span>
+      <span class="price-option-amount">${option.price.toLocaleString()}원</span>
+    `;
+    priceOptionsContainer.appendChild(optionElement);
+
+    // 셀렉트
+    const optionSelect = document.createElement('option');
+    optionSelect.value = index;
+    optionSelect.textContent = `${option.quantity}${option.unit} - ${option.price.toLocaleString()}원`;
+    priceSelect.appendChild(optionSelect);
+  });
 }
 
 // 지역별 랜덤 업체 정보 생성
 function generateRandomCompany(regionText) {
-    const companyNames = [
-        '농협', '농업협동조합', '지역농협', '특산품직판장', '농산물유통센터',
-        '친환경농장', '전통농업', '청정농업', '자연농업', '유기농업',
-        '지역특산품', '농가직판', '농산물도매', '신선농산물', '제철농산물'
-    ];
-    
-    const companySuffixes = [
-        '협동조합', '농장', '직판장', '유통센터', '농협', '농업회사',
-        '특산품센터', '농산물센터', '친환경농업', '자연농업'
-    ];
-    
-    // 지역명에서 앞 2글자 추출
-    const regionPrefix = regionText.substring(0, 2);
-    
-    // 랜덤 업체명 생성
-    const randomName = companyNames[Math.floor(Math.random() * companyNames.length)];
-    const randomSuffix = companySuffixes[Math.floor(Math.random() * companySuffixes.length)];
-    const companyName = `${regionPrefix}${randomName}${randomSuffix}`;
-    
-    // 랜덤 전화번호 생성 (지역번호 기반)
-    const areaCodes = {
-        '서울': '02', '경기': '031', '인천': '032', '강원': '033',
-        '충북': '043', '충남': '041', '대전': '042', '전북': '063',
-        '전남': '061', '광주': '062', '경북': '054', '경남': '055',
-        '대구': '053', '울산': '052', '부산': '051', '제주': '064'
-    };
-    
+  const companyNames = ['농협','농업협동조합','지역농협','특산품직판장','농산물유통센터','친환경농장','전통농업','청정농업','자연농업','유기농업','지역특산품','농가직판','농산물유통','신선농산물','제철농산물'];
+  const companySuffixes = ['협동조합','농장','직판장','유통센터','농업회사','특산품센터','농산물센터','친환경농업','자연농업'];
+  const areaCodes = { '서울':'02','경기':'031','인천':'032','강원':'033','충북':'043','충남':'041','대전':'042','전북':'063','전남':'061','광주':'062','경북':'054','경남':'055','대구':'053','울산':'052','부산':'051','제주':'064' };
+
+  const regionPrefix = regionText.substring(0, 2);
+  const randomName = companyNames[Math.floor(Math.random() * companyNames.length)];
+  const randomSuffix = companySuffixes[Math.floor(Math.random() * companySuffixes.length)];
+  const companyName = `${regionPrefix}${randomName}${randomSuffix}`;
+
+  const areaCode = areaCodes[regionPrefix] || '02';
+  const phoneNumber = `${areaCode}-${Math.floor(Math.random() * 9000) + 1000}-${Math.floor(Math.random() * 9000) + 1000}`;
+
+  const emailDomains = ['naver.com','gmail.com','daum.net','coop.co.kr','farm.co.kr'];
+  const randomDomain = emailDomains[Math.floor(Math.random() * emailDomains.length)];
+  const email = `${companyName.toLowerCase().replace(/[^a-z0-9]/g,'')}@${randomDomain}`;
+
+  return { name: companyName, phone: phoneNumber, email };
+}
+
     const areaCode = areaCodes[regionPrefix] || '02';
     const phoneNumber = `${areaCode}-${Math.floor(Math.random() * 9000) + 1000}-${Math.floor(Math.random() * 9000) + 1000}`;
-    
+
     // 랜덤 이메일 생성
     const emailDomains = ['naver.com', 'gmail.com', 'daum.net', 'coop.co.kr', 'farm.co.kr'];
     const randomDomain = emailDomains[Math.floor(Math.random() * emailDomains.length)];
     const email = `${companyName.toLowerCase().replace(/[^a-z0-9]/g, '')}@${randomDomain}`;
-    
+
     return {
         name: companyName,
         phone: phoneNumber,
@@ -264,20 +261,16 @@ function renderProductDetail() {
 
     // 상품 태그
     const tagsContainer = document.getElementById('productTags');
-    tagsContainer.innerHTML = `
+      tagsContainer.innerHTML = `
         <span class="product-tag">${currentProduct.category}</span>
         <span class="product-tag">${currentProduct.region}</span>
-        ${currentProduct.origin ? `<span class="product-tag">${currentProduct.origin}</span>` : ''}
-    `;
+      `;
 
     // 가격 옵션
     renderPriceOptions();
 
     // 상품 상세 정보
-    document.getElementById('stockInfo').textContent = currentProduct.stock ? `${currentProduct.stock}개` : '재고 없음';
     document.getElementById('originInfo').textContent = currentProduct.origin || '-';
-    document.getElementById('expiryInfo').textContent = currentProduct.expiryDays ? `${currentProduct.expiryDays}일 이내 소모` : '-';
-    document.getElementById('storageInfo').textContent = currentProduct.storageMethod || '-';
     document.getElementById('seasonInfo').textContent = currentProduct.seasons ? currentProduct.seasons.join(', ') : '-';
 
     // 상품 설명
@@ -290,24 +283,26 @@ function renderProductDetail() {
     renderProductImages();
 }
 
+
+
 // 업체 정보 렌더링
 function renderCompanyInfo() {
     if (!currentProduct.companyInfo) return;
-    
+
     const companyInfo = currentProduct.companyInfo;
-    
+
     // 업체명
     const companyNameElement = document.getElementById('companyName');
     if (companyNameElement) {
         companyNameElement.textContent = companyInfo.name;
     }
-    
+
     // 전화번호
     const companyPhoneElement = document.getElementById('companyPhone');
     if (companyPhoneElement) {
         companyPhoneElement.textContent = companyInfo.phone;
     }
-    
+
     // 이메일
     const companyEmailElement = document.getElementById('companyEmail');
     if (companyEmailElement) {
@@ -315,31 +310,6 @@ function renderCompanyInfo() {
     }
 }
 
-// 가격 옵션 렌더링
-function renderPriceOptions() {
-    const priceOptionsContainer = document.getElementById('priceOptions');
-    const priceSelect = document.getElementById('priceOptionSelect');
-    
-    priceOptionsContainer.innerHTML = '';
-    priceSelect.innerHTML = '<option value="">가격 옵션을 선택하세요</option>';
-
-    currentProduct.priceOptions.forEach((option, index) => {
-        // 가격 옵션 카드
-        const optionElement = document.createElement('div');
-        optionElement.className = 'price-option';
-        optionElement.innerHTML = `
-            <span class="price-option-info">${option.quantity}${option.unit}</span>
-            <span class="price-option-amount">${option.price.toLocaleString()}원</span>
-        `;
-        priceOptionsContainer.appendChild(optionElement);
-
-        // 가격 옵션 셀렉트
-        const optionSelect = document.createElement('option');
-        optionSelect.value = index;
-        optionSelect.textContent = `${option.quantity}${option.unit} - ${option.price.toLocaleString()}원`;
-        priceSelect.appendChild(optionSelect);
-    });
-}
 
 // 상품 이미지 렌더링
 function renderProductImages() {
@@ -350,11 +320,11 @@ function renderProductImages() {
 
     const mainImage = document.getElementById('mainImage');
     const thumbnailContainer = document.getElementById('thumbnailContainer');
-    
+
     // 메인 이미지 설정
     mainImage.src = currentProduct.images[0].src;
     mainImage.alt = currentProduct.images[0].alt;
-    
+
     // 썸네일 생성
     thumbnailContainer.innerHTML = '';
     currentProduct.images.forEach((image, index) => {
@@ -363,13 +333,13 @@ function renderProductImages() {
         thumbnail.alt = image.alt;
         thumbnail.className = 'thumbnail';
         if (index === 0) thumbnail.classList.add('active');
-        
+
         thumbnail.addEventListener('click', () => {
             currentImageIndex = index;
             updateMainImage();
             updateThumbnailActive();
         });
-        
+
         thumbnailContainer.appendChild(thumbnail);
     });
 
@@ -383,10 +353,10 @@ function renderProductImages() {
 // 메인 이미지 업데이트
 function updateMainImage() {
     if (!currentProduct.images || currentProduct.images.length === 0) return;
-    
+
     const mainImage = document.getElementById('mainImage');
     const currentImage = currentProduct.images[currentImageIndex];
-    
+
     mainImage.src = currentImage.src;
     mainImage.alt = currentImage.alt;
 }
@@ -430,10 +400,10 @@ function loadRelatedProducts() {
     ];
 
     renderRelatedProducts(relatedProducts);
-    
+
     // 리뷰 데이터 로드
     loadReviews();
-    
+
     // 리뷰보기 버튼 이벤트 리스너
     setupReviewButton();
 }
@@ -446,7 +416,7 @@ function setupReviewButton() {
             // 현재 상품 ID를 localStorage에 저장
             const productId = getProductIdFromUrl();
             localStorage.setItem('currentProductId', productId);
-            
+
             // reviewlist 페이지로 이동
             window.location.href = '/reviewlist';
         });
@@ -455,63 +425,11 @@ function setupReviewButton() {
 
 // 리뷰 데이터 로드
 function loadReviews() {
-    // 더미 리뷰 데이터 (더 많은 리뷰 추가)
-    const allReviews = [
-        {
-            id: 1,
-            reviewerName: '김사과',
-            rating: 5,
-            date: '2025-09-05',
-            text: '정말 맛있는 사과였어요! 아삭하고 달콤한 맛이 일품입니다. 신선도도 최고고, 포장도 깔끔하게 잘 되어있었습니다. 다음에도 주문할 예정이에요!'
-        },
-        {
-            id: 2,
-            reviewerName: '이과일',
-            rating: 4,
-            date: '2025-09-03',
-            text: '품질이 좋네요. 크기도 적당하고 맛도 달콤합니다. 배송도 빠르게 왔어요. 추천합니다!'
-        },
-        {
-            id: 3,
-            reviewerName: '박농부',
-            rating: 5,
-            date: '2025-09-01',
-            text: '문경 사과의 진짜 맛을 느낄 수 있었습니다. 아삭한 식감과 달콤한 맛이 정말 좋아요. 가족들이 모두 만족했어요.'
-        },
-        {
-            id: 4,
-            reviewerName: '최고객',
-            rating: 4,
-            date: '2025-08-28',
-            text: '신선하고 맛있어요. 포장 상태도 좋고, 배송도 빠르게 왔습니다. 다음에도 주문하겠습니다.'
-        },
-        {
-            id: 5,
-            reviewerName: '정맛있',
-            rating: 5,
-            date: '2025-08-25',
-            text: '사과가 정말 크고 맛있어요! 아이들이 너무 좋아합니다. 다음에도 꼭 주문할게요.'
-        },
-        {
-            id: 6,
-            reviewerName: '홍사과',
-            rating: 4,
-            date: '2025-08-22',
-            text: '품질이 우수하고 신선해요. 배송도 빠르고 포장도 깔끔했습니다.'
-        },
-        {
-            id: 7,
-            reviewerName: '김달콤',
-            rating: 5,
-            date: '2025-08-20',
-            text: '달콤하고 아삭한 맛이 정말 좋아요! 가족 모두 만족했습니다.'
-        }
-    ];
-    
+
     // 최신 3개 리뷰만 표시
     const recentReviews = allReviews.slice(0, 3);
     renderReviews(recentReviews);
-    
+
     // 전체 리뷰 데이터를 localStorage에 저장 (review 페이지에서 사용)
     localStorage.setItem('allReviews', JSON.stringify(allReviews));
 }
@@ -520,14 +438,14 @@ function loadReviews() {
 function renderReviews(reviews) {
     const reviewList = document.getElementById('reviewList');
     reviewList.innerHTML = '';
-    
+
     reviews.forEach(review => {
         const reviewItem = document.createElement('div');
         reviewItem.className = 'review-item';
-        
+
         // 별점 생성
         const stars = '★'.repeat(review.rating) + '☆'.repeat(5 - review.rating);
-        
+
         reviewItem.innerHTML = `
             <div class="review-header">
                 <span class="reviewer-name">${review.reviewerName}</span>
@@ -538,7 +456,7 @@ function renderReviews(reviews) {
             </div>
             <div class="review-text">${review.text}</div>
         `;
-        
+
         reviewList.appendChild(reviewItem);
     });
 }
@@ -562,11 +480,11 @@ function renderRelatedProducts(products) {
                 </div>
             </div>
         `;
-        
+
         card.addEventListener('click', () => {
             window.location.href = `/region-detail?id=${product.id}&region=${product.region}`;
         });
-        
+
         grid.appendChild(card);
     });
 }
@@ -611,16 +529,19 @@ function setupEventListeners() {
         updateTotalPrice();
     });
 
-    // 가격 옵션 선택
+    // 가격 옵션 선택 핸들러 (dataset 사용)
     document.getElementById('priceOptionSelect').addEventListener('change', (e) => {
-        const optionIndex = parseInt(e.target.value);
-        if (optionIndex >= 0 && optionIndex < currentProduct.priceOptions.length) {
-            selectedPriceOption = currentProduct.priceOptions[optionIndex];
-            updateTotalPrice();
-        } else {
-            selectedPriceOption = null;
-            updateTotalPrice();
-        }
+      const opt = e.target.selectedOptions[0];
+      if (opt && opt.dataset.price) {
+        selectedPriceOption = {
+          quantity: Number(opt.dataset.quantity),
+          unit: opt.dataset.unit,
+          price: Number(opt.dataset.price)
+        };
+      } else {
+        selectedPriceOption = null;
+      }
+      updateTotalPrice();
     });
 
     // 장바구니 담기
@@ -636,7 +557,7 @@ function setupEventListeners() {
 // 총 가격 업데이트
 function updateTotalPrice() {
     const totalAmountElement = document.getElementById('totalAmount');
-    
+
     if (selectedPriceOption) {
         const totalPrice = selectedPriceOption.price * quantity;
         totalAmountElement.textContent = `${totalPrice.toLocaleString()}원`;
@@ -649,7 +570,7 @@ function updateTotalPrice() {
 function addToCart(event) {
     console.log('장바구니 담기 버튼 클릭됨');
     console.log('selectedPriceOption:', selectedPriceOption);
-    
+
     if (!selectedPriceOption) {
         console.log('가격 옵션 미선택 - 에러 메시지 표시');
         showMessageAtPosition('가격 옵션을 선택해주세요.', 'error', event.target);
@@ -658,10 +579,10 @@ function addToCart(event) {
 
     // 장바구니 데이터 가져오기
     let cart = JSON.parse(localStorage.getItem('cart') || '[]');
-    
+
     // 기존 상품이 있는지 확인
-    const existingItemIndex = cart.findIndex(item => 
-        item.productId === currentProduct.id && 
+    const existingItemIndex = cart.findIndex(item =>
+        item.productId === currentProduct.id &&
         item.priceOptionIndex === currentProduct.priceOptions.indexOf(selectedPriceOption)
     );
 
@@ -682,7 +603,7 @@ function addToCart(event) {
 
     // 장바구니 저장
     localStorage.setItem('cart', JSON.stringify(cart));
-    
+
     showMessageAtPosition('장바구니에 상품이 추가되었습니다.', 'success', event.target);
 }
 
@@ -690,7 +611,7 @@ function addToCart(event) {
 function buyNow(event) {
     console.log('구매하기 버튼 클릭됨');
     console.log('selectedPriceOption:', selectedPriceOption);
-    
+
     if (!selectedPriceOption) {
         console.log('가격 옵션 미선택 - 에러 메시지 표시');
         showMessageAtPosition('가격 옵션을 선택해주세요.', 'error', event.target);
@@ -727,7 +648,7 @@ function showMessage(message, type) {
 // 특정 위치에 메시지 표시
 function showMessageAtPosition(message, type, targetElement = null) {
     console.log('showMessageAtPosition 호출됨:', message, type, targetElement);
-    
+
     // 기존 메시지 제거
     const existingMessage = document.querySelector('.message');
     if (existingMessage) {
@@ -738,9 +659,9 @@ function showMessageAtPosition(message, type, targetElement = null) {
     const messageDiv = document.createElement('div');
     messageDiv.className = `message message-${type}`;
     messageDiv.textContent = message;
-    
+
     console.log('메시지 div 생성됨:', messageDiv);
-    
+
     // 기본 스타일 설정
     messageDiv.style.cssText = `
         position: fixed;

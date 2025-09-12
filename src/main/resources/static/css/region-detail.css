@@ -252,6 +252,7 @@ body {
     border-radius: 8px;
     border: 2px solid #e1e8ed;
     transition: all 0.3s ease;
+    margin-bottom: 20px;
 }
 
 .price-option:hover {
