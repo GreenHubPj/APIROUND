@@ -41,6 +41,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const card = document.createElement('div');
             card.className = 'recipe-card';
             card.setAttribute('data-recipe-id', recipe.recipeId);
+            card.setAttribute('data-user-id', recipe.userId);
 
             card.innerHTML = `
                 <div class="recipe-image">
@@ -66,43 +67,56 @@ document.addEventListener('DOMContentLoaded', function() {
         updateRecipeCardEvents();
     }
 
-    // 레시피 카드 이벤트 (클릭, 호버, 삭제) 업데이트
-    function updateRecipeCardEvents() {
-        const recipeCards = document.querySelectorAll('.recipe-card');
+       // 레시피 카드 이벤트 (클릭, 호버, 삭제) 업데이트
+      function updateRecipeCardEvents() {
+          const recipeCards = document.querySelectorAll('.recipe-card');
 
-        recipeCards.forEach(card => {
-            card.addEventListener('click', function () {
-                const recipeId = this.getAttribute('data-recipe-id');
-                const recipeName = this.querySelector('.recipe-name').textContent;
-                window.location.href = `/myrecipe-detail?id=${recipeId}&name=${encodeURIComponent(recipeName)}`;
-            });
+          recipeCards.forEach(card => {
+              // 클릭 이벤트 (레시피 카드 클릭 시 상세보기로 이동)
+              card.addEventListener('click', function () {
+                  const recipeId = this.getAttribute('data-recipe-id');  // data-recipe-id 가져오기
+                  const userId = this.getAttribute('data-user-id');    // data-user-id 가져오기
 
-            card.addEventListener('mouseenter', function () {
-                this.style.transform = 'translateY(-5px)';
-                this.style.boxShadow = '0 8px 25px rgba(0,0,0,0.15)';
-            });
+                  console.log('recipeId:', recipeId, 'userId:', userId);  // console.log로 확인
 
-            card.addEventListener('mouseleave', function () {
-                this.style.transform = 'translateY(0)';
-                this.style.boxShadow = '0 4px 15px rgba(0,0,0,0.1)';
-            });
+                  if (!userId) {
+                      console.error('userId가 없다!');
+                      return;  // userId가 없으면 아무 동작도 하지 않음
+                  }
 
-            const deleteBtn = card.querySelector('.delete-btn');
-            if (deleteBtn) {
-                deleteBtn.addEventListener('click', function (e) {
-                    e.preventDefault();
-                    e.stopPropagation();
+                  // userId가 제대로 읽어졌다면 URL에 id와 userId만 포함시켜서 이동
+                  window.location.href = `/myrecipe-detail?id=${recipeId}&userId=${userId}`;
+              });
 
-                    const recipeName = card.querySelector('.recipe-name').textContent;
-                    const recipeId = card.getAttribute('data-recipe-id');
+              // 마우스 hover 이벤트 (카드 스타일 변화)
+              card.addEventListener('mouseenter', function () {
+                  this.style.transform = 'translateY(-5px)';
+                  this.style.boxShadow = '0 8px 25px rgba(0,0,0,0.15)';
+              });
 
-                    if (confirm(`"${recipeName}" 레시피를 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.`)) {
-                        deleteRecipe(recipeId);
-                    }
-                });
-            }
-        });
-    }
+              // 마우스 hover 이벤트 종료 (카드 스타일 복원)
+              card.addEventListener('mouseleave', function () {
+                  this.style.transform = 'translateY(0)';
+                  this.style.boxShadow = '0 4px 15px rgba(0,0,0,0.1)';
+              });
+
+              // 삭제 버튼 이벤트 (삭제 시 확인 및 삭제 처리)
+              const deleteBtn = card.querySelector('.delete-btn');
+              if (deleteBtn) {
+                  deleteBtn.addEventListener('click', function (e) {
+                      e.preventDefault();  // 기본 동작 방지
+                      e.stopPropagation(); // 이벤트 전파 방지
+
+                      const recipeName = card.querySelector('.recipe-name').textContent;
+                      const recipeId = card.getAttribute('data-recipe-id');
+
+                      if (confirm(`"${recipeName}" 레시피를 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.`)) {
+                          deleteRecipe(recipeId);  // 삭제 로직 호출
+                      }
+                  });
+              }
+          });
+      }
 
     // 레시피 삭제 함수
     function deleteRecipe(recipeId) {

@@ -21,7 +21,8 @@ public class MyPageRecipeController {
     public String myRecipeDetail(@RequestParam Long userId, @RequestParam Long id, Model model) {
         MyPageRecipeResponseDto dto = myPageRecipeService.getRecipe(userId, id);
         model.addAttribute("recipe", dto);
-        return "myrecipe-detail"; // src/main/resources/templates/myrecipe-detail.html
+        model.addAttribute("userId", userId); // userId를 모델에 추가
+        return "myrecipe-detail"; // myrecipe-detail.html로 반환
     }
 
     // 레시피 생성
