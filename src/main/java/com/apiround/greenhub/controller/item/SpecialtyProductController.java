@@ -1,4 +1,4 @@
-package com.apiround.greenhub.controller;
+package com.apiround.greenhub.controller.item;
 
 import java.util.List;
 
@@ -7,8 +7,8 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import com.apiround.greenhub.entity.Region;
-import com.apiround.greenhub.service.RegionService;
+import com.apiround.greenhub.entity.item.Region;
+import com.apiround.greenhub.service.item.RegionService;
 
 @Controller
 public class SpecialtyProductController {
@@ -26,12 +26,12 @@ public class SpecialtyProductController {
         List<Region> products;
         
         if (type != null && !type.isEmpty()) {
-            products = regionService.getProductsByType(type);
+            products = regionService.getProductsByTypeOrderByProductIdDesc(type);
         } else if (region != null && !region.isEmpty()) {
             // 지역 코드로 검색 (예: chungnam -> 충남, 충청남도 등)
             products = regionService.getProductsByRegionCode(region);
         } else {
-            products = regionService.getAllProducts();
+            products = regionService.getAllProductsOrderByProductIdDesc();
         }
         
         model.addAttribute("products", products);

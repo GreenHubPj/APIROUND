@@ -100,8 +100,9 @@ public class MyPageRecipeServiceImpl implements MyPageRecipeService {
     @Override
     @Transactional(readOnly = true)
     public List<MyPageRecipeResponseDto> getMyRecipes(Long userId) {
-        List<Recipe> recipes = recipeRepository.findAllByUserUserId(userId.intValue());
+        List<Recipe> recipes = recipeRepository.findByUserId(userId.intValue());
         return recipes.stream().map(recipe -> {
+            System.out.println("recipe============" + recipe);
             MyPageRecipeResponseDto dto = new MyPageRecipeResponseDto();
             dto.setRecipeId(recipe.getRecipeId());
             dto.setTitle(recipe.getTitle());
@@ -115,7 +116,7 @@ public class MyPageRecipeServiceImpl implements MyPageRecipeService {
             dto.setStatus(recipe.getStatus());
             dto.setCreatedAt(recipe.getCreatedAt());
             dto.setUpdatedAt(recipe.getUpdatedAt());
-
+            dto.setUserId(recipe.getUserId());
             // TODO: ingredients, steps 변환 후 세팅
 
             return dto;
@@ -124,8 +125,55 @@ public class MyPageRecipeServiceImpl implements MyPageRecipeService {
 
     @Override
     public MyPageRecipeResponseDto getRecipe(Long userId, Long recipeId) {
-        // TODO: 구현 필요
-        return null;
+        // 레시피 조회
+        Recipe recipe = recipeRepository.findById(recipeId.intValue())
+                .orElseThrow(() -> new RuntimeException("Recipe not found"));
+
+        System.out.println("recipe ================================ " +  recipe);
+        // 사용자가 해당 레시피의 소유자인지 확인
+        if (!recipe.getUser().getUserId().equals(userId.intValue())) {
+            throw new RuntimeException("권한 없음 또는 잘못된 사용자");
+        }
+
+        // DTO 생성
+        MyPageRecipeResponseDto dto = new MyPageRecipeResponseDto();
+        dto.setRecipeId(recipe.getRecipeId());
+        dto.setTitle(recipe.getTitle());
+        dto.setSummary(recipe.getSummary());
+        dto.setBadgeText(recipe.getBadgeText());
+        dto.setDifficulty(recipe.getDifficulty().name());
+        dto.setCookMinutes(recipe.getCookMinutes());
+        dto.setTotalMinutes(recipe.getTotalMinutes());
+        dto.setServings(recipe.getServings());
+        dto.setHeroImageUrl(recipe.getHeroImageUrl());
+        dto.setStatus(recipe.getStatus());
+        dto.setCreatedAt(recipe.getCreatedAt());
+        dto.setUpdatedAt(recipe.getUpdatedAt());
+        dto.setUserId(recipe.getUser().getUserId());
+        // 재료 리스트 변환
+        List<MyPageRecipeResponseDto.IngredientDto> ingredients = recipe.getIngredients().stream()
+                .map(ingredient -> {
+                    MyPageRecipeResponseDto.IngredientDto ingDto = new MyPageRecipeResponseDto.IngredientDto();
+                    ingDto.setIngredientName(ingredient.getNameText());
+                    ingDto.setAmount(ingredient.getNote());  // 재료의 양을 `note`에 저장
+                    return ingDto;
+                }).collect(Collectors.toList());
+        dto.setIngredients(ingredients);
+
+        // 조리 단계 리스트 변환
+        List<MyPageRecipeResponseDto.StepDto> steps = recipe.getSteps().stream()
+                .sorted((s1, s2) -> s1.getStepNo().compareTo(s2.getStepNo()))  // `stepNo` 기준으로 정렬
+                .map(step -> {
+                    MyPageRecipeResponseDto.StepDto stepDto = new MyPageRecipeResponseDto.StepDto();
+                    stepDto.setStepOrder(step.getStepNo());   // 단계 순서
+                    stepDto.setDescription(step.getInstruction());  // 단계 설명
+                    stepDto.setImageUrl(step.getStepImageUrl());  // 단계 이미지 URL (필요 시)
+                    return stepDto;
+                }).collect(Collectors.toList());
+
+        dto.setSteps(steps);  // `steps`에 변환된 단계들 추가
+
+        return dto;
     }
 
     @Override

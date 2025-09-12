@@ -1,4 +1,4 @@
-package com.apiround.greenhub.entity;
+package com.apiround.greenhub.entity.item;
 
 import jakarta.persistence.*;
 import lombok.Getter;

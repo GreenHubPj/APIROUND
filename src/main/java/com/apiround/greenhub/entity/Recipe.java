@@ -22,8 +22,11 @@ public class Recipe {
     @Column(name = "recipe_id")
     private Integer recipeId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
+    @Column(name="user_id")
+    private Integer userId;
+
+    @ManyToOne
+    @JoinColumn(name = "recipe_id", referencedColumnName = "user_id", insertable = false, updatable = false)
     private User user;
 
     @Column(name = "title", nullable = false, length = 200)

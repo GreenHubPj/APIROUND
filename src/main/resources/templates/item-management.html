@@ -10,289 +10,265 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <!-- 헤더 -->
-    <div th:replace="common/header :: header"></div>
+<!-- 헤더 -->
+<div th:replace="common/header :: header"></div>
 
-    <!-- 메인 컨텐츠 -->
-    <div class="item-management-container">
-        <div class="item-management-header">
-            <h1>상품관리</h1>
-            <p>지역별 특산품 게시글을 작성하고 관리하세요</p>
+<div class="item-management-container">
+    <div class="item-management-header">
+        <h1>상품관리</h1>
+        <p>지역별 특산품 게시글을 작성하고 관리하세요</p>
+        <button type="button" class="btn-add-product" id="addProductBtn">+ 상품 추가</button>
+    </div>
+
+    <!-- 상품 등록/수정 폼 -->
+    <div class="item-form-section" id="itemFormSection" style="display:none;">
+        <div class="form-header">
+            <h2 id="formTitle">새 상품 등록</h2>
+            <button type="button" class="btn-cancel" id="cancelBtn" style="display:none;">취소</button>
         </div>
 
-        <!-- 상품 등록/수정 폼 -->
-        <div class="item-form-section">
-            <div class="form-header">
-                <h2 id="formTitle">새 상품 등록</h2>
-                <button type="button" class="btn-cancel" id="cancelBtn" style="display: none;">취소</button>
-            </div>
-            
-            <form class="item-form" id="itemForm">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label class="form-label" for="productName">상품명 *</label>
-                        <input type="text" id="productName" class="form-input" placeholder="상품명을 입력해주세요" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label" for="category">카테고리 *</label>
-                        <select id="category" class="form-select" required>
-                            <option value="">카테고리 선택</option>
-                            <option value="과일">과일</option>
-                            <option value="채소">채소</option>
-                            <option value="곡물">곡물</option>
-                            <option value="견과류">견과류</option>
-                            <option value="기타">기타</option>
-                        </select>
-                    </div>
-                </div>
+        <form class="item-form" id="itemForm" method="post" th:action="@{/item-management}">
+            <!-- (선택) CSRF -->
+            <input type="hidden" name="_csrf" th:value="${_csrf?.token}">
+            <!-- 수정 시 사용 -->
+            <input type="hidden" name="productId" id="productId" th:value="${product?.productId}"/>
 
-                <div class="form-row">
-                    <div class="form-group">
-                        <label class="form-label" for="region">지역 *</label>
-                        <select id="region" class="form-select" required>
-                            <option value="">지역 선택</option>
-                            <option value="서울">서울특별시</option>
-                            <option value="부산">부산광역시</option>
-                            <option value="대구">대구광역시</option>
-                            <option value="인천">인천광역시</option>
-                            <option value="광주">광주광역시</option>
-                            <option value="대전">대전광역시</option>
-                            <option value="울산">울산광역시</option>
-                            <option value="세종">세종특별자치시</option>
-                            <option value="경기">경기도</option>
-                            <option value="강원">강원도</option>
-                            <option value="충북">충청북도</option>
-                            <option value="충남">충청남도</option>
-                            <option value="전북">전라북도</option>
-                            <option value="전남">전라남도</option>
-                            <option value="경북">경상북도</option>
-                            <option value="경남">경상남도</option>
-                            <option value="제주">제주특별자치도</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">가격 옵션 *</label>
-                        <div class="price-options-container" id="priceOptionsContainer">
-                            <div class="price-option-item">
-                                <div class="form-row">
-                                    <div class="form-group">
-                                        <label class="form-label">수량</label>
-                                        <input type="number" class="form-input price-quantity" placeholder="예: 1" min="1" required>
-                                    </div>
-                                    <div class="form-group">
-                                        <label class="form-label">단위</label>
-                                        <select class="form-select price-unit" required>
-                                            <option value="">단위 선택</option>
-                                            <option value="kg">kg</option>
-                                            <option value="g">g</option>
-                                            <option value="개">개</option>
-                                            <option value="박스">박스</option>
-                                            <option value="봉">봉</option>
-                                            <option value="포기">포기</option>
-                                            <option value="단">단</option>
-                                            <option value="팩">팩</option>
-                                            <option value="병">병</option>
-                                            <option value="캔">캔</option>
-                                            <option value="마리">마리</option>
-                                            <option value="포">포</option>
-                                            <option value="근">근</option>
-                                            <option value="되">되</option>
-                                            <option value="말">말</option>
-                                            <option value="상자">상자</option>
-                                            <option value="통">통</option>
-                                            <option value="봉지">봉지</option>
-                                            <option value="세트">세트</option>
-                                            <option value="묶음">묶음</option>
-                                        </select>
-                                    </div>
-                                    <div class="form-group">
-                                        <label class="form-label">가격 (원)</label>
-                                        <input type="number" class="form-input price-amount" placeholder="예: 16000" min="0" required>
-                                    </div>
-                                    <div class="form-group">
-                                        <label class="form-label">액션</label>
-                                        <button type="button" class="btn-remove-price" onclick="removePriceOption(this)">삭제</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <button type="button" class="btn-add-price" id="addPriceOption">가격 옵션 추가</button>
-                    </div>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label class="form-label" for="stock">재고수량</label>
-                        <input type="number" id="stock" class="form-input" placeholder="재고수량을 입력해주세요 (선택사항)" min="0">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label" for="expiryDays">유통기한</label>
-                        <div class="expiry-input-group">
-                            <input type="number" id="expiryDays" class="form-input" placeholder="예: 7" min="1" max="365">
-                            <span class="expiry-unit">일 이내 소모</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label class="form-label" for="origin">원산지</label>
-                        <input type="text" id="origin" class="form-input" placeholder="원산지를 입력해주세요">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label" for="storageMethod">보관방법</label>
-                        <select id="storageMethod" class="form-select">
-                            <option value="">보관방법 선택</option>
-                            <option value="냉장보관">냉장보관</option>
-                            <option value="냉동보관">냉동보관</option>
-                            <option value="실온보관">실온보관</option>
-                            <option value="습도조절">습도조절</option>
-                        </select>
-                    </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label" for="productName">상품명 *</label>
+                    <input type="text" id="productName" name="productName"
+                           class="form-input" placeholder="상품명을 입력해주세요" required>
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label">제철기간 *</label>
-                    <div class="season-checkboxes">
-                        <div class="checkbox-row">
-                            <label class="checkbox-item">
-                                <input type="checkbox" name="season" value="1월">
-                                <span class="checkmark"></span>
-                                1월
-                            </label>
-                            <label class="checkbox-item">
-                                <input type="checkbox" name="season" value="2월">
-                                <span class="checkmark"></span>
-                                2월
-                            </label>
-                            <label class="checkbox-item">
-                                <input type="checkbox" name="season" value="3월">
-                                <span class="checkmark"></span>
-                                3월
-                            </label>
-                            <label class="checkbox-item">
-                                <input type="checkbox" name="season" value="4월">
-                                <span class="checkmark"></span>
-                                4월
-                            </label>
-                        </div>
-                        <div class="checkbox-row">
-                            <label class="checkbox-item">
-                                <input type="checkbox" name="season" value="5월">
-                                <span class="checkmark"></span>
-                                5월
-                            </label>
-                            <label class="checkbox-item">
-                                <input type="checkbox" name="season" value="6월">
-                                <span class="checkmark"></span>
-                                6월
-                            </label>
-                            <label class="checkbox-item">
-                                <input type="checkbox" name="season" value="7월">
-                                <span class="checkmark"></span>
-                                7월
-                            </label>
-                            <label class="checkbox-item">
-                                <input type="checkbox" name="season" value="8월">
-                                <span class="checkmark"></span>
-                                8월
-                            </label>
-                        </div>
-                        <div class="checkbox-row">
-                            <label class="checkbox-item">
-                                <input type="checkbox" name="season" value="9월">
-                                <span class="checkmark"></span>
-                                9월
-                            </label>
-                            <label class="checkbox-item">
-                                <input type="checkbox" name="season" value="10월">
-                                <span class="checkmark"></span>
-                                10월
-                            </label>
-                            <label class="checkbox-item">
-                                <input type="checkbox" name="season" value="11월">
-                                <span class="checkmark"></span>
-                                11월
-                            </label>
-                            <label class="checkbox-item">
-                                <input type="checkbox" name="season" value="12월">
-                                <span class="checkmark"></span>
-                                12월
-                            </label>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label" for="description">상품 설명 *</label>
-                    <textarea id="description" class="form-textarea" placeholder="상품에 대한 자세한 설명을 입력해주세요" rows="4" required></textarea>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">상품 이미지 (최대 5장)</label>
-                    <div class="image-upload-section">
-                        <div class="image-preview-container" id="imagePreviewContainer">
-                            <div class="image-preview" id="imagePreview">
-                                <div class="image-placeholder">
-                                    <span class="upload-icon">📷</span>
-                                    <p>이미지를 업로드하세요</p>
-                                    <small>드래그 앤 드롭 또는 클릭하여 선택</small>
-                                </div>
-                            </div>
-                        </div>
-                        <input type="file" id="imageUpload" accept="image/*" multiple style="display: none;">
-                        <div class="upload-buttons">
-                            <button type="button" class="btn-upload" id="uploadBtn">이미지 선택</button>
-                            <button type="button" class="btn-remove-all" id="removeAllImagesBtn" style="display: none;">모든 이미지 삭제</button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="form-actions">
-                    <button type="button" class="btn-secondary" id="resetBtn">초기화</button>
-                    <button type="submit" class="btn-primary" id="submitBtn">상품 등록</button>
-                </div>
-            </form>
-        </div>
-
-        <!-- 상품 목록 -->
-        <div class="item-list-section">
-            <div class="list-header">
-                <h2>등록된 상품 목록</h2>
-                <div class="list-controls">
-                    <div class="search-box">
-                        <input type="text" id="searchInput" placeholder="상품명으로 검색...">
-                        <button type="button" id="searchBtn">검색</button>
-                    </div>
-                    <select id="filterCategory" class="filter-select">
-                        <option value="">전체 카테고리</option>
-                        <option value="과일">과일</option>
-                        <option value="채소">채소</option>
-                        <option value="곡물">곡물</option>
-                        <option value="견과류">견과류</option>
-                        <option value="기타">기타</option>
+                    <label class="form-label" for="category">카테고리 *</label>
+                    <!-- 엔티티: productType -->
+                    <select id="category" name="productType" class="form-select" required>
+                        <option value="">카테고리 선택</option>
+                        <option value="농산물">농산물</option>
+                        <option value="수산물">수산물</option>
+                        <option value="축산물">축산물</option>
+                        <option value="가공식품">가공식품</option>
                     </select>
                 </div>
             </div>
 
-            <div class="item-list" id="itemList">
-                <!-- 상품 목록이 여기에 동적으로 생성됩니다 -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label" for="region">지역 *</label>
+                    <!-- 엔티티: regionText -->
+                    <select id="region" name="regionText" class="form-select" required>
+                        <option value="">지역 선택</option>
+                        <option value="서울">서울특별시</option>
+                        <option value="부산">부산광역시</option>
+                        <option value="대구">대구광역시</option>
+                        <option value="인천">인천광역시</option>
+                        <option value="광주">광주광역시</option>
+                        <option value="대전">대전광역시</option>
+                        <option value="울산">울산광역시</option>
+                        <option value="세종">세종특별자치시</option>
+                        <option value="경기">경기도</option>
+                        <option value="강원">강원도</option>
+                        <option value="충북">충청북도</option>
+                        <option value="충남">충청남도</option>
+                        <option value="전북">전라북도</option>
+                        <option value="전남">전라남도</option>
+                        <option value="경북">경상북도</option>
+                        <option value="경남">경상남도</option>
+                        <option value="제주">제주특별자치도</option>
+                    </select>
+                </div>
+
+                <!-- 가격 옵션 -->
+                <div class="form-group">
+                    <label class="form-label">가격 옵션 *</label>
+
+                    <div class="price-options-container" id="priceOptionsContainer">
+                        <!-- 기본 1개 블록 -->
+                        <div class="price-option-item">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">옵션 라벨</label>
+                                    <input type="text" class="form-input"
+                                           name="optionLabel"
+                                           placeholder="예: 기본, 소, 대 (선택)">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">수량</label>
+                                    <input type="number" class="form-input price-quantity"
+                                           name="quantity" placeholder="예: 1" min="1" required>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">단위</label>
+                                    <select class="form-select price-unit" name="unit" required>
+                                        <option value="">단위 선택</option>
+                                        <option value="kg">kg</option>
+                                        <option value="g">g</option>
+                                        <option value="개">개</option>
+                                        <option value="박스">박스</option>
+                                        <option value="봉">봉</option>
+                                        <option value="포기">포기</option>
+                                        <option value="단">단</option>
+                                        <option value="팩">팩</option>
+                                        <option value="병">병</option>
+                                        <option value="캔">캔</option>
+                                        <option value="마리">마리</option>
+                                        <option value="포">포</option>
+                                        <option value="근">근</option>
+                                        <option value="되">되</option>
+                                        <option value="말">말</option>
+                                        <option value="상자">상자</option>
+                                        <option value="통">통</option>
+                                        <option value="봉지">봉지</option>
+                                        <option value="세트">세트</option>
+                                        <option value="묶음">묶음</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">가격 (원)</label>
+                                    <input type="number" class="form-input price-amount"
+                                           name="price" placeholder="예: 16000" min="0" required>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">액션</label>
+                                    <button type="button" class="btn-remove-price" onclick="removePriceOption(this)">삭제</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="button" class="btn-add-price" id="addPriceOption">가격 옵션 추가</button>
+                </div>
             </div>
 
-            <!-- 페이지네이션 -->
-            <div class="pagination" id="pagination">
-                <!-- 페이지네이션이 여기에 동적으로 생성됩니다 -->
+            <!-- 제철기간: 컨트롤러에서 @RequestParam List<Integer> months 로 받을 때 -->
+            <div class="form-group">
+                <label class="form-label">제철기간 *</label>
+                <div class="season-checkboxes">
+                    <div class="checkbox-row">
+                        <label class="checkbox-item"><input type="checkbox" name="months" value="1"><span class="checkmark"></span>1월</label>
+                        <label class="checkbox-item"><input type="checkbox" name="months" value="2"><span class="checkmark"></span>2월</label>
+                        <label class="checkbox-item"><input type="checkbox" name="months" value="3"><span class="checkmark"></span>3월</label>
+                        <label class="checkbox-item"><input type="checkbox" name="months" value="4"><span class="checkmark"></span>4월</label>
+                    </div>
+                    <div class="checkbox-row">
+                        <label class="checkbox-item"><input type="checkbox" name="months" value="5"><span class="checkmark"></span>5월</label>
+                        <label class="checkbox-item"><input type="checkbox" name="months" value="6"><span class="checkmark"></span>6월</label>
+                        <label class="checkbox-item"><input type="checkbox" name="months" value="7"><span class="checkmark"></span>7월</label>
+                        <label class="checkbox-item"><input type="checkbox" name="months" value="8"><span class="checkmark"></span>8월</label>
+                    </div>
+                    <div class="checkbox-row">
+                        <label class="checkbox-item"><input type="checkbox" name="months" value="9"><span class="checkmark"></span>9월</label>
+                        <label class="checkbox-item"><input type="checkbox" name="months" value="10"><span class="checkmark"></span>10월</label>
+                        <label class="checkbox-item"><input type="checkbox" name="months" value="11"><span class="checkmark"></span>11월</label>
+                        <label class="checkbox-item"><input type="checkbox" name="months" value="12"><span class="checkmark"></span>12월</label>
+                    </div>
+                </div>
             </div>
-        </div>
+
+            <!-- 설명 / 썸네일 / 외부참조 -->
+            <div class="form-group">
+                <label class="form-label" for="description">상품 설명 *</label>
+                <textarea id="description" name="description" class="form-textarea"
+                          placeholder="상품에 대한 자세한 설명을 입력해주세요" rows="4" required></textarea>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">대표 이미지 URL</label>
+                <!-- 엔티티: thumbnailUrl -->
+                <input type="text" class="form-input" name="thumbnailUrl" placeholder="https://example.com/image.jpg">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">외부 참조(선택)</label>
+                <!-- 엔티티: externalRef -->
+                <input type="text" class="form-input" name="externalRef" placeholder="예: 판매처 코드 / 외부 ID">
+            </div>
+
+            <div class="form-actions">
+                <button type="button" class="btn-secondary" id="resetBtn">초기화</button>
+                <button type="submit" class="btn-primary" id="submitBtn">상품 등록</button>
+            </div>
+        </form>
     </div>
 
-    <!-- 푸터 -->
-    <div th:replace="common/footer :: footer"></div>
+    <!-- 상품 목록 -->
+    <div class="item-list-section">
+        <div class="list-header">
+            <h2>등록된 상품 목록</h2>
+            <div class="list-controls">
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="상품명으로 검색...">
+                    <button type="button" id="searchBtn">검색</button>
+                </div>
+                <select id="filterCategory" class="filter-select">
+                    <option value="">전체 카테고리</option>
+                    <option value="농산물">농산물</option>
+                    <option value="수산물">수산물</option>
+                    <option value="축산물">축산물</option>
+                    <option value="가공식품">가공식품</option>
+                </select>
+            </div>
+        </div>
 
-    <script src="/js/item-management.js"></script>
+        <div class="table-container">
+            <table class="item-table">
+                <thead>
+                <tr>
+                    <th class="checkbox-col"><input type="checkbox" id="selectAll" class="checkbox"></th>
+                    <th class="id-col sortable" data-column="id">ID</th>
+                    <th class="name-col sortable" data-column="name">상품명</th>
+                    <th class="category-col sortable" data-column="category">카테고리</th>
+                    <th class="region-col sortable" data-column="region">지역</th>
+                    <th class="season-col">제철기간</th>
+                    <th class="status-col sortable" data-column="status">상태</th>
+                    <th class="action-col">액션</th>
+                </tr>
+                </thead>
+                <tbody id="itemTableBody">
+                <tr th:each="product : ${products}">
+                    <td class="checkbox-col">
+                        <input type="checkbox" class="checkbox" th:value="${product.productId}">
+                    </td>
+                    <td class="id-col" th:text="${product.productId}"></td>
+                    <td class="name-col">
+                        <div class="product-name">
+                            <img th:src="${product.thumbnailUrl}"
+                                 th:alt="${product.productName}"
+                                 class="product-thumbnail"
+                                 onerror="this.src='/images/placeholder.png'">
+                            <span th:text="${product.productName}"></span>
+                        </div>
+                    </td>
+                    <td class="category-col">
+                        <span class="category-tag" th:text="${product.productType}"></span>
+                    </td>
+                    <td class="region-col" th:text="${product.regionText}"></td>
+                    <td class="season-col" th:text="${product.harvestSeason}"></td>
+                    <td class="status-col">
+                        <span class="status-badge active">활성</span>
+                    </td>
+                    <td class="action-col">
+                        <button type="button" class="btn-edit"
+                                th:onclick="'editProduct(' + ${product.productId} + ')'">수정</button>
+                        <button type="button" class="btn-delete"
+                                th:onclick="'deleteProduct(' + ${product.productId} + ')'">삭제</button>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 페이지네이션 -->
+        <div class="pagination" id="pagination">
+            <!-- 페이지네이션이 여기에 동적으로 생성됩니다 -->
+        </div>
+    </div>
+</div>
+
+<!-- 푸터 -->
+<div th:replace="common/footer :: footer"></div>
+
+<script src="/js/item-management.js"></script>
 </body>
 </html>

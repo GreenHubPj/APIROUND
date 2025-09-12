@@ -5,6 +5,7 @@ import com.apiround.greenhub.dto.mypage.MyPageRecipeResponseDto;
 import com.apiround.greenhub.service.mypage.MyPageRecipeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -15,6 +16,14 @@ import java.util.List;
 public class MyPageRecipeController {
 
     private final MyPageRecipeService myPageRecipeService;
+
+    @GetMapping("/myrecipe-detail")
+    public String myRecipeDetail(@RequestParam Long userId, @RequestParam Long id, Model model) {
+        MyPageRecipeResponseDto dto = myPageRecipeService.getRecipe(userId, id);
+        model.addAttribute("recipe", dto);
+        model.addAttribute("userId", userId); // userId를 모델에 추가
+        return "myrecipe-detail"; // myrecipe-detail.html로 반환
+    }
 
     // 레시피 생성
     @PostMapping
