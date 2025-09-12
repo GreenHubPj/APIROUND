@@ -302,6 +302,38 @@
     margin-top: 40px;
 }
 
+.no-orders {
+    text-align: center;
+    padding: 40px 20px;
+    background-color: #f9f9f9;
+    border-radius: 12px;
+    margin-top: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.no-orders p {
+    font-size: 1.1rem;
+    color: #666;
+    margin-bottom: 20px;
+}
+
+.no-orders .btn {
+    padding: 10px 25px;
+    font-size: 1rem;
+    border-radius: 25px;
+    background-color: #ff6b35;
+    color: white;
+    text-decoration: none;
+    display: inline-block;
+    transition: all 0.3s ease;
+}
+
+.no-orders .btn:hover {
+    background-color: #e65c2e;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+}
+
 .module-item {
     background-color: #fff5e6;
     border-radius: 15px;
