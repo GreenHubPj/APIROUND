@@ -1,14 +1,23 @@
 package com.apiround.greenhub.entity;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonProperty.Access;
-import jakarta.persistence.*;
-import lombok.Data;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonProperty.Access;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import lombok.Data;
 
 @Data
 @Entity
@@ -34,9 +43,10 @@ public class User {
     @Column(name = "phone", length = 20, nullable = false)
     private String phone;
 
-    // ✅ 스키마가 CHAR(1)일 때 안전하게 매핑
-    @Column(name = "gender", length = 1)
-    private String gender;
+    // ✅ DB enum('남성','여성','기타') 매핑
+    @Enumerated(EnumType.STRING)
+    @Column(name = "gender", columnDefinition = "ENUM('남성','여성','기타')")
+    private Gender gender;
 
     @Column(name = "birth_date")
     private LocalDate birthDate;
@@ -58,5 +68,7 @@ public class User {
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 
-
+    public enum Gender {
+        남성, 여성, 기타
+    }
 }

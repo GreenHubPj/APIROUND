@@ -1,47 +1,31 @@
 // /static/js/header.js
 document.addEventListener('DOMContentLoaded', () => {
-  console.log('Header JS 로드됨');
-  
   const btnLogout = document.getElementById('btnLogout');
-  console.log('로그아웃 버튼 찾기:', btnLogout);
-  
-  if (btnLogout) {
-    console.log('로그아웃 버튼 이벤트 리스너 추가');
-    btnLogout.addEventListener('click', async (e) => {
-      e.preventDefault();
-      console.log('로그아웃 버튼 클릭됨!');
-      
-      // 간단한 확인
-      if (confirm('정말 로그아웃하시겠습니까?')) {
-        try {
-          console.log('로그아웃 API 호출 시작');
-          const response = await fetch('/api/auth/logout', { 
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            }
+  if (!btnLogout) return;
+
+  btnLogout.addEventListener('click', (e) => {
+    e.preventDefault();
+
+    if (btnLogout.dataset.busy === '1') return;
+    btnLogout.dataset.busy = '1';
+
+    // 1) 가장 확실한 방법: POST 폼 제출 → 서버가 세션 무효화 후 리다이렉트
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '/auth/logout';
+    form.style.display = 'none';
+    document.body.appendChild(form);
+    form.submit();
+
+    // 2) 혹시 내비게이션이 막히면(애드온/팝업차단 등) 2.5초 후 백업 플랜 실행
+    setTimeout(() => {
+      if (document.visibilityState === 'visible') {
+        fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin' })
+          .finally(() => {
+            // 캐시된 페이지를 피하려고 캐시버스터 붙여서 이동
+            window.location.replace('/?t=' + Date.now());
           });
-          
-          console.log('로그아웃 응답 상태:', response.status);
-          
-          if (response.ok) {
-            const data = await response.json();
-            console.log('로그아웃 성공:', data);
-            alert('로그아웃되었습니다.');
-          } else {
-            console.log('로그아웃 실패');
-            alert('로그아웃에 실패했습니다.');
-          }
-        } catch (err) {
-          console.error('로그아웃 요청 실패:', err);
-          alert('네트워크 오류가 발생했습니다.');
-        } finally {
-          console.log('홈페이지로 리다이렉트');
-          window.location.href = '/';
-        }
       }
-    });
-  } else {
-    console.log('로그아웃 버튼을 찾을 수 없습니다. 로그인 상태를 확인해주세요.');
-  }
+    }, 2500);
+  });
 });

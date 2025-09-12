@@ -14,18 +14,69 @@
 /* 마이페이지 타이틀 */
 .mypage-title {
     margin-bottom: 40px;
+    text-align: left;
+    position: relative;
+}
+
+.page-title-container {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.page-icon {
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-8px); }
+}
+
+.user-icon {
+    font-size: 3.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
 }
 
 .page-title {
-    font-size: 2rem;
+    font-size: 2.5rem;
     font-weight: 700;
+    color: #ff6b35;
     margin: 0;
-    display: inline-block;
-    background-color: #ff6b35;
-    color: white;
-    padding: 15px 30px;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(255, 107, 53, 0.3);
+    letter-spacing: -0.01em;
+}
+
+.page-description {
+    font-size: 1rem;
+    color: #999;
+    margin: 0;
+    font-weight: 400;
+    margin-top: 5px;
+}
+
+.mypage-title::after {
+    content: '';
+    position: absolute;
+    bottom: -15px;
+    left: 0;
+    width: 50px;
+    height: 3px;
+    background: linear-gradient(90deg, #ff6b35 0%, transparent 100%);
+    border-radius: 2px;
 }
 
 /* 사용자 정보 섹션 */
@@ -289,6 +340,75 @@
     color: #666;
     line-height: 1.5;
     margin: 0;
+}
+
+/* 로그인하지 않은 사용자 안내 섹션 */
+.login-required-section {
+    margin-top: 40px;
+}
+
+.login-required-content {
+    background-color: #ffffff;
+    border-radius: 15px;
+    padding: 60px 40px;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.login-icon {
+    font-size: 4rem;
+    margin-bottom: 20px;
+}
+
+.login-required-content h3 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 15px;
+}
+
+.login-required-content p {
+    font-size: 1rem;
+    color: #666;
+    margin-bottom: 30px;
+}
+
+.login-buttons {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.btn {
+    padding: 12px 24px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+    display: inline-block;
+}
+
+.btn-primary {
+    background-color: #ff6b35;
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #e55a2b;
+    transform: translateY(-2px);
+}
+
+.btn-secondary {
+    background-color: #6c757d;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background-color: #5a6268;
+    transform: translateY(-2px);
 }
 
 /* 반응형 디자인 */
