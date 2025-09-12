@@ -1,7 +1,7 @@
-package com.apiround.greenhub.service;
+package com.apiround.greenhub.service.item;
 
-import com.apiround.greenhub.entity.Region;
-import com.apiround.greenhub.repository.SeasonalRepository;
+import com.apiround.greenhub.entity.item.Region;
+import com.apiround.greenhub.repository.item.SeasonalRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;

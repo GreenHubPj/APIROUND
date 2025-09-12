@@ -1,10 +1,11 @@
 package com.apiround.greenhub.controller;
 
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import com.apiround.greenhub.service.RegionService;
+import com.apiround.greenhub.service.item.RegionService;
 
 @Controller
 public class HomeController {
@@ -98,9 +99,6 @@ public class HomeController {
 
     @GetMapping("/reviewlist")
     public String reviewlist() { return "reviewlist"; }
-
-    @GetMapping("/item-management")
-    public String itemManagement() { return "item-management"; }
 
     @GetMapping("/review-management")
     public String reviewManagement() { return "review-management"; }

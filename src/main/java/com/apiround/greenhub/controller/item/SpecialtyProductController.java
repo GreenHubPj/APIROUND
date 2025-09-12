@@ -1,4 +1,4 @@
-package com.apiround.greenhub.controller;
+package com.apiround.greenhub.controller.item;
 
 import java.util.List;
 
@@ -7,8 +7,8 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import com.apiround.greenhub.entity.Region;
-import com.apiround.greenhub.service.RegionService;
+import com.apiround.greenhub.entity.item.Region;
+import com.apiround.greenhub.service.item.RegionService;
 
 @Controller
 public class SpecialtyProductController {

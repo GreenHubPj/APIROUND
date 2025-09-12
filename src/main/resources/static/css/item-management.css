@@ -835,3 +835,205 @@
         opacity: 1;
     }
 }
+
+/* 상품 추가 버튼 */
+.btn-add-product {
+    background: #ff8c42;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    margin-top: 15px;
+}
+
+.btn-add-product:hover {
+    background: #e67e22;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(255, 140, 66, 0.3);
+}
+
+/* 테이블 스타일 */
+.table-container {
+    background: white;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    margin-bottom: 30px;
+}
+
+.item-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+
+.item-table thead {
+    background: #f8f9fa;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.item-table th {
+    padding: 15px 12px;
+    text-align: left;
+    font-weight: 600;
+    color: #495057;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.item-table td {
+    padding: 15px 12px;
+    border-bottom: 1px solid #f1f3f4;
+    vertical-align: middle;
+}
+
+.item-table tbody tr:hover {
+    background: #f8f9fa;
+}
+
+/* 테이블 컬럼 스타일 */
+.checkbox-col {
+    width: 40px;
+    text-align: center;
+}
+
+.id-col {
+    width: 60px;
+    font-weight: 600;
+    color: #6c757d;
+}
+
+.name-col {
+    min-width: 200px;
+}
+
+.product-name {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.product-thumbnail {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: 6px;
+    border: 1px solid #e9ecef;
+}
+
+.category-col {
+    width: 100px;
+}
+
+.category-tag {
+    background: #e3f2fd;
+    color: #1976d2;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.region-col {
+    width: 120px;
+    color: #6c757d;
+}
+
+.season-col {
+    width: 100px;
+    color: #6c757d;
+    font-size: 0.85rem;
+}
+
+.status-col {
+    width: 80px;
+}
+
+.status-badge {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.status-badge.active {
+    background: #d4edda;
+    color: #155724;
+}
+
+.status-badge.inactive {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.action-col {
+    width: 120px;
+}
+
+.btn-edit, .btn-delete {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: 500;
+    margin-right: 5px;
+    transition: all 0.2s ease;
+}
+
+.btn-edit {
+    background: #17a2b8;
+    color: white;
+}
+
+.btn-edit:hover {
+    background: #138496;
+}
+
+.btn-delete {
+    background: #dc3545;
+    color: white;
+}
+
+.btn-delete:hover {
+    background: #c82333;
+}
+
+/* 체크박스 스타일 */
+.checkbox {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+
+/* 정렬 가능한 헤더 */
+.sortable {
+    cursor: pointer;
+    position: relative;
+    user-select: none;
+}
+
+.sortable:hover {
+    background: #e9ecef;
+}
+
+.sortable::after {
+    content: '↕';
+    position: absolute;
+    right: 8px;
+    opacity: 0.5;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+    .table-container {
+        overflow-x: auto;
+    }
+    
+    .item-table {
+        min-width: 800px;
+    }
+}

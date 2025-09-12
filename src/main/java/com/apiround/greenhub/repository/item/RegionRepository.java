@@ -1,4 +1,4 @@
-package com.apiround.greenhub.repository;
+package com.apiround.greenhub.repository.item;
 
 import java.util.List;
 
@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import com.apiround.greenhub.entity.Region;
+import com.apiround.greenhub.entity.item.Region;
 
 public interface RegionRepository extends JpaRepository<Region, Integer> {
 

@@ -1,11 +1,11 @@
-package com.apiround.greenhub.service;
+package com.apiround.greenhub.service.item;
 
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import com.apiround.greenhub.entity.Region;
-import com.apiround.greenhub.repository.RegionRepository;
+import com.apiround.greenhub.entity.item.Region;
+import com.apiround.greenhub.repository.item.RegionRepository;
 
 @Service
 public class RegionService {
