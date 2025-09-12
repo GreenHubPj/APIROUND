@@ -1,74 +1,74 @@
-<!DOCTYPE html>
+commo<!DOCTYPE html>
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>리뷰 작성 - GreenHub</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" th:href="@{/css/header.css}">
-    <link rel="stylesheet" th:href="@{/css/review-write.css}">
+    <link rel="stylesheet" href="/css/header.css">
+    <link rel="stylesheet" href="/css/review-write.css">
 </head>
 <body>
-    <!-- 헤더 포함 -->
-    <div th:replace="common/header :: header"></div>
+<!-- 헤더 포함 -->
+<div th:replace="common/header :: header"></div>
 
-    <div class="container">
-        <!-- 상품 정보 섹션 -->
-        <div class="product-info-section">
-            <div class="store-brand">Yoyo Farm</div>
-            <div class="product-details">
-                <div class="product-image">
-                    <img src="/images/제철 당근.jpg" alt="제철 당근" class="product-img">
-                </div>
-                <div class="product-info">
-                    <h1 class="product-name">제철 당근</h1>
-                    <p class="product-description">가을철 영양의 보고/비타민A가 풍부한 당근으로 면역력 강화에 도움을 줍니다.</p>
-                    <div class="product-price">6000원/kg</div>
-                    <div class="product-origin">
-                        <span class="origin-label">제주 구좌읍</span>
-                    </div>
-                </div>
+<div class="container">
+    <!-- 상품 정보 섹션 -->
+    <div class="product-info-section">
+        <div class="store-brand">Yoyo Farm</div>
+        <div class="product-details">
+            <div class="product-image">
+                <img src="/images/제철 당근.jpg" alt="제철 당근" class="product-img">
             </div>
-        </div>
-
-        <!-- 리뷰 작성 섹션 -->
-        <div class="review-write-section">
-            <!-- 상품 만족도 -->
-            <div class="satisfaction-section">
-                <h2 class="section-title">상품 만족도</h2>
-                <p class="section-subtitle">상품은 어떠셨어요?</p>
-                <div class="star-rating">
-                    <div class="stars">
-                        <span class="star active" data-rating="1">★</span>
-                        <span class="star active" data-rating="2">★</span>
-                        <span class="star active" data-rating="3">★</span>
-                        <span class="star active" data-rating="4">★</span>
-                        <span class="star active" data-rating="5">★</span>
-                    </div>
-                    <div class="rating-text">최고에요</div>
-                </div>
-            </div>
-
-            <!-- 리뷰 작성 -->
-            <div class="review-content-section">
-                <h2 class="section-title">리뷰 작성</h2>
-                <div class="review-textarea-container">
-                    <textarea 
-                        class="review-textarea" 
-                        placeholder="상품에 대한 솔직한 리뷰를 작성해주세요."
-                        maxlength="500"
-                    >당근이 너무 신선하고 배송도 빨랐어요!
-유기농이라서 우리 아이에게 안심하고 먹을 수 있어요
-다 먹으면 재구매 할게요 감사합니다.</textarea>
-                    <div class="textarea-footer">
-                        <span class="char-count">0/500</span>
-                        <button class="save-btn">저장하기</button>
-                    </div>
+            <div class="product-info">
+                <h1 class="product-name">제철 당근</h1>
+                <p class="product-description">가을철 영양의 보고/비타민A가 풍부한 당근으로 면역력 강화에 도움을 줍니다.</p>
+                <div class="product-price">6000원/kg</div>
+                <div class="product-origin">
+                    <span class="origin-label">제주 구좌읍</span>
                 </div>
             </div>
         </div>
     </div>
 
-    <script th:src="@{/js/review-write.js}"></script>
+    <!-- 리뷰 작성 섹션 -->
+    <div class="review-write-section">
+        <!-- 상품 만족도 -->
+        <div class="satisfaction-section">
+            <h2 class="section-title">상품 만족도</h2>
+            <p class="section-subtitle">상품은 어떠셨어요?</p>
+            <div class="star-rating">
+                <div class="stars">
+                    <span class="star active" data-rating="1">★</span>
+                    <span class="star active" data-rating="2">★</span>
+                    <span class="star active" data-rating="3">★</span>
+                    <span class="star active" data-rating="4">★</span>
+                    <span class="star active" data-rating="5">★</span>
+                </div>
+                <div class="rating-text">최고에요</div>
+            </div>
+        </div>
+
+        <!-- 리뷰 작성 -->
+        <div class="review-content-section">
+            <h2 class="section-title">리뷰 작성</h2>
+            <div class="review-textarea-container">
+                    <textarea
+                            class="review-textarea"
+                            placeholder="상품에 대한 솔직한 리뷰를 작성해주세요."
+                            maxlength="500"
+                    >당근이 너무 신선하고 배송도 빨랐어요!
+유기농이라서 우리 아이에게 안심하고 먹을 수 있어요
+다 먹으면 재구매 할게요 감사합니다.</textarea>
+                <div class="textarea-footer">
+                    <span class="char-count">0/500</span>
+                    <button class="save-btn">저장하기</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="/js/review-write.js"></script>
 </body>
 </html>
