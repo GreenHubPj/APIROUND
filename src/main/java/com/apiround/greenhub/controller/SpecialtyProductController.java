@@ -26,12 +26,12 @@ public class SpecialtyProductController {
         List<Region> products;
         
         if (type != null && !type.isEmpty()) {
-            products = regionService.getProductsByType(type);
+            products = regionService.getProductsByTypeOrderByProductIdDesc(type);
         } else if (region != null && !region.isEmpty()) {
             // 지역 코드로 검색 (예: chungnam -> 충남, 충청남도 등)
             products = regionService.getProductsByRegionCode(region);
         } else {
-            products = regionService.getAllProducts();
+            products = regionService.getAllProductsOrderByProductIdDesc();
         }
         
         model.addAttribute("products", products);

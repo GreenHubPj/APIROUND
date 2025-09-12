@@ -23,13 +23,22 @@ public interface RegionRepository extends JpaRepository<Region, Integer> {
     @Query("SELECT r FROM Region r WHERE " +
            "r.regionText LIKE %:region1% OR " +
            "r.regionText LIKE %:region2% OR " +
-           "r.regionText LIKE %:region3%")
+           "r.regionText LIKE %:region3% " +
+           "ORDER BY r.productId DESC")
     List<Region> findByRegionVariations(@Param("region1") String region1, 
                                        @Param("region2") String region2, 
                                        @Param("region3") String region3);
 
     // 단일 지역 검색 (LIKE 패턴)
-    @Query("SELECT r FROM Region r WHERE r.regionText LIKE %:region%")
+    @Query("SELECT r FROM Region r WHERE r.regionText LIKE %:region% ORDER BY r.productId DESC")
     List<Region> findByRegionLike(@Param("region") String region);
+
+    // 모든 상품을 productId 내림차순으로 조회 (테스트용)
+    @Query("SELECT r FROM Region r ORDER BY r.productId DESC")
+    List<Region> findAllOrderByProductIdDesc();
+
+    // 타입별 조회 (내림차순 정렬)
+    @Query("SELECT r FROM Region r WHERE r.productType = :productType ORDER BY r.productId DESC")
+    List<Region> findByProductTypeOrderByProductIdDesc(@Param("productType") String productType);
 
 }
