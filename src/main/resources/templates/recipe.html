@@ -10,12 +10,11 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
 </head>
 <body>
-<!-- 헤더 include -->
-<div th:replace="common/header :: header"></div>
+<!-- 헤더 include (최신 문법) -->
+<div th:replace="~{common/header :: header}"></div>
 
-<!-- 메인 콘텐츠 -->
 <main class="main-content">
-    <!-- 배너 섹션 -->
+    <!-- 배너 -->
     <section class="banner-section">
         <div class="banner-content">
             <div class="banner-title">
@@ -37,24 +36,27 @@
         </div>
     </section>
 
-
-
-    <!-- 요리법 카드 목록 -->
+    <!-- 레시피 카드 목록 -->
     <div class="recipes-grid" id="recipesGrid">
-        <!-- 각 레시피 카드 -->
         <div th:each="recipe : ${recipes}" class="recipe-card" th:data-recipe-id="${recipe.recipeId}">
-            <a th:href="@{/recipe/} + ${recipe.recipeId}" class="recipe-link">
-                <img src="/images/recipe-default.jpg" th:alt="${recipe.title}" class="recipe-image">
+            <a th:href="@{/recipe/{id}(id=${recipe.recipeId})}" class="recipe-link">
+                <!-- 이미지: heroImageUrl 있으면 사용, 없으면 기본이미지 -->
+                <img class="recipe-image"
+                     th:alt="${recipe.title}"
+                     th:with="imgUrl=${#strings.isEmpty(recipe.heroImageUrl)} ? '/images/recipe-default.jpg' : ${recipe.heroImageUrl}"
+                     th:src="@{${imgUrl}}"
+                     loading="lazy"
+                     onerror="this.onerror=null;this.src='/images/recipe-default.jpg';">
                 <div class="recipe-info">
-                    <h3 class="recipe-name" th:text="${recipe.title}"></h3>
-                    <p class="recipe-description" th:text="${recipe.summary}" th:if="${recipe.summary != null}"></p>
+                    <h3 class="recipe-name" th:text="${recipe.title}">레시피명</h3>
+                    <p class="recipe-description" th:if="${recipe.summary != null}" th:text="${recipe.summary}"></p>
                     <div class="recipe-time" th:if="${recipe.cookMinutes != null}" th:text="'조리시간: ' + ${recipe.cookMinutes} + '분'"></div>
                     <div class="recipe-servings" th:if="${recipe.servings != null}" th:text="${recipe.servings}"></div>
                     <div class="recipe-difficulty" th:if="${recipe.difficulty != null}" th:text="'난이도: ' + ${recipe.difficulty}"></div>
                 </div>
             </a>
         </div>
-        
+
         <!-- 레시피가 없는 경우 -->
         <div th:if="${#lists.isEmpty(recipes)}" class="no-recipes">
             <p>등록된 레시피가 없습니다.</p>
@@ -66,10 +68,10 @@
 </main>
 
 <!-- 푸터 include -->
-<div th:replace="common/footer :: footer"></div>
+<div th:replace="~{common/footer :: footer}"></div>
 
+<!-- 페이지 스크립트 -->
 <script>
-    // (옵션) 검색 버튼 동작
     document.getElementById('searchBtn')?.addEventListener('click', function () {
       const kw = document.getElementById('searchInput')?.value || '';
       if (kw.trim().length > 0) {
@@ -77,5 +79,6 @@
       }
     });
 </script>
+<script src="/js/recipe.js" defer></script>
 </body>
 </html>

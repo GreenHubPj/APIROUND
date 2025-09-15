@@ -3,12 +3,8 @@ package com.apiround.greenhub.entity;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Entity
 @Table(name = "recipe")
@@ -25,8 +21,9 @@ public class Recipe {
     @Column(name="user_id")
     private Integer userId;
 
-    @ManyToOne
-    @JoinColumn(name = "recipe_id", referencedColumnName = "user_id", insertable = false, updatable = false)
+    // ✅ 올바른 조인: recipe.user_id -> user.user_id
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", referencedColumnName = "user_id", insertable = false, updatable = false)
     private User user;
 
     @Column(name = "title", nullable = false, length = 200)
@@ -51,7 +48,8 @@ public class Recipe {
     @Column(name = "servings", length = 40)
     private String servings;
 
-    @Column(name = "hero_image_url", length = 1000)
+    // ✅ 긴 URL 대비 (DB 스키마를 MEDIUMTEXT로 변경했다면 columnDefinition 맞추기)
+    @Column(name = "hero_image_url", columnDefinition = "MEDIUMTEXT")
     private String heroImageUrl;
 
     @Column(name = "status", length = 20)
@@ -63,7 +61,6 @@ public class Recipe {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    // 관계 매핑
     @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<RecipeIngredient> ingredients;
 
@@ -73,8 +70,5 @@ public class Recipe {
     @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<RecipeXProduct> recipeProducts;
 
-    public enum Difficulty {
-        EASY, MEDIUM, HARD
-    }
-
+    public enum Difficulty { EASY, MEDIUM, HARD }
 }
