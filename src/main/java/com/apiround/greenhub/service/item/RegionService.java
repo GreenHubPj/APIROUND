@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 
 import com.apiround.greenhub.entity.item.Region;
 import com.apiround.greenhub.repository.item.RegionRepository;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class RegionService {
@@ -14,6 +15,15 @@ public class RegionService {
 
     public RegionService(RegionRepository regionRepository) {
         this.regionRepository = regionRepository;
+    }
+
+    /** 같은 지역 랜덤 관련상품 (현재 상품 제외) */
+    @Transactional(readOnly = true)
+    public List<Region> getRandomRelatedByRegion(String regionText, Integer excludeId, int limit) {
+        if (regionText == null || regionText.isBlank() || limit <= 0) {
+            return List.of();
+        }
+        return regionRepository.findRandomByRegionText(regionText, excludeId, limit);
     }
 
     // 모든 특산품 조회 (내림차순 정렬)

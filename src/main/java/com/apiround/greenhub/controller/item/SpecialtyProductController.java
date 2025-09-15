@@ -49,6 +49,12 @@ public class SpecialtyProductController {
         RegionDetailDto dto = itemService.getProductDetail(id);
         model.addAttribute("product", dto.getRegion());   // Region
         model.addAttribute("options", dto.getOptions());  // List<ProductPriceOption>
+
+        // 같은 지역 랜덤 관련 상품 (현재 상품 제외)
+        String regionText = dto.getRegion() != null ? dto.getRegion().getRegionText() : null;
+        List<Region> related = regionService.getRandomRelatedByRegion(regionText, id, 4); // 4개 추천
+        model.addAttribute("relatedProducts", related);
+
         return "region-detail";
     }
 
