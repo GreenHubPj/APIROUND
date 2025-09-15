@@ -12,7 +12,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
 </head>
 <body>
-<!-- 헤더 include (Thymeleaf 최신 문법) -->
+<!-- 헤더 include -->
 <div th:replace="~{common/header :: header}"></div>
 
 <div class="login-container">
@@ -21,7 +21,7 @@
         <p class="login-subtitle">GreenHub에 오신 것을 환영합니다!</p>
     </div>
 
-    <!-- 플래시 메시지: 컨트롤러의 'error' / 'success' 키와 일치 -->
+    <!-- 플래시 메시지 -->
     <div class="message" th:if="${error}" th:text="${error}" style="color:#d33; margin-bottom:12px;"></div>
     <div class="message success" th:if="${success}" th:text="${success}" style="color:#2c7; margin-bottom:12px;"></div>
 
@@ -45,8 +45,13 @@
     <div class="login-form-section">
         <h2 class="section-title">일반 로그인</h2>
 
-        <!-- ★ 반드시 /auth/login 으로 POST, name="loginId" / "password" -->
-        <form id="loginForm" class="login-form" th:action="@{/auth/login}" method="post">
+        <!-- 기본은 개인 로그인(/login), data-* 로 두 경로 명시 -->
+        <form id="loginForm"
+              class="login-form"
+              th:action="@{/login}"
+              method="post"
+              data-user-action="/login"
+              data-company-action="/company/login">
             <div class="form-group">
                 <label class="form-label" for="loginId">아이디 *</label>
                 <input type="text" id="loginId" name="loginId" class="form-input" placeholder="아이디를 입력해주세요" required>
@@ -62,11 +67,13 @@
                 </div>
             </div>
 
+            <!-- 컨트롤러에서 redirectURL을 모델에 넣어줬다면 자동 포함 -->
+            <input type="hidden" name="redirectURL" th:value="${redirectURL}">
             <button type="submit" class="login-btn">로그인</button>
         </form>
     </div>
 
-    <!-- 추가 링크들 -->
+    <!-- 추가 링크 -->
     <div class="login-links">
         <div class="forgot-links">
             <a th:href="@{/find-id}" class="forgot-link">아이디 찾기</a>
@@ -80,35 +87,47 @@
     </div>
 </div>
 
-<!-- 푸터 include (Thymeleaf 최신 문법) -->
+<!-- 푸터 include -->
 <div th:replace="~{common/footer :: footer}"></div>
 
-<!-- 최소 JS: 제출 가로채지 않음 -->
+<!-- 최소 JS (제출 가로채지 않음) -->
 <script>
-    // 탭 토글 (UI 전용)
     (function () {
       const tabs = document.querySelectorAll('.member-type-tab');
       const social = document.getElementById('socialLoginSection');
+      const form = document.getElementById('loginForm');
+
+      const userAction = form.getAttribute('data-user-action') || '/login';
+      const companyAction = form.getAttribute('data-company-action') || '/company/login';
+
+      function setType(type) {
+        // 탭 스타일
+        tabs.forEach(t => t.classList.remove('active'));
+        const active = document.querySelector(`.member-type-tab[data-type="${type}"]`);
+        if (active) active.classList.add('active');
+
+        // 폼 action 전환
+        form.action = (type === 'seller') ? companyAction : userAction;
+
+        // 소셜 영역 토글(판매자는 숨김)
+        social.style.display = (type === 'seller') ? 'none' : '';
+
+        // URL 쿼리에도 현재 탭 반영 (새로고침/공유 시 유지)
+        const url = new URL(window.location.href);
+        url.searchParams.set('type', type);
+        const redirectURL = document.querySelector('input[name="redirectURL"]')?.value || '';
+        if (redirectURL) url.searchParams.set('redirectURL', redirectURL);
+        history.replaceState({}, '', url.toString());
+      }
+
+      // 탭 클릭
       tabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-          tabs.forEach(t => t.classList.remove('active'));
-          tab.classList.add('active');
-          const type = tab.getAttribute('data-type');
-          // 판매자 탭일 때 소셜 로그인 섹션 숨기기
-          if (type === 'seller') {
-            social.style.display = 'none';
-          } else {
-            social.style.display = '';
-          }
-        });
+        tab.addEventListener('click', () => setType(tab.getAttribute('data-type')));
       });
 
-      // 페이지 로드 시 초기 상태 설정 (개인 회원 탭이 기본 선택)
-      if (window.location.href.includes('type=seller')) {
-        document.querySelector('[data-type="seller"]').click();
-      } else {
-        document.querySelector('[data-type="individual"]').click();
-      }
+      // 초기 탭: ?type=seller 이면 판매자
+      const initType = new URLSearchParams(location.search).get('type') === 'seller' ? 'seller' : 'individual';
+      setType(initType);
 
       // 비밀번호 보기 토글
       const toggleBtn = document.querySelector('.password-toggle');

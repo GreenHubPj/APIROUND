@@ -26,7 +26,7 @@
             <a th:href="@{/event}"    class="nav-link">이벤트</a>
         </nav>
 
-        <!-- 비로그인 상태 -->
+        <!-- 비로그인 상태: 로그인/회원가입 -->
         <div class="nav-auth"
              th:if="${currentUser == null and currentCompany == null}">
             <a th:href="@{/login}"  class="btn-login">로그인</a>
