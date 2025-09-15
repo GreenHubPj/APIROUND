@@ -24,15 +24,16 @@ public class WebConfig implements WebMvcConfigurer {
                         "/cart/**",
                         "/profile/**",
                         "/profile-edit",
-                        "/profile-edit-company"
+                        "/profile-edit-company",
+                        "/mypage-company"            // 업체 마이페이지도 보호
                 )
                 .excludePathPatterns(
                         "/login", "/signup",
                         "/css/**","/js/**","/images/**","/webjars/**","/favicon.ico","/uploads/**"
                 );
 
-        // 2) 세션 사용자 → currentUser 주입
-        registry.addInterceptor(new CurrentUserInjectInterceptor())
+        // 2) 세션 사용자/업체 → 모델 주입
+        registry.addInterceptor(new CurrentPrincipalInjectInterceptor())
                 .addPathPatterns("/**")
                 .excludePathPatterns("/css/**","/js/**","/images/**","/webjars/**","/favicon.ico","/uploads/**");
     }
@@ -42,8 +43,10 @@ public class WebConfig implements WebMvcConfigurer {
         @Override
         public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
             HttpSession session = request.getSession(false);
-            Object u = (session != null) ? session.getAttribute("user") : null;
-            if (u == null) {
+            Object user = (session != null) ? session.getAttribute("user") : null;
+            Object company = (session != null) ? session.getAttribute("company") : null;
+
+            if (user == null && company == null) {
                 String q = request.getQueryString();
                 String target = request.getRequestURI() + (q != null ? "?" + q : "");
                 String redirect = "/login?redirectURL=" + java.net.URLEncoder.encode(target, java.nio.charset.StandardCharsets.UTF_8);
@@ -54,8 +57,8 @@ public class WebConfig implements WebMvcConfigurer {
         }
     }
 
-    // 세션의 'user' → 모델 'currentUser'
-    private static class CurrentUserInjectInterceptor implements HandlerInterceptor {
+    // 세션의 'user' / 'company' (과거 'LOGIN_USER') → 모델
+    private static class CurrentPrincipalInjectInterceptor implements HandlerInterceptor {
         @Override
         public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView mav) {
             if (mav == null) return;
@@ -65,9 +68,12 @@ public class WebConfig implements WebMvcConfigurer {
             HttpSession session = request.getSession(false);
             if (session == null) return;
 
-            Object u = session.getAttribute("user");
-            if (u == null) u = session.getAttribute("LOGIN_USER"); // 과거 호환
-            if (u != null) mav.addObject("currentUser", u);
+            Object user = session.getAttribute("user");
+            if (user == null) user = session.getAttribute("LOGIN_USER"); // 과거 호환
+            if (user != null) mav.addObject("currentUser", user);
+
+            Object company = session.getAttribute("company");
+            if (company != null) mav.addObject("currentCompany", company);
         }
     }
 
@@ -77,9 +83,6 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addResourceHandler("/css/**").addResourceLocations("classpath:/static/css/");
         registry.addResourceHandler("/js/**").addResourceLocations("classpath:/static/js/");
         registry.addResourceHandler("/images/**").addResourceLocations("classpath:/static/images/");
-
-        // (선택) 서버 업로드 파일 제공용
-        registry.addResourceHandler("/uploads/**")
-                .addResourceLocations("file:/var/greenhub/uploads/"); // 환경에 맞게 수정
+        registry.addResourceHandler("/uploads/**").addResourceLocations("file:/var/greenhub/uploads/"); // 환경에 맞게
     }
 }
