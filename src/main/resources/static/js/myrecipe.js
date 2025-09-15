@@ -62,9 +62,7 @@ document.addEventListener('DOMContentLoaded', function() {
                        <span>인분: ${recipe.servings}</span>
                    </div>
                </div>
-               <div class="recipe-actions">
-                   <button class="delete-btn">삭제</button>
-               </div>
+
            `;
             recipesGrid.appendChild(card);
         });

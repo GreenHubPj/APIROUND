@@ -217,4 +217,33 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 최초 fetch
     fetchRecipeData();
+
+    if (deleteRecipeBtn) {
+        deleteRecipeBtn.addEventListener('click', () => {
+            const confirmDelete = confirm('이 레시피를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.');
+            if (!confirmDelete) return;
+
+            const { recipeId, userId } = getUrlParams();
+            if (!recipeId || !userId) {
+                alert('필요한 정보가 없습니다.');
+                return;
+            }
+
+            fetch(`/mypage/recipes/${recipeId}?userId=${userId}`, {
+                method: 'DELETE'
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('삭제 실패');
+                }
+                alert('레시피가 삭제되었습니다.');
+                // userId를 포함해서 목록 페이지로 이동
+                window.location.href = `/myrecipe?userId=${userId}`;
+            })
+            .catch(error => {
+                console.error('삭제 중 오류 발생:', error);
+                alert('삭제 중 오류가 발생했습니다.');
+            });
+      });
+    }
 });
