@@ -15,7 +15,6 @@ public class HomeController {
 
     @GetMapping("/seasonal")
     public String seasonal() {
-        // SeasonalController로 리다이렉트
         return "redirect:/specialties/monthly";
     }
 
@@ -28,7 +27,7 @@ public class HomeController {
     @GetMapping("/find-password")
     public String findPassword() { return "find-password"; }
 
-    // ✅ /mypage-company는 CompanyMypageController가 담당하므로 여기서 제거
+    // ✅ /mypage-company는 CompanyMypageController가 담당
     // @GetMapping("/mypage-company")
     // public String mypageCompany() { return "mypage_company"; }
 
@@ -66,7 +65,7 @@ public class HomeController {
     @GetMapping("/profile-edit")
     public String profileEdit() { return "profile-edit"; }
 
-    // 🚫 /profile-edit-company 매핑은 CompanyProfileController가 담당
+    // 🚫 /profile-edit-company는 CompanyProfileController가 담당
     // @GetMapping("/profile-edit-company")
     // public String profileEditCompany() { return "profile-edit-company"; }
 
