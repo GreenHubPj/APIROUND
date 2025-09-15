@@ -35,8 +35,9 @@ public class RecipeStep {
     private String instruction;
 
     // ★ 스키마: step_image_url varchar(500)
-    @Column(name = "step_image_url", length = 500)
+    @Column(name = "step_image_url", length = 2000) // 필요 시 MEDIUMTEXT로
     private String stepImageUrl;
+
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;

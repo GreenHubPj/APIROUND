@@ -23,18 +23,18 @@ public class WebConfig implements WebMvcConfigurer {
                         "/order/**",
                         "/cart/**",
                         "/profile/**",
-                        "/profile-edit",           // ✅ 추가
-                        "/profile-edit-company"    // ✅ 기업용도 쓰면 추가
+                        "/profile-edit",
+                        "/profile-edit-company"
                 )
                 .excludePathPatterns(
                         "/login", "/signup",
-                        "/css/**","/js/**","/images/**","/webjars/**","/favicon.ico"
+                        "/css/**","/js/**","/images/**","/webjars/**","/favicon.ico","/uploads/**"
                 );
 
         // 2) 세션 사용자 → currentUser 주입
         registry.addInterceptor(new CurrentUserInjectInterceptor())
                 .addPathPatterns("/**")
-                .excludePathPatterns("/css/**","/js/**","/images/**","/webjars/**","/favicon.ico");
+                .excludePathPatterns("/css/**","/js/**","/images/**","/webjars/**","/favicon.ico","/uploads/**");
     }
 
     // 비로그인 → 로그인 페이지로
@@ -54,7 +54,7 @@ public class WebConfig implements WebMvcConfigurer {
         }
     }
 
-    // 세션의 'user' (또는 과거 'LOGIN_USER') → 모델 'currentUser'
+    // 세션의 'user' → 모델 'currentUser'
     private static class CurrentUserInjectInterceptor implements HandlerInterceptor {
         @Override
         public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView mav) {
@@ -77,5 +77,9 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addResourceHandler("/css/**").addResourceLocations("classpath:/static/css/");
         registry.addResourceHandler("/js/**").addResourceLocations("classpath:/static/js/");
         registry.addResourceHandler("/images/**").addResourceLocations("classpath:/static/images/");
+
+        // (선택) 서버 업로드 파일 제공용
+        registry.addResourceHandler("/uploads/**")
+                .addResourceLocations("file:/var/greenhub/uploads/"); // 환경에 맞게 수정
     }
 }
