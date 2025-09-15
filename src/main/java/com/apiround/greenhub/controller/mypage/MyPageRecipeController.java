@@ -5,12 +5,19 @@ import com.apiround.greenhub.dto.mypage.MyPageRecipeResponseDto;
 import com.apiround.greenhub.service.mypage.MyPageRecipeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 
-@RestController
+@Controller
 @RequestMapping("/mypage/recipes")
 @RequiredArgsConstructor
 public class MyPageRecipeController {
@@ -19,10 +26,11 @@ public class MyPageRecipeController {
 
     @GetMapping("/myrecipe-detail")
     public String myRecipeDetail(@RequestParam Long userId, @RequestParam Long id, Model model) {
+        System.out.println("myRecipeDetail 호출됨, userId=" + userId + ", id=" + id);
         MyPageRecipeResponseDto dto = myPageRecipeService.getRecipe(userId, id);
         model.addAttribute("recipe", dto);
-        model.addAttribute("userId", userId); // userId를 모델에 추가
-        return "myrecipe-detail"; // myrecipe-detail.html로 반환
+        model.addAttribute("userId", userId);
+        return "myrecipe-detail";
     }
 
     // 레시피 생성
@@ -36,6 +44,7 @@ public class MyPageRecipeController {
 
     // 내가 쓴 레시피 리스트 조회
     @GetMapping
+    @ResponseBody
     public ResponseEntity<List<MyPageRecipeResponseDto>> getMyRecipes(@RequestParam Long userId) {
         List<MyPageRecipeResponseDto> recipes = myPageRecipeService.getMyRecipes(userId);
         return ResponseEntity.ok(recipes);
@@ -43,7 +52,8 @@ public class MyPageRecipeController {
 
     // 단일 레시피 조회
     @GetMapping("/{recipeId}")
-    public ResponseEntity<MyPageRecipeResponseDto> getRecipe(
+    @ResponseBody
+    public ResponseEntity<MyPageRecipeResponseDto>getRecipe(
             @RequestParam Long userId,
             @PathVariable Long recipeId) {
         MyPageRecipeResponseDto dto = myPageRecipeService.getRecipe(userId, recipeId);
@@ -67,5 +77,38 @@ public class MyPageRecipeController {
             @PathVariable Long recipeId) {
         myPageRecipeService.deleteRecipe(userId, recipeId);
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/list")
+    public String recipeListPage(@RequestParam Long userId, Model model) {
+        List<MyPageRecipeResponseDto> recipes = myPageRecipeService.getMyRecipes(userId);
+        model.addAttribute("recipes", recipes);
+        model.addAttribute("userId", userId);
+        return "myrecipe";  // src/main/resources/templates/myrecipe.html 파일로 이동 (Thymeleaf 기준)
+    }
+
+    @PostMapping("/recipes/upload")
+    public String uploadRecipe(@RequestParam("imageFile") MultipartFile imageFile) {
+        if (!imageFile.isEmpty()) {
+            String filename = imageFile.getOriginalFilename();
+            Path savePath = Paths.get("upload-dir", filename);
+
+            try {
+                Files.createDirectories(savePath.getParent());
+                imageFile.transferTo(savePath);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        // 나머지 저장 로직...
+
+        return "redirect:/recipes/new"; // 저장 후 이동할 페이지
+    }
+
+
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ResponseEntity<String> handleMissingParam(MissingServletRequestParameterException ex) {
+        return ResponseEntity.badRequest().body("필수 파라미터 누락: " + ex.getParameterName());
     }
 }

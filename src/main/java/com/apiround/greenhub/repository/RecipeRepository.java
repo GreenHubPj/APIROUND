@@ -2,11 +2,19 @@ package com.apiround.greenhub.repository;
 
 import com.apiround.greenhub.entity.Recipe;   // ✅ Recipe 엔티티 import
 import org.springframework.data.jpa.repository.JpaRepository;
-import java.util.List;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 
+import java.util.List;
+import java.util.Optional;
+
+@Repository
 public interface RecipeRepository extends JpaRepository<Recipe, Integer> {
     List<Recipe> findByStatusOrderByRecipeIdDesc(String status);
 
-    // 마이페이지 - 내가 쓴 레시피
-    List<Recipe> findByUserId(Integer userId);
+    List<Recipe> findByUserIdAndStatusNot(Integer userId, String status);
+    // RecipeRepository에서 User와 함께 Recipe을 조회하는 쿼리
+    @Query("SELECT r FROM Recipe r LEFT JOIN FETCH r.user WHERE r.recipeId = :recipeId")
+    Optional<Recipe> findByIdWithUser(@Param("recipeId") Integer recipeId);
 }

@@ -18,13 +18,16 @@ public class Recipe {
     @Column(name = "recipe_id")
     private Integer recipeId;
 
-    @Column(name="user_id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
+
+    @Column(name="user_id", insertable = false, updatable = false)
     private Integer userId;
 
-    // ✅ 올바른 조인: recipe.user_id -> user.user_id
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", referencedColumnName = "user_id", insertable = false, updatable = false)
-    private User user;
+    public Integer getUserId() {
+        return user != null ? user.getUserId() : null;
+    }
 
     @Column(name = "title", nullable = false, length = 200)
     private String title;
@@ -61,6 +64,7 @@ public class Recipe {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    // 관계 매핑
     @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<RecipeIngredient> ingredients;
 

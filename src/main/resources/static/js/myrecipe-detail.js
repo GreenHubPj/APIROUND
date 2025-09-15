@@ -1,14 +1,13 @@
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     console.log('Detail 페이지 로드됨');
 
     let isEditMode = false;
     let originalData = {};
 
-    // 지역 특산품 데이터 (필요 시 유지)
     const regionalProducts = [
         { name: "사과", region: "문경", image: "/images/사과.jpg", description: "문경에서 유명한 사과" },
         { name: "돼지고기", region: "고흥", image: "/images/제철 돼지.jpg", description: "좋은 품질만 선별하는 고흥에서" },
-        // ... 나머지 항목들
+        // 추가 지역 특산물
     ];
 
     // DOM 요소 캐싱
@@ -29,105 +28,119 @@ document.addEventListener('DOMContentLoaded', function() {
     const addSectionBtn = document.getElementById('addSectionBtn');
     const imageUpload = document.getElementById('imageUpload');
 
-    const params = new URLSearchParams(window.location.search);
-    const recipeId = params.get('id');  // id 값
-    const userId = params.get('userId');  // userId 값
+    function getUrlParams() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const recipeId = urlParams.get('id');
+        const userId = urlParams.get('userId');
 
-   // URL에서 recipeId, userId 가져오기
-   function getUrlParams() {
-       const urlParams = new URLSearchParams(window.location.search);
-       const recipeId = urlParams.get('id');    // '2'
-       const userId = urlParams.get('userId');  //
+        console.log('recipeId:', recipeId, 'userId:', userId);
+        return { recipeId, userId };
+    }
 
-       // console로 값 확인
-       console.log('urlParams:', urlParams);  // URLSearchParams 객체 출력
-       console.log('recipeId:', recipeId, 'userId:', userId);  // recipeId와 userId 출력
+    function fetchRecipeData() {
+        const { recipeId, userId } = getUrlParams();
+        if (!recipeId || !userId) {
+            console.error('recipeId 또는 userId가 URL에 없음');
+            return;
+        }
 
-       return { recipeId, userId };
-   }
+        fetch(`/mypage/recipes/${recipeId}?userId=${userId}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(recipe => {
+                console.log('받아온 레시피 데이터:', recipe);
+                renderRecipe(recipe);
+                saveOriginalData(recipe);
+            })
+            .catch(error => {
+                console.error('레시피 데이터 가져오기 실패:', error);
+            });
+    }
 
-    // 백엔드에서 레시피 데이터 가져오기
-   function fetchRecipeData() {
-       const { recipeId, userId } = getUrlParams();  // getUrlParams에서 값을 받아옴
-       console.log('recipeId:', recipeId, 'userId:', userId);  // 값이 제대로 출력되는지 확인
-       if (!recipeId || !userId) {
-           console.error('recipeId 또는 userId가 URL에 없음');  // 오류 메시지
-           return;
-       }
-
-       fetch(`/mypage/recipes/${recipeId}?userId=${userId}`)
-           .then(response => {
-               if (!response.ok) {
-                   throw new Error(`HTTP error! status: ${response.status}`);
-               }
-               return response.json();
-           })
-           .then(recipe => {
-               console.log('받아온 레시피 데이터:', recipe);
-               renderRecipe(recipe);
-               saveOriginalData(recipe);
-           })
-           .catch(error => {
-               console.error('레시피 데이터 가져오기 실패:', error);
-           });
-   }
-
-    // 받아온 데이터 화면에 렌더링
     function renderRecipe(recipe) {
-        // 기본 정보
+        // 기본 정보 렌더링
         recipeTitleEl.textContent = recipe.title || '';
         recipeServingsEl.textContent = recipe.servings || '';
 
         if (recipe.heroImageUrl) {
             recipeMainImageEl.src = recipe.heroImageUrl;
-            recipeMainImageEl.alt = recipe.title;
+            recipeMainImageEl.alt = recipe.title || '레시피 이미지';
         } else {
-            // 기본 이미지나 alt 처리
-            recipeMainImageEl.alt = recipe.title;
+            recipeMainImageEl.alt = recipe.title || '레시피 이미지';
         }
+
+    function formatAmount(value) {
+        return value.toLocaleString('en-US', {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 2
+        });
+    }
 
         // 재료 리스트 렌더링
-        ingredientsListEl.innerHTML = '';
-        if (recipe.ingredients && Array.isArray(recipe.ingredients)) {
-            recipe.ingredients.forEach(ing => {
-                const li = document.createElement('li');
-                li.className = 'ingredient-item';
-                li.innerHTML = `
-                    <span class="ingredient-name" contenteditable="false">${ing.nameText}</span>
-                    <span class="ingredient-amount" contenteditable="false">${ing.qtyValue}${ing.unitCode ? ' ' + ing.unitCode : ''}</span>
-                    <button class="remove-ingredient" style="display: none;">×</button>
-                `;
-                ingredientsListEl.appendChild(li);
-            });
-        }
+       ingredientsListEl.innerHTML = '';
+       if (recipe.ingredients && Array.isArray(recipe.ingredients)) {
+           recipe.ingredients.forEach(ing => {
+               const li = document.createElement('li');
+               li.className = 'ingredient-item';
+
+               const name = ing.name || ing.nameText || ing.ingredientName || '';
+               const amount = ing.amount || (
+                   typeof ing.qtyValue === 'number'
+                       ? formatAmount(ing.qtyValue) + (ing.unitCode ? ' ' + ing.unitCode : '')
+                       : ''
+               );
+
+               li.innerHTML = `
+                   <span class="ingredient-name" contenteditable="false">${name}</span>
+                   <span class="ingredient-amount" contenteditable="false">${amount}</span>
+                   ${ing.note ? `<small>(${ing.note})</small>` : ''}
+                   <button class="remove-ingredient" style="display: none;">×</button>
+               `;
+
+               ingredientsListEl.appendChild(li);
+           });
+       }
 
         // 조리법 섹션 렌더링
-        recipeInstructionsEl.innerHTML = '';
-        if (recipe.steps && Array.isArray(recipe.steps)) {
-            recipe.steps.forEach((stepObj, idx) => {
-                const sectionDiv = document.createElement('div');
-                sectionDiv.className = 'instruction-section';
-                sectionDiv.innerHTML = `
-                    <h3 class="instruction-title" contenteditable="false">단계 ${idx + 1}</h3>
-                    <ol class="instruction-steps">
-                        <li contenteditable="false">${stepObj.name}</li>
-                    </ol>
-                    <button class="add-step" style="display: none;">+ 단계 추가</button>
-                    <button class="remove-section" style="display: none;">섹션 삭제</button>
-                `;
-                recipeInstructionsEl.appendChild(sectionDiv);
-            });
-        }
+       recipeInstructionsEl.innerHTML = '';
+       if (recipe.steps && Array.isArray(recipe.steps)) {
+           recipe.steps.forEach((stepObj, idx) => {
+               const sectionDiv = document.createElement('div');
+               sectionDiv.className = 'instruction-section';
+               // description 필드가 실제 텍스트임을 반영
+               const stepText = stepObj.description || stepObj.instruction || stepObj.name || '';
 
-        // 특산물 노트
+               sectionDiv.innerHTML = `
+                   <h3 class="instruction-title" contenteditable="false">단계 ${idx + 1}</h3>
+                   <ol class="instruction-steps">
+                       <li contenteditable="false">${stepText}</li>
+                   </ol>
+                   <button class="add-step" style="display: none;">+ 단계 추가</button>
+                   <button class="remove-section" style="display: none;">섹션 삭제</button>
+               `;
+               recipeInstructionsEl.appendChild(sectionDiv);
+           });
+       }
+
+        // 특산물 노트 렌더링
         if (recipe.ingredients && recipe.ingredients.length > 0) {
-            const firstIngredientName = recipe.ingredients[0].nameText;
-            const related = findRelatedProduct(firstIngredientName);
-            if (related) {
-                ingredientNoteEl.style.display = 'block';
-                recipeProductImageEl.src = related.image;
-                recipeProductImageEl.alt = related.name;
-                ingredientNoteTextEl.textContent = `${related.region} ${related.name}`;
+            const firstIngredient = recipe.ingredients[0];
+            const firstIngredientName = firstIngredient.nameText || firstIngredient.ingredientName;
+
+            if (firstIngredientName) {
+                const related = findRelatedProduct(firstIngredientName);
+                if (related) {
+                    ingredientNoteEl.style.display = 'block';
+                    recipeProductImageEl.src = related.image;
+                    recipeProductImageEl.alt = related.name;
+                    ingredientNoteTextEl.textContent = `${related.region} ${related.name}`;
+                } else {
+                    ingredientNoteEl.style.display = 'none';
+                }
             } else {
                 ingredientNoteEl.style.display = 'none';
             }
@@ -135,28 +148,43 @@ document.addEventListener('DOMContentLoaded', function() {
             ingredientNoteEl.style.display = 'none';
         }
     }
+    function addIngredient() {
+            const newIngredient = document.createElement('li');
+            newIngredient.className = 'ingredient-item';
+            newIngredient.innerHTML = `
+                <span class="ingredient-name" contenteditable="true">새 재료</span>
+                <span class="ingredient-amount" contenteditable="true">1개</span>
+                <button class="remove-ingredient">×</button>
+            `;
+            ingredientsList.appendChild(newIngredient);
 
-    // 원본 데이터 저장 (수정 취소용)
+            const newName = newIngredient.querySelector('.ingredient-name');
+            newName.focus();
+            document.execCommand('selectAll', false, null);
+        }
+
     function saveOriginalData(recipe) {
         originalData = {
             title: recipe.title,
             servings: recipe.servings,
             heroImageUrl: recipe.heroImageUrl,
             ingredients: recipe.ingredients ? recipe.ingredients.map(ing => ({
-                name: ing.nameText,
-                amount: `${ing.qtyValue}${ing.unitCode ? ' ' + ing.unitCode : ''}`
+                name: ing.nameText || ing.ingredientName || '',
+                amount: ing.note || `${ing.qtyValue || ''}${ing.unitCode ? ' ' + ing.unitCode : ''}`
             })) : [],
-            steps: recipe.steps ? recipe.steps.map(st => st.name) : []
+            steps: recipe.steps ? recipe.steps.map(st => st.instruction || st.name || '') : []
         };
     }
+
 
     function restoreOriginalData() {
         recipeTitleEl.textContent = originalData.title;
         recipeServingsEl.textContent = originalData.servings;
+
         if (originalData.heroImageUrl) {
             recipeMainImageEl.src = originalData.heroImageUrl;
         }
-        // 재료 복원
+
         ingredientsListEl.innerHTML = '';
         originalData.ingredients.forEach(ing => {
             const li = document.createElement('li');
@@ -168,15 +196,15 @@ document.addEventListener('DOMContentLoaded', function() {
             `;
             ingredientsListEl.appendChild(li);
         });
-        // 조리법 복원
+
         recipeInstructionsEl.innerHTML = '';
-        originalData.steps.forEach((stepName, idx) => {
+        originalData.steps.forEach((stepText, idx) => {
             const sectionDiv = document.createElement('div');
             sectionDiv.className = 'instruction-section';
             sectionDiv.innerHTML = `
                 <h3 class="instruction-title" contenteditable="false">단계 ${idx + 1}</h3>
                 <ol class="instruction-steps">
-                    <li contenteditable="false">${stepName}</li>
+                    <li contenteditable="false">${stepText}</li>
                 </ol>
                 <button class="add-step" style="display: none;">+ 단계 추가</button>
                 <button class="remove-section" style="display: none;">섹션 삭제</button>
@@ -185,16 +213,16 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // 기타 함수 (편집 모드 관련, 특산물 찾기 함수 등) 유지 또는 약간 수정
-
     function findRelatedProduct(ingredientName) {
         const cleanName = ingredientName.toLowerCase().trim();
+
         for (const product of regionalProducts) {
             const pn = product.name.toLowerCase();
             if (pn === cleanName || cleanName.includes(pn) || pn.includes(cleanName)) {
                 return product;
             }
         }
+
         const keywords = {
             "돼지": "돼지고기",
             "소고기": "소고기",
@@ -204,17 +232,45 @@ document.addEventListener('DOMContentLoaded', function() {
             "쌀": "쌀",
             "과일": "사과"
         };
+
         for (const [keyword, productName] of Object.entries(keywords)) {
             if (cleanName.includes(keyword)) {
                 return regionalProducts.find(p => p.name === productName);
             }
         }
+
         return null;
     }
 
-    // 편집 관련 UI 함수들: enterEditMode, exitEditMode, enableEditing, disableEditing 등 유지하되
-    // 이 코드들은 생략하고 필요하면 구조 비슷하게 수정
-
-    // 최초 fetch
+    // 최초 데이터 fetch
     fetchRecipeData();
+
+    // 삭제 버튼 동작
+    if (deleteRecipeBtn) {
+        deleteRecipeBtn.addEventListener('click', () => {
+            const confirmDelete = confirm('이 레시피를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.');
+            if (!confirmDelete) return;
+
+            const { recipeId, userId } = getUrlParams();
+            if (!recipeId || !userId) {
+                alert('필요한 정보가 없습니다.');
+                return;
+            }
+
+            fetch(`/mypage/recipes/${recipeId}?userId=${userId}`, {
+                method: 'DELETE'
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('삭제 실패');
+                    }
+                    alert('레시피가 삭제되었습니다.');
+                    window.location.href = `/myrecipe?userId=${userId}`;
+                })
+                .catch(error => {
+                    console.error('삭제 중 오류 발생:', error);
+                    alert('삭제 중 오류가 발생했습니다.');
+                });
+        });
+    }
 });
