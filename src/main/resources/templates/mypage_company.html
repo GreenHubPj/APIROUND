@@ -1,25 +1,217 @@
+<!-- src/main/resources/templates/mypage_company.html -->
 <!DOCTYPE html>
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>업체 마이페이지 - GreenHub</title>
-    <link rel="stylesheet" href="/css/header.css">
-    <link rel="stylesheet" href="/css/mypage_company.css">
-    <link rel="stylesheet" href="/css/footer.css">
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+    <!-- 기존 공용 CSS -->
+    <link rel="stylesheet" th:href="@{/css/header.css}" />
+    <link rel="stylesheet" th:href="@{/css/mypage_company.css}" />
+    <link rel="stylesheet" th:href="@{/css/footer.css}" />
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet" />
+
+    <!-- 🔒 여백/레이아웃 보호용 보조 스타일 -->
+    <style>
+        /* 페이지 전체 폰트 & 배경 */
+        body {
+          font-family: "Noto Sans KR", system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
+          background: #fafafa;
+          color: #222;
+        }
+
+        /* ✅ 항상 가운데 정렬 + 양옆 여백 보장 */
+        .mypage-company-section .container {
+          max-width: 1140px;     /* 원하는 최대 폭 */
+          margin: 0 auto;        /* 가운데 정렬 */
+          padding: 0 20px;       /* 양옆 여백 */
+          box-sizing: border-box;
+          width: 100%;
+        }
+
+        /* 타이틀 영역 */
+        .mypage-title {
+          margin: 24px 0 12px;
+        }
+        .page-title-container {
+          display: flex;
+          align-items: center;
+          gap: 14px;
+        }
+
+        /* 아이콘(원형 배지) */
+        .page-icon .store-icon {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+
+          user-select: none;
+        }
+
+        .store-icon {
+          width: 60px;
+          height: 60px;
+        }
+
+        .page-title {
+          font-size: 28px;
+          font-weight: 800;
+          letter-spacing: -0.2px;
+          margin: 0;
+          color: #222;
+        }
+        .page-description {
+          margin: 4px 0 0;
+          color: #666;
+          font-size: 14px;
+        }
+
+        /* 회사 카드/섹션 기본 여백 보호 */
+        .company-info-section {
+          margin-top: 16px;
+        }
+
+        /* 카드형 레이아웃이 아닌 경우를 대비한 최소 스타일 */
+        .company-profile {
+          display: grid;
+          grid-template-columns: 120px 1fr auto;
+          gap: 18px;
+          background: #f7fbe9;
+          border: 1px solid #e5f0c2;
+          border-radius: 12px;
+          padding: 18px;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+        }
+
+        .company-avatar {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: #ff7c37;
+          border-radius: 999px;
+          width: 88px;
+          height: 88px;
+          margin: auto;
+          color: #2e7d32;
+          font-weight: 800;
+          font-size: 18px;
+        }
+        .avatar-text { user-select: none; }
+
+        .company-name {
+          margin: 4px 0 10px;
+          font-size: 22px;
+          font-weight: 800;
+          color: #222;
+        }
+        .company-info-item {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          margin: 6px 0;
+          color: #444;
+          font-size: 14px;
+        }
+        .info-icon { width: 18px; text-align: center; }
+
+        .company-badge .badge-text {
+          display: inline-block;
+          padding: 6px 10px;
+          border-radius: 999px;
+          font-size: 12px;
+          font-weight: 700;
+          white-space: nowrap;
+          height: max-content;
+        }
+
+        /* 통계 박스 그리드 */
+        .company-stats {
+          margin-top: 16px;
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          gap: 12px;
+        }
+        .stat-item {
+          background: #fff;
+          border: 1px solid #eee;
+          border-radius: 12px;
+          padding: 16px 14px;
+          text-align: center;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+        }
+        .stat-number {
+          font-size: 26px;
+          font-weight: 800;
+          color: #ff6f3f;
+          line-height: 1.1;
+        }
+        .stat-label {
+          margin-top: 6px;
+          color: #777;
+          font-size: 13px;
+        }
+
+        /* 모듈 그리드 */
+        .modules-grid {
+          margin-top: 16px;
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 14px;
+        }
+        .module-item {
+          background: #fff;
+          border: 1px solid #eee;
+          border-radius: 14px;
+          padding: 16px;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+          cursor: pointer;
+          transition: transform .15s ease, box-shadow .15s ease;
+        }
+        .module-item:hover {
+          transform: translateY(-3px);
+          box-shadow: 0 6px 16px rgba(0,0,0,0.05);
+        }
+        .module-icon .icon { font-size: 24px; }
+        .module-title {
+          margin: 10px 0 6px;
+          font-weight: 700;
+          color: #222;
+        }
+        .module-description {
+          margin: 0;
+          color: #666;
+          font-size: 13px;
+          line-height: 1.5;
+        }
+
+        /* 반응형 */
+        @media (max-width: 1024px) {
+          .modules-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 640px) {
+          .company-profile {
+            grid-template-columns: 1fr;
+            text-align: left;
+          }
+          .company-avatar { margin: 0; }
+          .company-stats { grid-template-columns: repeat(2, 1fr); }
+          .modules-grid { grid-template-columns: 1fr; }
+        }
+    </style>
 </head>
 <body>
-<!-- 헤더 include -->
-<div th:replace="common/header :: header"></div>
+<!-- 헤더 -->
+<div th:replace="~{common/header :: header}"></div>
 
-<!-- 업체 마이페이지 메인 컨텐츠 -->
+<!-- 업체 마이페이지 -->
 <section class="mypage-company-section">
     <div class="container">
-        <!-- 업체 마이페이지 타이틀 -->
+        <!-- 타이틀 -->
         <div class="mypage-title">
             <div class="page-title-container">
                 <div class="page-icon">
+                    <!-- 아이콘 고정 (원하시면 이미지로 바꿔도 됩니다) -->
                     <span class="store-icon">🏪</span>
                 </div>
                 <div>
@@ -29,120 +221,109 @@
             </div>
         </div>
 
-        <!-- 업체 정보 섹션 -->
+        <!-- 업체 정보 -->
         <div class="company-info-section">
             <div class="company-profile">
                 <div class="company-avatar">
-                    <span class="avatar-text">Farm</span>
+                    <span class="avatar-text" th:text="${comp != null ? comp.companyName : '업체명'}"></span>
                 </div>
+
                 <div class="company-details">
-                    <h2 class="company-name">제주도 청정농장</h2>
+                    <h2 class="company-name" th:text="${comp != null ? comp.companyName : '업체명'}">업체명</h2>
+
                     <div class="company-info-item">
                         <span class="info-icon">📧</span>
-                        <span class="info-text">Yoyofarm@gangwon.com</span>
+                        <span class="info-text" th:text="${comp != null ? comp.email : 'example@greenhub.com'}">example@greenhub.com</span>
                     </div>
+
                     <div class="company-info-item">
                         <span class="info-icon">📱</span>
-                        <span class="info-text">033-123-4567</span>
+                        <span class="info-text" th:text="${comp != null ? comp.managerPhone : '010-0000-0000'}">010-0000-0000</span>
                     </div>
+
                     <div class="company-info-item">
                         <span class="info-icon">🏠</span>
-                        <span class="info-text">제주도 제주시 애월읍 326</span>
+                        <span class="info-text" th:text="${comp != null ? comp.address : '주소 정보 없음'}">주소 정보 없음</span>
                     </div>
+
                     <div class="company-info-item">
                         <span class="info-icon">🏪</span>
-                        <span class="info-text">사업자등록번호: 123-45-67890</span>
+                        <span class="info-text">
+                사업자등록번호: <span th:text="${comp != null ? comp.businessRegistrationNumber : '미등록'}">미등록</span>
+              </span>
                     </div>
                 </div>
+
                 <div class="company-badge">
-                    <span class="badge-text">인증 업체</span>
+                    <span class="badge-text" th:text="${comp != null && comp.rating != null ? '평점 ' + comp.rating : '인증 업체'}">인증 업체</span>
                 </div>
             </div>
         </div>
 
-        <!-- 업체 통계 섹션 -->
+        <!-- 통계 -->
         <div class="company-stats">
             <div class="stat-item">
-                <div class="stat-number">156</div>
+                <div class="stat-number" th:text="${stats != null ? stats.totalOrders : 156}">156</div>
                 <div class="stat-label">총 주문건</div>
             </div>
             <div class="stat-item">
-                <div class="stat-number">142</div>
+                <div class="stat-number" th:text="${stats != null ? stats.completedDeliveries : 142}">142</div>
                 <div class="stat-label">배송완료</div>
             </div>
             <div class="stat-item">
-                <div class="stat-number">14</div>
+                <div class="stat-number" th:text="${stats != null ? stats.pendingOrders : 14}">14</div>
                 <div class="stat-label">대기중</div>
             </div>
             <div class="stat-item">
-                <div class="stat-number">4.8</div>
+                <div class="stat-number" th:text="${comp != null && comp.rating != null ? comp.rating : (stats != null ? stats.rating : 4.8)}">4.8</div>
                 <div class="stat-label">평점</div>
             </div>
         </div>
 
-        <!-- 기능 모듈 그리드 -->
+        <!-- 기능 모듈 -->
         <div class="modules-grid">
-            <!-- 고객 주문건 -->
-            <div class="module-item" data-module="orders">
-                <div class="module-icon">
-                    <span class="icon">📋</span>
-                </div>
+            <div class="module-item" data-module="orders" tabindex="0" role="button" aria-label="고객 주문건">
+                <div class="module-icon"><span class="icon">📋</span></div>
                 <h3 class="module-title">고객 주문건</h3>
                 <p class="module-description">고객들의 주문 내역을 확인하고 주문 상태를 관리할 수 있습니다.</p>
             </div>
 
-            <!-- 배송건 -->
-            <div class="module-item" data-module="delivery">
-                <div class="module-icon">
-                    <span class="icon">🚚</span>
-                </div>
+            <div class="module-item" data-module="delivery" tabindex="0" role="button" aria-label="배송건">
+                <div class="module-icon"><span class="icon">🚚</span></div>
                 <h3 class="module-title">배송건</h3>
                 <p class="module-description">배송 현황을 확인하고 배송 상태를 업데이트할 수 있습니다.</p>
             </div>
 
-            <!-- 환불처리 -->
-            <div class="module-item" data-module="refund">
-                <div class="module-icon">
-                    <span class="icon">💸</span>
-                </div>
+            <div class="module-item" data-module="refund" tabindex="0" role="button" aria-label="환불처리">
+                <div class="module-icon"><span class="icon">💸</span></div>
                 <h3 class="module-title">환불처리</h3>
                 <p class="module-description">고객의 환불 요청을 확인하고 환불 처리를 진행할 수 있습니다.</p>
             </div>
 
-            <!-- 상품관리 -->
-            <div class="module-item" data-module="products">
-                <div class="module-icon">
-                    <span class="icon">🌾</span>
-                </div>
+            <div class="module-item" data-module="products" tabindex="0" role="button" aria-label="상품관리">
+                <div class="module-icon"><span class="icon">🌾</span></div>
                 <h3 class="module-title">상품관리</h3>
                 <p class="module-description">판매 상품을 등록하고 재고, 가격 등을 관리할 수 있습니다.</p>
             </div>
 
-            <!-- 리뷰관리 -->
-            <div class="module-item" data-module="reviews">
-                <div class="module-icon">
-                    <span class="icon">⭐</span>
-                </div>
+            <div class="module-item" data-module="reviews" tabindex="0" role="button" aria-label="리뷰관리">
+                <div class="module-icon"><span class="icon">⭐</span></div>
                 <h3 class="module-title">리뷰관리</h3>
                 <p class="module-description">판매한 상품에 대한 리뷰를 관리하고 다른 고객들의 경험을 확인할 수 있습니다.</p>
             </div>
 
-            <!-- 업체정보수정 -->
-            <div class="module-item" data-module="company-edit">
-                <div class="module-icon">
-                    <span class="icon">🏢</span>
-                </div>
+            <div class="module-item" data-module="company-edit" tabindex="0" role="button" aria-label="업체정보수정">
+                <div class="module-icon"><span class="icon">🏢</span></div>
                 <h3 class="module-title">업체정보수정</h3>
                 <p class="module-description">농장 정보, 연락처, 주소 등 업체 정보를 수정할 수 있습니다.</p>
             </div>
-
         </div>
     </div>
 </section>
 
-<!-- 푸터 include -->
-<div th:replace="common/footer :: footer"></div>
+<!-- 푸터 -->
+<div th:replace="~{common/footer :: footer}"></div>
 
-<script src="/js/mypage_company.js"></script>
+<script th:src="@{/js/mypage_company.js}"></script>
 </body>
 </html>
