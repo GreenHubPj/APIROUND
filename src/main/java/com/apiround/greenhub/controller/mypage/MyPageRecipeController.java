@@ -7,7 +7,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 
 @RestController
@@ -43,7 +48,7 @@ public class MyPageRecipeController {
 
     // 단일 레시피 조회
     @GetMapping("/{recipeId}")
-    public ResponseEntity<MyPageRecipeResponseDto> getRecipe(
+    public ResponseEntity<MyPageRecipeResponseDto>getRecipe(
             @RequestParam Long userId,
             @PathVariable Long recipeId) {
         MyPageRecipeResponseDto dto = myPageRecipeService.getRecipe(userId, recipeId);
@@ -67,5 +72,24 @@ public class MyPageRecipeController {
             @PathVariable Long recipeId) {
         myPageRecipeService.deleteRecipe(userId, recipeId);
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/recipes/upload")
+    public String uploadRecipe(@RequestParam("imageFile") MultipartFile imageFile) {
+        if (!imageFile.isEmpty()) {
+            String filename = imageFile.getOriginalFilename();
+            Path savePath = Paths.get("upload-dir", filename);
+
+            try {
+                Files.createDirectories(savePath.getParent());
+                imageFile.transferTo(savePath);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        // 나머지 저장 로직...
+
+        return "redirect:/recipes/new"; // 저장 후 이동할 페이지
     }
 }

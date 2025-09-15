@@ -12,78 +12,89 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet" />
 </head>
 <body>
-<!-- 헤더 include (deprecated 문법 → ~{...} 로 수정) -->
+<!-- 헤더 include -->
 <div th:replace="~{common/header :: header}"></div>
 
 <!-- 메인 콘텐츠 -->
 <main class="main-content">
 
-    <!-- 요리법 카드 - 책 형태 -->
-    <section class="recipe-section">
-        <div class="recipe-card">
-            <div class="recipe-header">
-                <h1 class="recipe-title" contenteditable="true">새로운 요리법 제목을 입력하세요</h1>
-                <div class="recipe-servings" contenteditable="true">2인분</div>
-                <div class="edit-controls">
-                    <button class="save-btn" id="saveBtn">저장</button>
-                    <button class="cancel-btn" id="cancelBtn">취소</button>
-                </div>
-            </div>
-
-            <div class="book-layout">
-                <!-- 왼쪽 페이지 - 재료와 이미지 -->
-                <div class="left-page">
-                    <div class="recipe-image">
-                        <img class="recipe-main-image" src="/images/카메라.png" th:src="@{/images/카메라.png}" alt="요리법 이미지" />
-                        <div class="image-upload">
-                            <input type="file" id="imageUpload" accept="image/*" />
-                            <label for="imageUpload" class="upload-btn">이미지 업로드</label>
-                        </div>
-                    </div>
-
-                    <div class="ingredients-section">
-                        <h3 class="ingredients-title">재료</h3>
-                        <ul class="ingredients-list" id="ingredientsList">
-                            <li class="ingredient-item">
-                                <span class="ingredient-name" contenteditable="true">재료명</span>
-                                <span class="ingredient-amount" contenteditable="true">수량</span>
-                                <button class="remove-ingredient">×</button>
-                            </li>
-                        </ul>
-                        <button class="add-ingredient" id="addIngredientBtn">+ 재료 추가</button>
-                        <div class="ingredient-note">
-                            <img class="recipe-product-image" src="/images/사과.jpg" th:src="@{/images/사과.jpg}" alt="지역 특산품" />
-                            <p contenteditable="true">지역 특산품 정보</p>
-                        </div>
+    <!-- ✅ form 시작 -->
+    <form th:action="@{/recipes/upload}" method="post" enctype="multipart/form-data" id="recipeForm">
+        <!-- 요리법 카드 - 책 형태 -->
+        <section class="recipe-section">
+            <div class="recipe-card">
+                <div class="recipe-header">
+                    <h1 class="recipe-title" contenteditable="true">새로운 요리법 제목을 입력하세요</h1>
+                    <div class="recipe-servings" contenteditable="true">2인분</div>
+                    <div class="edit-controls">
+                        <!-- 저장 버튼 id 부여 -->
+                        <button class="save-btn" type="button" id="saveBtn">저장</button>
+                        <button class="cancel-btn" type="button" id="cancelBtn">취소</button>
                     </div>
                 </div>
 
-                <!-- 오른쪽 페이지 - 요리법 설명 -->
-                <div class="right-page">
-                    <div class="recipe-instructions">
-                        <div class="instruction-section">
-                            <h3 class="instruction-title" contenteditable="true">요리법 섹션 제목</h3>
-                            <ol class="instruction-steps">
-                                <li contenteditable="true">
-                                    첫 번째 요리 단계를 입력하세요.
-                                    <button class="remove-step">×</button>
+                <div class="book-layout">
+                    <!-- 왼쪽 페이지 - 재료와 이미지 -->
+                    <div class="left-page">
+                        <div class="recipe-image">
+                            <!-- ✅ 이미지 미리보기 -->
+                            <img class="recipe-main-image" id="previewImage"
+                                 src="/images/카메라.png" th:src="@{/images/카메라.png}" alt="요리법 이미지" />
+
+                            <!-- ✅ 파일 업로드 input -->
+                            <div class="image-upload">
+                                <input type="file" id="imageUpload" name="imageFile" accept="image/*" />
+                                <label for="imageUpload" class="upload-btn">이미지 업로드</label>
+                            </div>
+                        </div>
+
+                        <div class="ingredients-section">
+                            <h3 class="ingredients-title">재료</h3>
+                            <ul class="ingredients-list" id="ingredientsList">
+                                <li class="ingredient-item">
+                                    <span class="ingredient-name" contenteditable="true">재료명</span>
+                                    <span class="ingredient-amount" contenteditable="true">수량</span>
+                                    <button class="remove-ingredient" type="button">×</button>
                                 </li>
-                            </ol>
-                            <button class="add-step">+ 단계 추가</button>
-                            <button class="remove-section">섹션 삭제</button>
+                            </ul>
+                            <button class="add-ingredient" id="addIngredientBtn" type="button">+ 재료 추가</button>
+                            <div class="ingredient-note">
+                                <img class="recipe-product-image" src="/images/사과.jpg" th:src="@{/images/사과.jpg}" alt="지역 특산품" />
+                                <p contenteditable="true">지역 특산품 정보</p>
+                            </div>
                         </div>
                     </div>
-                    <button class="add-section" id="addSectionBtn">+ 요리법 섹션 추가</button>
+
+                    <!-- 오른쪽 페이지 - 요리법 설명 -->
+                    <div class="right-page">
+                        <div class="recipe-instructions">
+                            <div class="instruction-section">
+                                <h3 class="instruction-title" contenteditable="true">요리법 섹션 제목</h3>
+                                <ol class="instruction-steps">
+                                    <li contenteditable="true">
+                                        첫 번째 요리 단계를 입력하세요.
+                                        <button class="remove-step" type="button">×</button>
+                                    </li>
+                                </ol>
+                                <button class="add-step" type="button">+ 단계 추가</button>
+                                <button class="remove-section" type="button">섹션 삭제</button>
+                            </div>
+                        </div>
+                        <button class="add-section" id="addSectionBtn" type="button">+ 요리법 섹션 추가</button>
+                    </div>
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
+    </form>
+    <!-- ✅ form 끝 -->
+
 </main>
 
-<!-- 푸터 include (deprecated 문법 → ~{...} 로 수정) -->
+<!-- 푸터 include -->
 <div th:replace="~{common/footer :: footer}"></div>
 
 <!-- 스크립트 -->
 <script src="/js/newrecipe.js" th:src="@{/js/newrecipe.js}"></script>
+
 </body>
 </html>

@@ -81,9 +81,6 @@ public class HomeController {
     @GetMapping("/reviewlist")
     public String reviewlist() { return "reviewlist"; }
 
-    @GetMapping("/item-management")
-    public String itemManagement() { return "item-management"; }
-
     @GetMapping("/review-management")
     public String reviewManagement() { return "review-management"; }
 
