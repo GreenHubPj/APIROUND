@@ -13,9 +13,7 @@ import java.util.Optional;
 public interface RecipeRepository extends JpaRepository<Recipe, Integer> {
     List<Recipe> findByStatusOrderByRecipeIdDesc(String status);
 
-    // 마이페이지 - 내가 쓴 레시피
-    List<Recipe> findByUserId(Integer userId);
-
+    List<Recipe> findByUserIdAndStatusNot(Integer userId, String status);
     // RecipeRepository에서 User와 함께 Recipe을 조회하는 쿼리
     @Query("SELECT r FROM Recipe r LEFT JOIN FETCH r.user WHERE r.recipeId = :recipeId")
     Optional<Recipe> findByIdWithUser(@Param("recipeId") Integer recipeId);

@@ -101,7 +101,7 @@ public class MyPageRecipeServiceImpl implements MyPageRecipeService {
     @Override
     @Transactional(readOnly = true)
     public List<MyPageRecipeResponseDto> getMyRecipes(Long userId) {
-        List<Recipe> recipes = recipeRepository.findByUserId(userId.intValue());
+        List<Recipe> recipes = recipeRepository.findByUserIdAndStatusNot(userId.intValue(), "DELETED");
         return recipes.stream().map(recipe -> {
             MyPageRecipeResponseDto dto = new MyPageRecipeResponseDto();
             dto.setRecipeId(recipe.getRecipeId());
@@ -133,7 +133,7 @@ public class MyPageRecipeServiceImpl implements MyPageRecipeService {
         if (recipe.getUser() == null || !recipe.getUser().getUserId().equals(userId.intValue())) {
             throw new RuntimeException("권한 없음 또는 잘못된 사용자");
         }
-        
+
 
         MyPageRecipeResponseDto dto = new MyPageRecipeResponseDto();
         dto.setRecipeId(recipe.getRecipeId());
@@ -181,7 +181,19 @@ public class MyPageRecipeServiceImpl implements MyPageRecipeService {
 
     @Override
     public void deleteRecipe(Long userId, Long recipeId) {
-        // TODO: 구현 필요
-    }
-    // 나머지 updateRecipe, getRecipe, deleteRecipe도 비슷한 구조로 구현
+        Recipe recipe = recipeRepository.findById(recipeId.intValue())
+                .orElseThrow(() -> new RuntimeException("레시피가 존재하지 않습니다."));
+
+        // 권한 체크: 레시피 소유자만 삭제 가능
+        if (!recipe.getUser().getUserId().equals(userId.intValue())) {
+            throw new RuntimeException("삭제 권한이 없습니다.");
+        }
+            // 소프트 딜리트 처리
+            recipe.setStatus("DELETED");
+            recipe.setUpdatedAt(LocalDateTime.now());
+
+            recipeRepository.save(recipe);
+        }
+        // 나머지 updateRecipe, getRecipe, deleteRecipe도 비슷한 구조로 구현
+
 }
