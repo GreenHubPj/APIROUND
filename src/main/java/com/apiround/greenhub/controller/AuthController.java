@@ -19,8 +19,6 @@ import com.apiround.greenhub.service.CompanySignupService;
 import com.apiround.greenhub.service.EmailCodeService;
 import com.apiround.greenhub.util.PasswordUtil;
 
-import jakarta.servlet.http.HttpSession;
-
 @Controller
 public class AuthController {
 
@@ -41,22 +39,13 @@ public class AuthController {
         this.companySignupService = companySignupService;
     }
 
-    // ───────── View
+    // ───────── View (개인 가입 화면)
     @GetMapping("/signup")
     public String signupForm(Model model) {
         if (!model.containsAttribute("user")) {
             model.addAttribute("user", new User());
         }
         return "signup";
-    }
-
-    @GetMapping("/login")
-    public String loginForm(@RequestParam(value = "redirectURL", required = false) String redirectURL,
-                            Model model) {
-        if (redirectURL != null && !redirectURL.isBlank()) {
-            model.addAttribute("redirectURL", redirectURL);
-        }
-        return "login";
     }
 
     // ───────── 이메일 인증 (개인/판매 공용)
@@ -94,12 +83,10 @@ public class AuthController {
             ra.addFlashAttribute("error", "휴대폰번호는 필수입니다.");
             return "redirect:/signup";
         }
-
         if (!emailCodeService.isVerified(form.getEmail().trim())) {
             ra.addFlashAttribute("error", "이메일 인증을 완료해주세요.");
             return "redirect:/signup";
         }
-
         if (userRepository.existsByLoginId(form.getLoginId())) {
             ra.addFlashAttribute("error", "이미 사용 중인 아이디입니다.");
             return "redirect:/signup";
@@ -142,21 +129,17 @@ public class AuthController {
                                 @RequestParam(required = false) String address,
                                 RedirectAttributes ra) {
 
-        // 1) 필수값 점검
         if (isBlank(companyName) || isBlank(loginId) || isBlank(password) ||
                 isBlank(businessRegistrationNumber) || isBlank(email) ||
                 isBlank(managerName) || isBlank(managerPhone)) {
             ra.addFlashAttribute("error", "업체명/아이디/비밀번호/사업자번호/이메일/담당자명/담당자연락처는 필수입니다.");
             return "redirect:/signup";
         }
-
-        // 2) 회사 이메일 인증 확인
         if (!emailCodeService.isVerified(email.trim())) {
             ra.addFlashAttribute("error", "회사 이메일 인증을 완료해주세요.");
             return "redirect:/signup";
         }
 
-        // 3) 엔티티 조립 및 저장
         Company c = new Company();
         c.setCompanyName(companyName.trim());
         c.setLoginId(loginId.trim());
@@ -180,70 +163,10 @@ public class AuthController {
         }
 
         ra.addFlashAttribute("success", "판매회원 가입이 완료되었습니다. 이제 로그인하세요.");
-        return "redirect:/login";
+        return "redirect:/company/login";
     }
 
-    // ───────── 로그인 (유저 먼저 → 실패 시 회사)
-    @PostMapping("/auth/login")
-    public String doLogin(@RequestParam String loginId,
-                          @RequestParam String password,
-                          @RequestParam(value = "redirectURL", required = false) String redirectURL,
-                          HttpSession session,
-                          RedirectAttributes ra) {
-
-        // 1) User 먼저
-        try {
-            User u = userRepository.findByLoginId(loginId)
-                    .orElseThrow(() -> new IllegalArgumentException("NO_USER"));
-            if (!PasswordUtil.matches(password, u.getPassword()))
-                throw new IllegalArgumentException("BAD_PW");
-            session.setAttribute("user", u);
-            session.setAttribute("LOGIN_USER", u);
-            session.setAttribute("loginUserId", u.getUserId());
-            session.setAttribute("loginUserName", u.getName());
-            return "redirect:" + (redirectURL != null && !redirectURL.isBlank() ? redirectURL : "/mypage");
-        } catch (Exception ignore) {
-            // 계속 진행
-        }
-
-        // 2) Company (판매자)
-        try {
-            Company c = companyRepository.findByLoginId(loginId)
-                    .orElseThrow(() -> new IllegalArgumentException("NO_COMPANY"));
-            if (!PasswordUtil.matches(password, c.getPassword()))
-                throw new IllegalArgumentException("BAD_PW");
-            session.setAttribute("company", c);
-            session.setAttribute("loginCompanyId", c.getCompanyId());
-            session.setAttribute("loginCompanyName", c.getCompanyName());
-            // 판매자용 기본 진입 페이지(예: /seller/mypage). 없으면 /mypage-company로.
-            return "redirect:" + (redirectURL != null && !redirectURL.isBlank() ? redirectURL : "/mypage-company");
-        } catch (Exception e) {
-            ra.addFlashAttribute("error", "아이디 또는 비밀번호를 확인해주세요.");
-            return "redirect:/login";
-        }
-    }
-
-    @PostMapping("/auth/logout")
-    public String logoutByForm(HttpSession session) {
-        try { session.invalidate(); } catch (Exception ignored) {}
-        return "redirect:/";
-    }
-
-    @PostMapping("/api/auth/logout")
-    @ResponseBody
-    public Map<String, Object> logoutApi(HttpSession session) {
-        Map<String, Object> response = new HashMap<>();
-        try {
-            session.invalidate();
-            response.put("success", true);
-            response.put("message", "로그아웃되었습니다.");
-        } catch (Exception e) {
-            log.error("로그아웃 처리 중 오류", e);
-            response.put("success", false);
-            response.put("message", "로그아웃 처리 중 오류가 발생했습니다.");
-        }
-        return response;
-    }
+    // ⚠️ 로그인/로그아웃 관련 엔드포인트는 이 컨트롤러에서 제거(분리)
 
     private boolean isBlank(String s) { return s == null || s.isBlank(); }
 }
