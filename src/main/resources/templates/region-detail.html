@@ -45,8 +45,11 @@
                 <div class="review-section">
                     <div class="review-header">
                         <h2 class="section-title">고객 리뷰</h2>
-                        <button class="view-all-reviews-btn" id="viewAllReviewsBtn">리뷰보기</button>
+                        <a th:href="@{/reviewlist(product=${param.id})}">
+                            <button type="button" class="view-all-reviews-btn">리뷰보기</button>
+                        </a>
                     </div>
+
                     <div class="review-list" id="reviewList">
                         <!-- 리뷰들이 여기에 동적으로 추가됩니다 -->
                     </div>
