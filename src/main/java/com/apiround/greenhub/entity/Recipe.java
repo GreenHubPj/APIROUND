@@ -61,6 +61,7 @@ public class Recipe {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    // 관계 매핑
     @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<RecipeIngredient> ingredients;
 

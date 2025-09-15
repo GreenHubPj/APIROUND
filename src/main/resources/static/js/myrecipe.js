@@ -42,25 +42,30 @@ document.addEventListener('DOMContentLoaded', function() {
             card.className = 'recipe-card';
             card.setAttribute('data-recipe-id', recipe.recipeId);
             card.setAttribute('data-user-id', recipe.userId);
+           const imageUrl = recipe.heroImageUrl && recipe.heroImageUrl.trim() !== ''
+               ? recipe.heroImageUrl
+               : '/images/recipe.jpg';
 
-            card.innerHTML = `
-                <div class="recipe-image">
-                    <img src="${recipe.heroImageUrl || '/images/default-image.png'}" alt="${recipe.title}" />
-                </div>
-                <div class="recipe-content">
-                    <div class="recipe-name">${recipe.title}</div>
-                    <div class="recipe-summary">${recipe.summary || '요약 없음'}</div>
-                    <div class="recipe-badge">${recipe.badgeText || ''}</div>
-                    <div class="recipe-meta">
-                        <span>⏱ ${recipe.totalMinutes}분</span>
-                        <span>난이도: ${recipe.difficulty}</span>
-                        <span>인분: ${recipe.servings}</span>
-                    </div>
-                </div>
-                <div class="recipe-actions">
-                    <button class="delete-btn">삭제</button>
-                </div>
-            `;
+           card.innerHTML = `
+               <div class="recipe-image">
+                   <img src="${imageUrl}"
+                        alt="${recipe.title}"
+                        onerror="this.onerror=null; this.src='/images/recipe.jpg';" />
+               </div>
+               <div class="recipe-content">
+                   <div class="recipe-name">${recipe.title}</div>
+                   <div class="recipe-summary">${recipe.summary || '요약 없음'}</div>
+                   <div class="recipe-badge">${recipe.badgeText || ''}</div>
+                   <div class="recipe-meta">
+                       <span>⏱ ${recipe.totalMinutes}분</span>
+                       <span>난이도: ${recipe.difficulty}</span>
+                       <span>인분: ${recipe.servings}</span>
+                   </div>
+               </div>
+               <div class="recipe-actions">
+                   <button class="delete-btn">삭제</button>
+               </div>
+           `;
             recipesGrid.appendChild(card);
         });
 
