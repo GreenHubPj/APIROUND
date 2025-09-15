@@ -28,6 +28,131 @@ document.addEventListener('DOMContentLoaded', function () {
     const addSectionBtn = document.getElementById('addSectionBtn');
     const imageUpload = document.getElementById('imageUpload');
 
+    function enterEditMode() {
+        isEditMode = true;
+
+        // 헤더 수정 가능
+        recipeTitleEl.contentEditable = 'true';
+        recipeServingsEl.contentEditable = 'true';
+
+        // 재료 수정 가능
+        ingredientsListEl.querySelectorAll('.ingredient-name, .ingredient-amount').forEach(el => {
+            el.contentEditable = 'true';
+        });
+
+        // 삭제 버튼 보이기
+        ingredientsListEl.querySelectorAll('.remove-ingredient').forEach(btn => {
+            btn.style.display = 'inline-block';
+            btn.addEventListener('click', () => btn.parentElement.remove());
+        });
+
+        // 추가 버튼 보이기
+        addIngredientBtn.style.display = 'inline-block';
+        addSectionBtn.style.display = 'inline-block';
+
+        // 조리법 단계 수정 가능
+        recipeInstructionsEl.querySelectorAll('.instruction-title, .instruction-steps li').forEach(el => {
+            el.contentEditable = 'true';
+        });
+
+        // 버튼 토글
+        editModeBtn.style.display = 'none';
+        saveBtn.style.display = 'inline-block';
+        cancelBtn.style.display = 'inline-block';
+    }
+
+    function exitEditMode() {
+        isEditMode = false;
+
+        recipeTitleEl.contentEditable = 'false';
+        recipeServingsEl.contentEditable = 'false';
+
+        ingredientsListEl.querySelectorAll('.ingredient-name, .ingredient-amount').forEach(el => {
+            el.contentEditable = 'false';
+        });
+
+        ingredientsListEl.querySelectorAll('.remove-ingredient').forEach(btn => {
+            btn.style.display = 'none';
+        });
+
+        addIngredientBtn.style.display = 'none';
+        addSectionBtn.style.display = 'none';
+
+        recipeInstructionsEl.querySelectorAll('.instruction-title, .instruction-steps li').forEach(el => {
+            el.contentEditable = 'false';
+        });
+
+        editModeBtn.style.display = 'inline-block';
+        saveBtn.style.display = 'none';
+        cancelBtn.style.display = 'none';
+    }
+    editModeBtn.addEventListener('click', () => {
+        enterEditMode();
+    });
+
+    cancelBtn.addEventListener('click', () => {
+        restoreOriginalData();
+        exitEditMode();
+    });
+
+    saveBtn.addEventListener('click', () => {
+        const updatedRecipe = collectUpdatedRecipeData();
+        const { recipeId, userId } = getUrlParams();
+
+        fetch(`/mypage/recipes/${recipeId}?userId=${userId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(updatedRecipe)
+        })
+        .then(res => {
+            if (!res.ok) throw new Error('저장 실패');
+            return res.json();
+        })
+        .then(data => {
+            alert('레시피가 저장되었습니다.');
+            exitEditMode();
+            saveOriginalData(data);
+            renderRecipe(data);
+        })
+        .catch(err => {
+            console.error('저장 오류:', err);
+            alert('저장 중 오류가 발생했습니다.');
+        });
+    });
+
+    function collectUpdatedRecipeData() {
+        const updatedIngredients = Array.from(ingredientsListEl.querySelectorAll('.ingredient-item')).map(li => {
+            const name = li.querySelector('.ingredient-name')?.textContent.trim() || '';
+            const amountText = li.querySelector('.ingredient-amount')?.textContent.trim() || '';
+
+            // 예: "1개" → qtyValue: 1, unitCode: "개" 로 추출하려면 파싱 추가 가능
+            const match = amountText.match(/^([\d.,]+)\s*(.*)$/);
+            const qtyValue = match ? parseFloat(match[1].replace(',', '')) : null;
+            const unitCode = match ? match[2] : '';
+
+            return {
+                nameText: name,
+                qtyValue,
+                unitCode
+            };
+        });
+
+        const updatedSteps = Array.from(recipeInstructionsEl.querySelectorAll('.instruction-section')).map(section => {
+            const stepText = section.querySelector('.instruction-steps li')?.textContent.trim() || '';
+            return { instruction: stepText };
+        });
+
+        return {
+            title: recipeTitleEl.textContent.trim(),
+            servings: recipeServingsEl.textContent.trim(),
+            ingredients: updatedIngredients,
+            steps: updatedSteps
+        };
+    }
+
+
     function getUrlParams() {
         const urlParams = new URLSearchParams(window.location.search);
         const recipeId = urlParams.get('id');
