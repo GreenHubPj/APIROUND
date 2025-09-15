@@ -1,6 +1,7 @@
 package com.apiround.greenhub.entity.item;
 
 import jakarta.persistence.*;
+import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -9,7 +10,7 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "specialty_product_month",
         uniqueConstraints = @UniqueConstraint(columnNames = {"product_id", "month"}))
-@Getter @Setter
+@Data
 public class Seasonal {
 
     @Id

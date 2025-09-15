@@ -707,3 +707,34 @@ function showMessageAtPosition(message, type, targetElement = null) {
         messageDiv.remove();
     }, 3000);
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+  const PH = '/images/따봉 트럭.png';
+
+  function arm(img){
+    if(!img || img.dataset.fallbackArmed === '1') return;
+    img.dataset.fallbackArmed = '1';
+    img.addEventListener('error', () => { img.onerror = null; img.src = PH; }, { once:true });
+
+    const raw = (img.getAttribute('src') || '').trim();
+    if (!raw || raw.toLowerCase() === 'null' || raw === '#') {
+      img.src = PH;
+    }
+  }
+
+  // 초기 IMG들
+  document.querySelectorAll(
+    '.product-image img, .related-thumb img, .main-image, img.related-product-image, img.thumbnail, #mainImage'
+  ).forEach(arm);
+
+  // 동적으로 추가되는 IMG도 자동 장착
+  new MutationObserver(muts => {
+    muts.forEach(m => m.addedNodes.forEach(n => {
+      if (n.nodeType !== 1) return;
+      if (n.tagName === 'IMG') arm(n); else n.querySelectorAll && n.querySelectorAll('img').forEach(arm);
+    }));
+  }).observe(document.body, { childList:true, subtree:true });
+
+  // 필요 시 전역 사용
+  window.armImageFallback = arm;
+});

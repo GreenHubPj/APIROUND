@@ -102,17 +102,6 @@ body {
     transform: scale(1.05);
 }
 
-.image-nav {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 100%;
-    display: flex;
-    justify-content: space-between;
-    padding: 0 20px;
-    pointer-events: none;
-}
-
 .nav-btn {
     background: rgba(0, 0, 0, 0.5);
     color: white;
@@ -632,12 +621,14 @@ body {
     object-fit: cover;
 }
 
-.related-thumb {
-    position: relative;
-    overflow: hidden;
-    height: 250px;
-    text-align: center;
-    vertical-align: center;
+.related-thumb img {
+    width: 100%;          /* 고정 너비 */
+    height: 240px;         /* 고정 높이 */
+    object-fit: cover;     /* 비율 유지하며 잘라내기 */
+    object-position: center;
+    border-radius: 12px;   /* 선택 */
+    background: #f4f4f4;   /* 로딩/폴백 배경 */
+    display: block;
 }
 
 .related-info {

@@ -628,3 +628,51 @@ function renderProductPrices() {
     
     console.log('지역별 특산품 페이지 초기화 완료');
 });
+
+(function () {
+  const PLACEHOLDER = '/images/따봉 트럭.png';
+
+  function arm(img) {
+    if (!img || img.dataset.fallbackArmed === '1') return;
+    img.dataset.fallbackArmed = '1';
+
+    // 404 등 깨질 때
+    img.onerror = () => {
+      img.onerror = null;
+      img.src = PLACEHOLDER;
+    };
+
+    // 초기 값이 비었거나 'null' 등일 때
+    const raw = (img.getAttribute('src') || '').trim();
+    if (!raw || raw.toLowerCase() === 'null' || raw === '#') {
+      img.src = PLACEHOLDER;
+    }
+  }
+
+  function armAll(root = document) {
+    root.querySelectorAll(
+      // region, region-detail 전부 커버
+      '.product-image img, img.product-image, img.related-product-image, img.thumbnail, #mainImage'
+    ).forEach(arm);
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    armAll();
+
+    // 동적 IMG도 자동 무장
+    const mo = new MutationObserver(muts => {
+      muts.forEach(m => {
+        m.addedNodes.forEach(n => {
+          if (n.nodeType !== 1) return;
+          if (n.tagName === 'IMG') arm(n);
+          else armAll(n);
+        });
+      });
+    });
+    mo.observe(document.body, { childList: true, subtree: true });
+  });
+
+  // 필요시 수동 호출용
+  window.__armImageFallback = arm;
+  window.__armAllImageFallbacks = armAll;
+})();

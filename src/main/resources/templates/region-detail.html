@@ -166,8 +166,20 @@
                    th:each="rp : ${relatedProducts}"
                    th:href="@{/region-detail(id=${rp.productId}, region=${r})}">
                     <div class="related-thumb">
-                        <img th:src="${rp.thumbnailUrl}" th:alt="${rp.productName}">
+                        <img
+                        th:alt="${rp.productName}"
+                        loading="lazy"
+                        th:src="${(
+                        #strings.isEmpty(#strings.trim(rp.thumbnailUrl)) or
+                        #strings.equalsIgnoreCase(#strings.trim(rp.thumbnailUrl), 'null')
+                        )
+                        ? @{/images/따봉 트럭.png}
+                        : ${rp.thumbnailUrl}}"
+                        th:attr="onerror=|this.onerror=null;this.src='@{/images/따봉 트럭.png}'|">
+
                     </div>
+
+
                     <div class="related-info">
                         <div class="related-name" th:text="${rp.productName}">상품명</div>
                         <div class="related-meta">
