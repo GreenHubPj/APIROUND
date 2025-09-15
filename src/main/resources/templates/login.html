@@ -94,14 +94,21 @@
           tabs.forEach(t => t.classList.remove('active'));
           tab.classList.add('active');
           const type = tab.getAttribute('data-type');
-          // 필요 시 섹션 토글
-          if (type === 'individual') {
-            social.style.display = '';
+          // 판매자 탭일 때 소셜 로그인 섹션 숨기기
+          if (type === 'seller') {
+            social.style.display = 'none';
           } else {
             social.style.display = '';
           }
         });
       });
+
+      // 페이지 로드 시 초기 상태 설정 (개인 회원 탭이 기본 선택)
+      if (window.location.href.includes('type=seller')) {
+        document.querySelector('[data-type="seller"]').click();
+      } else {
+        document.querySelector('[data-type="individual"]').click();
+      }
 
       // 비밀번호 보기 토글
       const toggleBtn = document.querySelector('.password-toggle');
