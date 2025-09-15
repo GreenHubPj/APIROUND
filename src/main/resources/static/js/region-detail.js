@@ -17,6 +17,25 @@ let currentImageIndex = 0;
 let selectedPriceOption = null;
 let quantity = 1;
 
+// 뒤로가기 버튼을 가장 먼저, 안전하게 바인딩
+(function bindBackButton() {
+  function init() {
+    const btn = document.getElementById('backBtn');
+    if (btn) {
+      btn.type = 'button'; // 폼 안일 경우 대비
+      btn.addEventListener('click', function (e) {
+        e.preventDefault();
+        goBackToList();
+      });
+    }
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+
 // 페이지 초기화
 function initializeRegionDetail() {
     loadProductDetail();
@@ -40,8 +59,6 @@ function getRegionFromUrl() {
 function goBackToList() {
     const region = getRegionFromUrl();
     if (region) {
-        window.location.href = `/region?region=${region}`;
-    } else {
         window.location.href = '/region';
     }
 }
@@ -109,12 +126,40 @@ function renderPriceOptions() {
   const priceOptionsContainer = document.getElementById('priceOptions');
   const priceSelect = document.getElementById('priceOptionSelect');
 
+  if (!priceOptionsContainer || !priceSelect) return;
+
   priceOptionsContainer.innerHTML = '';
   priceSelect.innerHTML = '<option value="">가격 옵션을 선택하세요</option>';
 
-  if (!currentProduct.priceOptions || currentProduct.priceOptions.length === 0) {
-    renderPriceOptions(); // 클라이언트 fallback
+  const list = (currentProduct && Array.isArray(currentProduct.priceOptions))
+    ? currentProduct.priceOptions
+    : [];
+
+  // 옵션이 없으면 그냥 종료 (재귀 금지)
+  if (list.length === 0) {
+    return;
   }
+
+  list.forEach((option, index) => {
+    // 카드
+    const optionElement = document.createElement('div');
+    optionElement.className = 'price-option';
+    optionElement.innerHTML = `
+      <span class="price-option-info">${option.quantity}${option.unit}</span>
+      <span class="price-option-amount">${option.price.toLocaleString()}원</span>
+    `;
+    priceOptionsContainer.appendChild(optionElement);
+
+    // 셀렉트
+    const optionSelect = document.createElement('option');
+    optionSelect.value = index;
+    optionSelect.setAttribute('data-quantity', option.quantity);
+    optionSelect.setAttribute('data-unit', option.unit);
+    optionSelect.setAttribute('data-price', option.price);
+    optionSelect.textContent = `${option.quantity}${option.unit} - ${option.price.toLocaleString()}원`;
+    priceSelect.appendChild(optionSelect);
+  });
+}
 
 
   currentProduct.priceOptions.forEach((option, index) => {
@@ -133,7 +178,7 @@ function renderPriceOptions() {
     optionSelect.textContent = `${option.quantity}${option.unit} - ${option.price.toLocaleString()}원`;
     priceSelect.appendChild(optionSelect);
   });
-}
+
 
 // 지역별 랜덤 업체 정보 생성
 function generateRandomCompany(regionText) {
@@ -156,20 +201,7 @@ function generateRandomCompany(regionText) {
   return { name: companyName, phone: phoneNumber, email };
 }
 
-    const areaCode = areaCodes[regionPrefix] || '02';
-    const phoneNumber = `${areaCode}-${Math.floor(Math.random() * 9000) + 1000}-${Math.floor(Math.random() * 9000) + 1000}`;
 
-    // 랜덤 이메일 생성
-    const emailDomains = ['naver.com', 'gmail.com', 'daum.net', 'coop.co.kr', 'farm.co.kr'];
-    const randomDomain = emailDomains[Math.floor(Math.random() * emailDomains.length)];
-    const email = `${companyName.toLowerCase().replace(/[^a-z0-9]/g, '')}@${randomDomain}`;
-
-    return {
-        name: companyName,
-        phone: phoneNumber,
-        email: email
-    };
-}
 
 // 상품 ID로 상품 정보 가져오기
 function getProductById(id) {
@@ -367,45 +399,6 @@ function updateThumbnailActive() {
     thumbnails.forEach((thumb, index) => {
         thumb.classList.toggle('active', index === currentImageIndex);
     });
-}
-
-// 관련 상품 로드
-function loadRelatedProducts() {
-    // 실제로는 API 호출하지만, 여기서는 더미 데이터 사용
-    const relatedProducts = [
-        {
-            id: 4,
-            name: '제주 한라봉',
-            category: '과일',
-            region: '제주',
-            priceOptions: [{ quantity: 2, unit: 'kg', price: 25000 }],
-            images: [{ src: 'https://via.placeholder.com/250x150/ff8c42/ffffff?text=제주+한라봉', alt: '제주 한라봉' }]
-        },
-        {
-            id: 5,
-            name: '강원도 무',
-            category: '채소',
-            region: '강원',
-            priceOptions: [{ quantity: 1, unit: '개', price: 5000 }],
-            images: [{ src: 'https://via.placeholder.com/250x150/27ae60/ffffff?text=강원+무', alt: '강원도 무' }]
-        },
-        {
-            id: 6,
-            name: '경북 배',
-            category: '과일',
-            region: '경북',
-            priceOptions: [{ quantity: 1, unit: 'kg', price: 15000 }],
-            images: [{ src: 'https://via.placeholder.com/250x150/e74c3c/ffffff?text=경북+배', alt: '경북 배' }]
-        }
-    ];
-
-    renderRelatedProducts(relatedProducts);
-
-    // 리뷰 데이터 로드
-    loadReviews();
-
-    // 리뷰보기 버튼 이벤트 리스너
-    setupReviewButton();
 }
 
 // 리뷰보기 버튼 설정

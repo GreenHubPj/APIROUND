@@ -18,7 +18,7 @@
     <div class="container">
         <!-- 뒤로가기 버튼 -->
         <div class="back-button">
-            <button class="back-btn" id="backBtn">
+            <button type="button" class="back-btn" id="backBtn">
                 <span>←</span> 목록으로 돌아가기
             </button>
         </div>
@@ -157,22 +157,24 @@
              th:if="${relatedProducts != null and !#lists.isEmpty(relatedProducts)}">
             <h2 class="section-title">관련 상품</h2>
 
-            <div class="related-products-grid" id="relatedProductsGrid">
+            <div class="related-products-grid" id="relatedProductsGrid"
+                 th:with="r=${#strings.isEmpty(param.region) ? product.regionText : param.region}">
                 <a class="related-card"
                    th:each="rp : ${relatedProducts}"
-                   th:href="@{|/region-detail?id=${rp.productId}|}">
+                   th:href="@{/region-detail(id=${rp.productId}, region=${r})}">
                     <div class="related-thumb">
                         <img th:src="${rp.thumbnailUrl}" th:alt="${rp.productName}">
                     </div>
                     <div class="related-info">
-                        <div class="related-title" th:text="${rp.productName}">상품명</div>
-                        <div class="related-tags">
+                        <div class="related-name" th:text="${rp.productName}">상품명</div>
+                        <div class="related-meta">
                             <span th:text="${rp.regionText}">지역</span>
                             <span th:text="${rp.productType}">유형</span>
                         </div>
                     </div>
                 </a>
             </div>
+
         </div>
 
         <!-- 아무것도 없을 때 안내 (선택) -->
