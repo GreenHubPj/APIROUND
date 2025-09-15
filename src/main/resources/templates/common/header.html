@@ -9,33 +9,51 @@
 <body>
 <header class="header" th:fragment="header">
     <div class="container">
+        <!-- 브랜드 로고 -->
         <div class="nav-brand">
-            <!-- 공백 제거 -->
-            <a th:href="@{/}" style="text-decoration: none; color: inherit; display: flex; align-items: center;">
-                <img th:src="@{/images/로고 트럭.png}" alt="로고" class="logo">
+            <a th:href="@{/}" style="text-decoration:none; color:inherit; display:flex; align-items:center;">
+                <img th:src="@{/images/로고 트럭.png}" alt="GreenHub 로고" class="logo">
                 <span class="brand-text">GreenHub</span>
             </a>
         </div>
 
+        <!-- 상단 메뉴 -->
         <nav class="nav-menu">
-            <a th:href="@{/region}" class="nav-link">지역별 특산품</a>
-            <a th:href="@{/popular}" class="nav-link">인기 특산품</a>
+            <a th:href="@{/region}"   class="nav-link">지역별 특산품</a>
+            <a th:href="@{/popular}"  class="nav-link">인기 특산품</a>
             <a th:href="@{/seasonal}" class="nav-link">제철특산품</a>
-            <a th:href="@{/recipe}" class="nav-link">요리법</a>
-            <a th:href="@{/event}" class="nav-link">이벤트</a>
+            <a th:href="@{/recipe}"   class="nav-link">요리법</a>
+            <a th:href="@{/event}"    class="nav-link">이벤트</a>
         </nav>
 
-        <!-- 비로그인 -->
-        <div class="nav-auth" th:if="${currentUser == null}">
-            <a th:href="@{/login}" class="btn-login">로그인</a>
+        <!-- 비로그인 상태 -->
+        <div class="nav-auth"
+             th:if="${currentUser == null and currentCompany == null}">
+            <a th:href="@{/login}"  class="btn-login">로그인</a>
             <a th:href="@{/signup}" class="btn-signup">회원가입</a>
         </div>
 
-        <!-- 로그인 -->
-        <div class="nav-auth" th:if="${currentUser != null}">
-            <span class="welcome" th:text="${currentUser.name + '님'}">홍길동님</span>
+        <!-- 업체 로그인 상태 -->
+        <div class="nav-auth"
+             th:if="${currentCompany != null}">
+            <span class="welcome"
+                  th:text="${(currentCompany.companyName != null ? currentCompany.companyName : '업체') + ' 님'}">
+                업체 님
+            </span>
+            <a th:href="@{/mypage-company}" class="btn-mypage">업체 마이페이지</a>
+            <form th:action="@{/auth/logout}" method="post" style="display:inline;">
+                <button type="submit" class="btn-logout">로그아웃</button>
+            </form>
+        </div>
+
+        <!-- 개인 회원 로그인 상태 -->
+        <div class="nav-auth"
+             th:if="${currentCompany == null and currentUser != null}">
+            <span class="welcome"
+                  th:text="${(currentUser.name != null ? currentUser.name : '회원') + ' 님'}">
+                회원 님
+            </span>
             <a th:href="@{/mypage}" class="btn-mypage">마이페이지</a>
-            <!-- POST 폼 로그아웃(확실한 방식) -->
             <form th:action="@{/auth/logout}" method="post" style="display:inline;">
                 <button type="submit" class="btn-logout">로그아웃</button>
             </form>

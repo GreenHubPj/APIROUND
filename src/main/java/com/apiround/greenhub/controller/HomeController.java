@@ -4,8 +4,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import com.apiround.greenhub.service.item.RegionService;
-
 @Controller
 public class HomeController {
 
@@ -30,10 +28,9 @@ public class HomeController {
     @GetMapping("/find-password")
     public String findPassword() { return "find-password"; }
 
-    // ✅ /mypage 매핑은 MyPageController가 담당합니다 (여기서는 제거)
-
-    @GetMapping("/mypage-company")
-    public String mypageCompany() { return "mypage_company"; }
+    // ✅ /mypage-company는 CompanyMypageController가 담당하므로 여기서 제거
+    // @GetMapping("/mypage-company")
+    // public String mypageCompany() { return "mypage_company"; }
 
     @GetMapping("/myrecipe")
     public String myrecipe() { return "myrecipe"; }
@@ -69,8 +66,9 @@ public class HomeController {
     @GetMapping("/profile-edit")
     public String profileEdit() { return "profile-edit"; }
 
-    @GetMapping("/profile-edit-company")
-    public String profileEditCompany() { return "profile-edit-company"; }
+    // 🚫 /profile-edit-company 매핑은 CompanyProfileController가 담당
+    // @GetMapping("/profile-edit-company")
+    // public String profileEditCompany() { return "profile-edit-company"; }
 
     @GetMapping("/refund")
     public String refund() { return "refund"; }
