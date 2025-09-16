@@ -52,14 +52,11 @@ public class CompanyAuthController {
         return "redirect:/mypage-company";
     }
 
-    /** 업체 로그아웃 (화면 흐름) */
+    /** 업체 로그아웃 (GET 링크 지원) — 완전 종료를 원하면 invalidate() */
     @GetMapping("/company/logout")
     public String companyLogout(HttpSession session,
                                 @RequestParam(value = "redirectURL", required = false) String redirectURL) {
-        session.removeAttribute("company");
-        if (redirectURL != null && !redirectURL.isBlank()) {
-            return "redirect:" + redirectURL;
-        }
-        return "redirect:/";
+        try { session.invalidate(); } catch (Exception ignored) {}
+        return "redirect:" + (redirectURL != null && !redirectURL.isBlank() ? redirectURL : "/");
     }
 }
