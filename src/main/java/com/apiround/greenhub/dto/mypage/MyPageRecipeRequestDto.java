@@ -22,6 +22,7 @@ public class MyPageRecipeRequestDto {
     public static class IngredientDto {
         private String name;        // ingredientName → name
         private String amount;
+        private String note;
     }
 
     @Data

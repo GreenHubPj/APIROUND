@@ -25,7 +25,32 @@
             <div class="recipe-card">
                 <div class="recipe-header">
                     <h1 class="recipe-title" contenteditable="true">새로운 요리법 제목을 입력하세요</h1>
-                    <div class="recipe-servings" contenteditable="true">2인분</div>
+                    <div class="recipe-meta">
+                        <div class="recipe-servings" contenteditable="true">2인분</div>
+                        <div class="recipe-time-difficulty">
+                            <div class="time-selection">
+                                <label for="cookMinutes">조리시간</label>
+                                <select id="cookMinutes" name="cookMinutes" class="time-select">
+                                    <option value="">시간 선택</option>
+                                    <option value="15">15분 이하</option>
+                                    <option value="30">30분 이하</option>
+                                    <option value="60">1시간 이하</option>
+                                    <option value="90">1시간 30분 이하</option>
+                                    <option value="120">2시간 이하</option>
+                                    <option value="180">3시간 이상</option>
+                                </select>
+                            </div>
+                            <div class="difficulty-selection">
+                                <label for="difficulty">난이도</label>
+                                <select id="difficulty" name="difficulty" class="difficulty-select">
+                                    <option value="">난이도 선택</option>
+                                    <option value="EASY">쉬움 ⭐</option>
+                                    <option value="MEDIUM">보통 ⭐⭐</option>
+                                    <option value="HARD">어려움 ⭐⭐⭐</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
                     <div class="edit-controls">
                         <!-- 저장 버튼 id 부여 -->
                         <button class="save-btn" type="button" id="saveBtn">저장</button>
