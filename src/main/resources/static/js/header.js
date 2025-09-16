@@ -1,31 +1,46 @@
-// /static/js/header.js
 document.addEventListener('DOMContentLoaded', () => {
-  const btnLogout = document.getElementById('btnLogout');
-  if (!btnLogout) return;
-
-  btnLogout.addEventListener('click', (e) => {
-    e.preventDefault();
-
-    if (btnLogout.dataset.busy === '1') return;
-    btnLogout.dataset.busy = '1';
-
-    // 1) 가장 확실한 방법: POST 폼 제출 → 서버가 세션 무효화 후 리다이렉트
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = '/auth/logout';
-    form.style.display = 'none';
-    document.body.appendChild(form);
-    form.submit();
-
-    // 2) 혹시 내비게이션이 막히면(애드온/팝업차단 등) 2.5초 후 백업 플랜 실행
-    setTimeout(() => {
-      if (document.visibilityState === 'visible') {
-        fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin' })
-          .finally(() => {
-            // 캐시된 페이지를 피하려고 캐시버스터 붙여서 이동
-            window.location.replace('/?t=' + Date.now());
-          });
+  // 모든 로그아웃 폼에 대해 CSRF hidden 보강
+  document.querySelectorAll('.logout-form').forEach(form => {
+    form.addEventListener('submit', () => {
+      const hasHidden = form.querySelector('input[name="_csrf"]');
+      if (!hasHidden) {
+        const meta = document.querySelector('meta[name="_csrf"]');
+        const token = meta?.getAttribute('content');
+        if (token) {
+          const hidden = document.createElement('input');
+          hidden.type = 'hidden';
+          hidden.name = '_csrf';
+          hidden.value = token;
+          form.appendChild(hidden);
+        }
       }
-    }, 2500);
+      // 그대로 제출 (기본 submit)
+    });
+  });
+
+  // 혹시 버튼만 있고 폼이 없는 경우 대비
+  document.querySelectorAll('.logout-btn').forEach(btn => {
+    if (btn.closest('form')) return; // 이미 폼 방식이면 건너뜀
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      tryPostLogout().catch(() => {
+        // POST 매핑 없으면 GET으로 백업
+        window.location.href = '/logout';
+      });
+    });
   });
 });
+
+async function tryPostLogout() {
+  const meta = document.querySelector('meta[name="_csrf"]');
+  const token = meta?.getAttribute('content');
+  const headers = token ? { 'X-CSRF-TOKEN': token } : {};
+  const res = await fetch('/logout', {
+    method: 'POST',
+    headers,
+    credentials: 'same-origin'
+  });
+  if (!res.ok) throw new Error('logout failed');
+  // 캐시 문제 방지
+  window.location.replace('/?t=' + Date.now());
+}

@@ -4,14 +4,14 @@ import com.apiround.greenhub.entity.User;
 import com.apiround.greenhub.repository.UserRepository;
 import com.apiround.greenhub.util.PasswordUtil;
 import jakarta.servlet.http.HttpSession;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.util.Optional;
+import java.util.HashMap;
+import java.util.Map;
 
-@Controller
+@RestController
+@RequestMapping("/api/auth")
 public class UserAuthController {
 
     private final UserRepository userRepository;
@@ -20,46 +20,45 @@ public class UserAuthController {
         this.userRepository = userRepository;
     }
 
-    /** 개인 로그인 폼 */
-    @GetMapping("/login")
-    public String loginForm(@RequestParam(value = "redirectURL", required = false) String redirectURL,
-                            Model model) {
-        model.addAttribute("redirectURL", redirectURL);
-        return "login";
-    }
-
-    /** 개인 로그인 처리 */
+    /** 개인 로그인(API) */
     @PostMapping("/login")
-    public String doLogin(@RequestParam String loginId,
-                          @RequestParam String password,
-                          @RequestParam(value = "redirectURL", required = false) String redirectURL,
-                          HttpSession session,
-                          RedirectAttributes ra) {
+    public ResponseEntity<Map<String, Object>> apiLogin(@RequestParam String loginId,
+                                                        @RequestParam String password,
+                                                        HttpSession session) {
+        Map<String, Object> res = new HashMap<>();
+        return userRepository.findByLoginId(loginId)
+                .filter(u -> PasswordUtil.matches(password, u.getPassword()))
+                .map(u -> {
+                    // 개인 세션 세팅, 회사 세션 제거
+                    session.setAttribute("user", u);
+                    session.removeAttribute("company");
+                    session.setAttribute("LOGIN_USER", u);
+                    session.setAttribute("loginUserId", u.getUserId());
+                    session.setAttribute("loginUserName", u.getName());
 
-        Optional<User> opt = userRepository.findByLoginId(loginId);
-        if (opt.isEmpty() || !PasswordUtil.matches(password, opt.get().getPassword())) {
-            ra.addFlashAttribute("error", "아이디 또는 비밀번호가 올바르지 않습니다.");
-            return "redirect:/login" + (redirectURL != null ? "?redirectURL=" + redirectURL : "");
-        }
-
-        // 개인 세션 세팅, 회사 세션 제거
-        session.setAttribute("user", opt.get());
-        session.removeAttribute("company");
-
-        if (redirectURL != null && !redirectURL.isBlank()) {
-            return "redirect:" + redirectURL;
-        }
-        return "redirect:/mypage";
+                    res.put("success", true);
+                    res.put("message", "로그인되었습니다.");
+                    return ResponseEntity.ok(res);
+                })
+                .orElseGet(() -> {
+                    res.put("success", false);
+                    res.put("message", "아이디 또는 비밀번호가 올바르지 않습니다.");
+                    return ResponseEntity.badRequest().body(res);
+                });
     }
 
-    /** 개인 로그아웃 */
-    @GetMapping("/logout")
-    public String logout(HttpSession session,
-                         @RequestParam(value = "redirectURL", required = false) String redirectURL) {
-        session.removeAttribute("user");
-        if (redirectURL != null && !redirectURL.isBlank()) {
-            return "redirect:" + redirectURL;
+    /** 개인 로그아웃(API) */
+    @PostMapping("/logout")
+    public Map<String, Object> apiLogout(HttpSession session) {
+        Map<String, Object> res = new HashMap<>();
+        try {
+            session.invalidate();
+            res.put("success", true);
+            res.put("message", "로그아웃되었습니다.");
+        } catch (Exception e) {
+            res.put("success", false);
+            res.put("message", "로그아웃 처리 중 오류가 발생했습니다.");
         }
-        return "redirect:/";
+        return res;
     }
 }

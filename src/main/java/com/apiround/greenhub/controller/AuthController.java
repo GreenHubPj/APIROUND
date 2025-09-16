@@ -1,8 +1,5 @@
 package com.apiround.greenhub.controller;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -18,6 +15,8 @@ import com.apiround.greenhub.repository.UserRepository;
 import com.apiround.greenhub.service.CompanySignupService;
 import com.apiround.greenhub.service.EmailCodeService;
 import com.apiround.greenhub.util.PasswordUtil;
+
+import jakarta.servlet.http.HttpSession;
 
 @Controller
 public class AuthController {
@@ -39,13 +38,23 @@ public class AuthController {
         this.companySignupService = companySignupService;
     }
 
-    // ───────── View (개인 가입 화면)
+    // ───────── View
     @GetMapping("/signup")
     public String signupForm(Model model) {
         if (!model.containsAttribute("user")) {
             model.addAttribute("user", new User());
         }
         return "signup";
+    }
+
+    /** 로그인 화면(유일한 /login 매핑) */
+    @GetMapping("/login")
+    public String loginForm(@RequestParam(value = "redirectURL", required = false) String redirectURL,
+                            Model model) {
+        if (redirectURL != null && !redirectURL.isBlank()) {
+            model.addAttribute("redirectURL", redirectURL);
+        }
+        return "login";
     }
 
     // ───────── 이메일 인증 (개인/판매 공용)
@@ -64,7 +73,7 @@ public class AuthController {
         return emailCodeService.verifyCode(email.trim(), code.trim());
     }
 
-    // ───────── 개인 회원가입
+    // ───────── 개인 회원가입 (글로벌 아이디 중복 체크)
     @PostMapping("/auth/signup")
     public String signupUser(@ModelAttribute("user") User form, RedirectAttributes ra) {
         if (isBlank(form.getLoginId()) || isBlank(form.getPassword())) {
@@ -83,11 +92,15 @@ public class AuthController {
             ra.addFlashAttribute("error", "휴대폰번호는 필수입니다.");
             return "redirect:/signup";
         }
+
         if (!emailCodeService.isVerified(form.getEmail().trim())) {
             ra.addFlashAttribute("error", "이메일 인증을 완료해주세요.");
             return "redirect:/signup";
         }
-        if (userRepository.existsByLoginId(form.getLoginId())) {
+
+        // 개인/회사 전체에서 아이디 중복 금지
+        if (userRepository.existsByLoginId(form.getLoginId()) ||
+                companyRepository.existsByLoginId(form.getLoginId())) {
             ra.addFlashAttribute("error", "이미 사용 중인 아이디입니다.");
             return "redirect:/signup";
         }
@@ -117,7 +130,7 @@ public class AuthController {
         return "redirect:/login";
     }
 
-    // ───────── 판매 회원가입 (company 테이블)
+    // ───────── 판매 회원가입 (글로벌 아이디 중복 체크)
     @PostMapping("/auth/signup-company")
     public String signupCompany(@RequestParam String companyName,
                                 @RequestParam String loginId,
@@ -128,15 +141,22 @@ public class AuthController {
                                 @RequestParam String managerPhone,
                                 @RequestParam(required = false) String address,
                                 RedirectAttributes ra) {
-
         if (isBlank(companyName) || isBlank(loginId) || isBlank(password) ||
                 isBlank(businessRegistrationNumber) || isBlank(email) ||
                 isBlank(managerName) || isBlank(managerPhone)) {
             ra.addFlashAttribute("error", "업체명/아이디/비밀번호/사업자번호/이메일/담당자명/담당자연락처는 필수입니다.");
             return "redirect:/signup";
         }
+
         if (!emailCodeService.isVerified(email.trim())) {
             ra.addFlashAttribute("error", "회사 이메일 인증을 완료해주세요.");
+            return "redirect:/signup";
+        }
+
+        // 개인/회사 전체에서 아이디 중복 금지
+        if (companyRepository.existsByLoginId(loginId) ||
+                userRepository.existsByLoginId(loginId)) {
+            ra.addFlashAttribute("error", "이미 사용 중인 아이디입니다.");
             return "redirect:/signup";
         }
 
@@ -163,10 +183,59 @@ public class AuthController {
         }
 
         ra.addFlashAttribute("success", "판매회원 가입이 완료되었습니다. 이제 로그인하세요.");
-        return "redirect:/company/login";
+        return "redirect:/login";
     }
 
-    // ⚠️ 로그인/로그아웃 관련 엔드포인트는 이 컨트롤러에서 제거(분리)
+    // ───────── 통합 로그인(계정유형으로만 인증: 폴백 없음)
+    @PostMapping("/auth/login")
+    public String doLogin(@RequestParam String loginId,
+                          @RequestParam String password,
+                          @RequestParam(value = "accountType", defaultValue = "PERSONAL") String accountType,
+                          @RequestParam(value = "redirectURL", required = false) String redirectURL,
+                          HttpSession session,
+                          RedirectAttributes ra) {
+
+        try {
+            if ("COMPANY".equalsIgnoreCase(accountType)) {
+                // 회사만 인증
+                Company c = companyRepository.findByLoginId(loginId)
+                        .orElseThrow(() -> new IllegalArgumentException("NO_COMPANY"));
+                if (!PasswordUtil.matches(password, c.getPassword()))
+                    throw new IllegalArgumentException("BAD_PW");
+
+                session.setAttribute("company", c);
+                session.removeAttribute("user");
+                session.setAttribute("loginCompanyId", c.getCompanyId());
+                session.setAttribute("loginCompanyName", c.getCompanyName());
+
+                return "redirect:" + (redirectURL != null && !redirectURL.isBlank() ? redirectURL : "/mypage-company");
+            } else {
+                // 개인만 인증
+                User u = userRepository.findByLoginId(loginId)
+                        .orElseThrow(() -> new IllegalArgumentException("NO_USER"));
+                if (!PasswordUtil.matches(password, u.getPassword()))
+                    throw new IllegalArgumentException("BAD_PW");
+
+                session.setAttribute("user", u);
+                session.removeAttribute("company");
+                session.setAttribute("LOGIN_USER", u);
+                session.setAttribute("loginUserId", u.getUserId());
+                session.setAttribute("loginUserName", u.getName());
+
+                return "redirect:" + (redirectURL != null && !redirectURL.isBlank() ? redirectURL : "/mypage");
+            }
+        } catch (Exception e) {
+            ra.addFlashAttribute("error", "아이디/비밀번호 또는 계정 유형을 확인해주세요.");
+            return "redirect:/login" + (redirectURL != null ? "?redirectURL=" + redirectURL : "");
+        }
+    }
+
+    /** 폼 로그아웃 */
+    @PostMapping("/auth/logout")
+    public String logoutByForm(HttpSession session) {
+        try { session.invalidate(); } catch (Exception ignored) {}
+        return "redirect:/";
+    }
 
     private boolean isBlank(String s) { return s == null || s.isBlank(); }
 }

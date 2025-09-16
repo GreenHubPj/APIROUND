@@ -1,3 +1,4 @@
+// /static/js/item-management.js
 // 상품관리 페이지 JavaScript (서버 연동 버전)
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -9,7 +10,20 @@ function initializeItemManagement() {
   setupFormHandlers();
   setupPriceOptions();
   setupImageUpload();
+  wireSearchAndFilters();
   console.log('상품관리 페이지가 초기화되었습니다.');
+}
+
+/* ------------------------------
+ * 공통: CSRF
+ * ------------------------------ */
+function getCsrfToken() {
+  // 1) 폼 hidden _csrf (권장)
+  const input = document.querySelector('input[name="_csrf"]');
+  if (input && input.value) return input.value;
+  // 2) meta 태그 백업
+  const meta = document.querySelector('meta[name="_csrf"]');
+  return meta ? meta.getAttribute('content') : null;
 }
 
 /* ------------------------------
@@ -32,17 +46,17 @@ async function handleFormSubmit(e) {
   // 유효성 (간단 체크: 필수값 & 가격옵션 1개 이상)
   if (!basicValidate()) return;
 
-  const action = form.getAttribute('action') || form.getAttribute('data-action') || '/mypage-company/item-management';
+  const action = form.getAttribute('action') || form.getAttribute('data-action') || '/item-management';
   const method = (form.getAttribute('method') || 'post').toUpperCase();
 
   try {
     const fd = new FormData(form);
-    // 파일 업로드가 없으면 x-www-form-urlencoded로 보내도 되지만,
-    // 가격옵션 다건 배열을 유지하려고 FormData 그대로 전송
+    // 옵션 라벨이 비어있으면 빈 문자열 그대로 전송 (선택 필드)
+
     const res = await fetch(action, {
       method,
       body: fd
-      // CSRF 쓰면 헤더 필요 없음(스프링이 FormData 내부 hidden _csrf로 처리)
+      // CSRF: FormData 안의 hidden _csrf 로 처리됨 (Spring Security 기본)
     });
 
     if (!res.ok) {
@@ -70,7 +84,7 @@ function basicValidate() {
   if (!region) return showMessage('지역을 선택하세요.', 'error'), false;
   if (!desc) return showMessage('상품 설명을 입력하세요.', 'error'), false;
 
-  // 가격옵션 최소 1개, 모든 필드 채움
+  // 가격옵션 최소 1개, 모든 필드 채움(가격/수량/단위)
   const rows = document.querySelectorAll('.price-option-item');
   if (rows.length === 0) return showMessage('가격 옵션을 최소 1개 추가하세요.', 'error'), false;
 
@@ -81,6 +95,7 @@ function basicValidate() {
     if (!q || !u || p === '' || p === null) {
       return showMessage('가격 옵션의 수량/단위/가격을 모두 입력하세요.', 'error'), false;
     }
+    if (Number(q) <= 0) return showMessage('수량은 0보다 커야 합니다.', 'error'), false;
     if (Number(p) < 0) return showMessage('가격은 0 이상이어야 합니다.', 'error'), false;
   }
 
@@ -96,48 +111,41 @@ function basicValidate() {
  * ------------------------------ */
 function setupPriceOptions() {
   document.getElementById('addPriceOption').addEventListener('click', addPriceOption);
-  // 초기 한 줄은 HTML에 존재(이름이 이미 세팅되어 있어야 함)
+
+  // 초기 한 줄이 없다면 생성
+  const container = document.getElementById('priceOptionsContainer');
+  if (!container.querySelector('.price-option-item')) addPriceOption();
 }
 
-function addPriceOption() {
+function addPriceOption(opt = {}) {
   const container = document.getElementById('priceOptionsContainer');
   const wrap = document.createElement('div');
   wrap.className = 'price-option-item';
   wrap.innerHTML = `
     <div class="form-row">
       <div class="form-group">
+        <label class="form-label">옵션 라벨</label>
+        <input type="text" class="form-input" name="optionLabel"
+               value="${escapeHtml(opt.optionLabel ?? '')}"
+               placeholder="예: 기본 / 소 / 대 (선택)">
+      </div>
+      <div class="form-group">
         <label class="form-label">수량</label>
-        <input type="number" class="form-input price-quantity" name="quantity" placeholder="예: 1" min="1" required>
+        <input type="number" step="0.01" min="0.01"
+               class="form-input price-quantity" name="quantity"
+               value="${opt.quantity ?? ''}" placeholder="예: 1.00" required>
       </div>
       <div class="form-group">
         <label class="form-label">단위</label>
         <select class="form-select price-unit" name="unit" required>
-          <option value="">단위 선택</option>
-          <option value="kg">kg</option>
-          <option value="g">g</option>
-          <option value="개">개</option>
-          <option value="박스">박스</option>
-          <option value="봉">봉</option>
-          <option value="포기">포기</option>
-          <option value="단">단</option>
-          <option value="팩">팩</option>
-          <option value="병">병</option>
-          <option value="캔">캔</option>
-          <option value="마리">마리</option>
-          <option value="포">포</option>
-          <option value="근">근</option>
-          <option value="되">되</option>
-          <option value="말">말</option>
-          <option value="상자">상자</option>
-          <option value="통">통</option>
-          <option value="봉지">봉지</option>
-          <option value="세트">세트</option>
-          <option value="묶음">묶음</option>
+          ${unitOptionsHtml(opt.unit)}
         </select>
       </div>
       <div class="form-group">
         <label class="form-label">가격 (원)</label>
-        <input type="number" class="form-input price-amount" name="price" placeholder="예: 16000" min="0" required>
+        <input type="number" step="1" min="0"
+               class="form-input price-amount" name="price"
+               value="${opt.price ?? ''}" placeholder="예: 16000" required>
       </div>
       <div class="form-group">
         <label class="form-label">액션</label>
@@ -146,6 +154,11 @@ function addPriceOption() {
     </div>
   `;
   container.appendChild(wrap);
+}
+
+function unitOptionsHtml(selected) {
+  const list = ['', 'kg','g','개','박스','봉','포기','단','팩','병','캔','마리','포','근','되','말','상자','통','봉지','세트','묶음'];
+  return list.map(u => `<option value="${u}" ${u===selected?'selected':''}>${u||'단위 선택'}</option>`).join('');
 }
 
 function removePriceOption(buttonEl) {
@@ -168,6 +181,8 @@ function setupImageUpload() {
   const imageUpload = document.getElementById('imageUpload');
   const removeAllImagesBtn = document.getElementById('removeAllImagesBtn');
   const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+
+  if (!uploadBtn || !imageUpload || !removeAllImagesBtn || !imagePreviewContainer) return;
 
   uploadBtn.addEventListener('click', () => imageUpload.click());
   imageUpload.addEventListener('change', onFilesSelected);
@@ -192,7 +207,7 @@ function setupImageUpload() {
 }
 
 function onFilesSelected(e) {
-  const files = Array.from(e.target.files);
+  const files = Array.from(e.target.files || []);
   if (uploadedImages.length + files.length > 5) {
     showMessage('이미지는 최대 5장까지 업로드할 수 있습니다.', 'error');
     return;
@@ -211,6 +226,7 @@ function onFilesSelected(e) {
 function renderImages() {
   const imagePreviewContainer = document.getElementById('imagePreviewContainer');
   const removeAllImagesBtn = document.getElementById('removeAllImagesBtn');
+  if (!imagePreviewContainer) return;
 
   if (uploadedImages.length === 0) {
     imagePreviewContainer.innerHTML = `
@@ -221,7 +237,7 @@ function renderImages() {
           <small>드래그 앤 드롭 또는 클릭하여 선택</small>
         </div>
       </div>`;
-    removeAllImagesBtn.style.display = 'none';
+    if (removeAllImagesBtn) removeAllImagesBtn.style.display = 'none';
     return;
   }
 
@@ -231,7 +247,7 @@ function renderImages() {
       <button type="button" class="remove-btn" onclick="removeImage('${img.id}')">×</button>
     </div>
   `).join('');
-  removeAllImagesBtn.style.display = 'inline-block';
+  if (removeAllImagesBtn) removeAllImagesBtn.style.display = 'inline-block';
 }
 
 function removeImage(imageId) {
@@ -277,6 +293,10 @@ function resetForm() {
   // 버튼/타이틀
   document.getElementById('formTitle').textContent = '새 상품 등록';
   document.getElementById('cancelBtn').style.display = 'none';
+
+  // hidden productId 초기화
+  const hiddenId = document.getElementById('productId');
+  if (hiddenId) hiddenId.value = '';
 }
 
 function cancelEdit() {
@@ -288,25 +308,111 @@ function cancelEdit() {
 }
 
 /* ------------------------------
- * 테이블 액션 (수정/삭제) - 서버 연동시 구현
+ * 테이블 액션 (수정/삭제) - 서버 연동
  * ------------------------------ */
-function editProduct(productId) {
-  // 필요 시 별도 편집 페이지로 이동하거나, 상세 조회 후 폼에 채워 넣는 로직 작성
-  // location.href = `/mypage-company/item-management/edit/${productId}`;
-  console.log('editProduct', productId);
+async function editProduct(productId) {
+  try {
+    const res = await fetch(`/api/products/${productId}`);
+    if (!res.ok) throw new Error('상품 정보 로드 실패');
+    const data = await res.json();
+    fillFormWithProduct(data);
+  } catch (e) {
+    console.error(e);
+    showMessage('상품 정보를 불러오지 못했습니다.', 'error');
+  }
+}
+
+function fillFormWithProduct(data) {
+  const p = data.product;
+  const opts = data.options || [];
+
+  // 폼 열기
+  const itemFormSection = document.getElementById('itemFormSection');
+  const addProductBtn = document.getElementById('addProductBtn');
+  const cancelBtn = document.getElementById('cancelBtn');
+  itemFormSection.style.display = 'block';
+  addProductBtn.style.display = 'none';
+  cancelBtn.style.display = 'inline-flex';
+  document.getElementById('formTitle').textContent = '상품 수정';
+
+  // 기본 필드 주입
+  document.getElementById('productId').value = p.productId ?? '';
+  document.getElementById('productName').value = p.productName ?? '';
+  document.getElementById('category').value = p.productType ?? '';
+  document.getElementById('region').value = p.regionText ?? '';
+  document.getElementById('description').value = p.description ?? '';
+  document.querySelector('input[name="thumbnailUrl"]').value = p.thumbnailUrl ?? '';
+  document.querySelector('input[name="externalRef"]').value = p.externalRef ?? '';
+
+  // 제철기간 체크
+  document.querySelectorAll('input[name="months"]').forEach(chk => chk.checked = false);
+  (p.harvestSeason || '').split(',').forEach(m => {
+    const el = document.querySelector(`input[name="months"][value="${m.trim()}"]`);
+    if (el) el.checked = true;
+  });
+
+  // 옵션 다시 그림
+  const container = document.getElementById('priceOptionsContainer');
+  container.innerHTML = '';
+  if (opts.length === 0) {
+    addPriceOption();
+  } else {
+    opts.forEach(o => addPriceOption({
+      optionLabel: o.optionLabel,
+      quantity: o.quantity, // BigDecimal도 문자열로 들어오므로 그대로 출력 가능
+      unit: o.unit,
+      price: o.price
+    }));
+  }
 }
 
 async function deleteProduct(productId) {
   if (!confirm('정말로 이 상품을 삭제하시겠습니까?')) return;
   try {
-    const res = await fetch(`/mypage-company/item-management/${productId}`, { method: 'DELETE' });
+    const csrf = getCsrfToken();
+    const res = await fetch(`/api/products/${productId}`, {
+      method: 'DELETE',
+      headers: csrf ? { 'X-CSRF-TOKEN': csrf } : {}
+    });
     if (!res.ok) throw new Error('삭제 실패');
-    showMessage('삭제되었습니다.', 'success');
-    setTimeout(() => window.location.reload(), 400);
+    const json = await res.json().catch(() => ({}));
+    if (json && json.ok) {
+      showMessage('삭제되었습니다.', 'success');
+      setTimeout(() => window.location.reload(), 400);
+    } else {
+      throw new Error('삭제 실패');
+    }
   } catch (e) {
     console.error(e);
     showMessage('삭제 중 오류가 발생했습니다.', 'error');
   }
+}
+
+/* ------------------------------
+ * 검색/필터 (프론트 단순 필터링, 선택)
+ * ------------------------------ */
+function wireSearchAndFilters() {
+  const input = document.getElementById('searchInput');
+  const btn = document.getElementById('searchBtn');
+  const filter = document.getElementById('filterCategory');
+  if (!input || !btn || !filter) return;
+
+  const run = () => {
+    const q = (input.value || '').trim().toLowerCase();
+    const cat = filter.value || '';
+    const rows = document.querySelectorAll('#itemTableBody tr');
+    rows.forEach(tr => {
+      const name = (tr.querySelector('.name-col span')?.textContent || '').toLowerCase();
+      const category = (tr.querySelector('.category-col .category-tag')?.textContent || '').trim();
+      const matchQ = !q || name.includes(q);
+      const matchC = !cat || category === cat;
+      tr.style.display = (matchQ && matchC) ? '' : 'none';
+    });
+  };
+
+  btn.addEventListener('click', run);
+  input.addEventListener('keydown', (e) => { if (e.key === 'Enter') run(); });
+  filter.addEventListener('change', run);
 }
 
 /* ------------------------------
@@ -320,10 +426,22 @@ function showMessage(message, type) {
   box.className = `message ${type}`;
   box.textContent = message;
 
-  const formSection = document.querySelector('.item-form-section');
+  const formSection = document.querySelector('.item-form-section') || document.body;
   formSection.insertBefore(box, formSection.firstChild);
 
   setTimeout(() => box.remove(), 3000);
+}
+
+/* ------------------------------
+ * 유틸
+ * ------------------------------ */
+function escapeHtml(str) {
+  return String(str)
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;');
 }
 
 // 전역 노출(HTML onclick 연동용)
