@@ -12,7 +12,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
 </head>
 <body>
-<!-- 헤더 include -->
+<!-- 헤더 include (Thymeleaf 최신 문법) -->
 <div th:replace="~{common/header :: header}"></div>
 
 <div class="login-container">
@@ -25,7 +25,7 @@
     <div class="message" th:if="${error}" th:text="${error}" style="color:#d33; margin-bottom:12px;"></div>
     <div class="message success" th:if="${success}" th:text="${success}" style="color:#2c7; margin-bottom:12px;"></div>
 
-    <!-- 회원 유형 선택 (UI용) -->
+    <!-- 회원 유형 선택 (UI) -->
     <div class="member-type-tabs">
         <button type="button" class="member-type-tab active" data-type="individual">개인 회원</button>
         <button type="button" class="member-type-tab" data-type="seller">판매 회원</button>
@@ -45,13 +45,14 @@
     <div class="login-form-section">
         <h2 class="section-title">일반 로그인</h2>
 
-        <!-- 기본은 개인 로그인(/login), data-* 로 두 경로 명시 -->
-        <form id="loginForm"
-              class="login-form"
-              th:action="@{/login}"
-              method="post"
-              data-user-action="/login"
-              data-company-action="/company/login">
+        <!-- ★ 반드시 /auth/login 으로 POST -->
+        <form id="loginForm" class="login-form" th:action="@{/auth/login}" method="post">
+            <!-- CSRF 사용 시 -->
+            <!-- <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"> -->
+
+            <!-- 계정 유형(백엔드 전달용) : 기본 PERSONAL -->
+            <input type="hidden" id="accountType" name="accountType" value="PERSONAL"/>
+
             <div class="form-group">
                 <label class="form-label" for="loginId">아이디 *</label>
                 <input type="text" id="loginId" name="loginId" class="form-input" placeholder="아이디를 입력해주세요" required>
@@ -67,13 +68,14 @@
                 </div>
             </div>
 
-            <!-- 컨트롤러에서 redirectURL을 모델에 넣어줬다면 자동 포함 -->
+            <!-- redirectURL 유지 -->
             <input type="hidden" name="redirectURL" th:value="${redirectURL}">
+
             <button type="submit" class="login-btn">로그인</button>
         </form>
     </div>
 
-    <!-- 추가 링크 -->
+    <!-- 추가 링크들 -->
     <div class="login-links">
         <div class="forgot-links">
             <a th:href="@{/find-id}" class="forgot-link">아이디 찾기</a>
@@ -90,44 +92,37 @@
 <!-- 푸터 include -->
 <div th:replace="~{common/footer :: footer}"></div>
 
-<!-- 최소 JS (제출 가로채지 않음) -->
+<!-- 최소 JS: 제출 가로채지 않음 -->
 <script>
     (function () {
       const tabs = document.querySelectorAll('.member-type-tab');
       const social = document.getElementById('socialLoginSection');
-      const form = document.getElementById('loginForm');
+      const accountTypeInput = document.getElementById('accountType');
 
-      const userAction = form.getAttribute('data-user-action') || '/login';
-      const companyAction = form.getAttribute('data-company-action') || '/company/login';
-
-      function setType(type) {
-        // 탭 스타일
-        tabs.forEach(t => t.classList.remove('active'));
-        const active = document.querySelector(`.member-type-tab[data-type="${type}"]`);
-        if (active) active.classList.add('active');
-
-        // 폼 action 전환
-        form.action = (type === 'seller') ? companyAction : userAction;
-
-        // 소셜 영역 토글(판매자는 숨김)
-        social.style.display = (type === 'seller') ? 'none' : '';
-
-        // URL 쿼리에도 현재 탭 반영 (새로고침/공유 시 유지)
-        const url = new URL(window.location.href);
-        url.searchParams.set('type', type);
-        const redirectURL = document.querySelector('input[name="redirectURL"]')?.value || '';
-        if (redirectURL) url.searchParams.set('redirectURL', redirectURL);
-        history.replaceState({}, '', url.toString());
-      }
-
-      // 탭 클릭
+      // 탭 클릭 시 UI + accountType 값 동기화
       tabs.forEach(tab => {
-        tab.addEventListener('click', () => setType(tab.getAttribute('data-type')));
+        tab.addEventListener('click', () => {
+          tabs.forEach(t => t.classList.remove('active'));
+          tab.classList.add('active');
+          const type = tab.getAttribute('data-type');
+
+          // 판매자 탭이면 COMPANY, 아니면 PERSONAL
+          if (type === 'seller') {
+            accountTypeInput.value = 'COMPANY';
+            social.style.display = 'none';
+          } else {
+            accountTypeInput.value = 'PERSONAL';
+            social.style.display = '';
+          }
+        });
       });
 
-      // 초기 탭: ?type=seller 이면 판매자
-      const initType = new URLSearchParams(location.search).get('type') === 'seller' ? 'seller' : 'individual';
-      setType(initType);
+      // 페이지 로드 시 초기 상태 설정
+      if (window.location.search.includes('type=seller')) {
+        document.querySelector('[data-type="seller"]').click();
+      } else {
+        document.querySelector('[data-type="individual"]').click();
+      }
 
       // 비밀번호 보기 토글
       const toggleBtn = document.querySelector('.password-toggle');
@@ -137,6 +132,17 @@
           input.type = input.type === 'password' ? 'text' : 'password';
         });
       }
+
+      // 혹시 JS가 비활성화되거나 탭 로직이 실패해도 기본 PERSONAL 값이 전송되도록 hidden 기본값을 유지
+      // submit 전에 값 보정(안전망)
+      document.getElementById('loginForm').addEventListener('submit', () => {
+        const active = document.querySelector('.member-type-tab.active');
+        if (active && active.getAttribute('data-type') === 'seller') {
+          accountTypeInput.value = 'COMPANY';
+        } else {
+          accountTypeInput.value = 'PERSONAL';
+        }
+      });
     })();
 </script>
 </body>

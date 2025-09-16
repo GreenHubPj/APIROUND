@@ -28,7 +28,7 @@ public class CompanyAuthController {
         return "company-login";
     }
 
-    /** 업체 로그인 처리 */
+    /** 업체 로그인 처리 (화면 폼) */
     @PostMapping("/company/login")
     public String doCompanyLogin(@RequestParam String loginId,
                                  @RequestParam String password,
@@ -52,7 +52,7 @@ public class CompanyAuthController {
         return "redirect:/mypage-company";
     }
 
-    /** 업체 로그아웃 */
+    /** 업체 로그아웃 (화면 흐름) */
     @GetMapping("/company/logout")
     public String companyLogout(HttpSession session,
                                 @RequestParam(value = "redirectURL", required = false) String redirectURL) {
