@@ -317,13 +317,300 @@
                 <h3 class="module-title">업체정보수정</h3>
                 <p class="module-description">농장 정보, 연락처, 주소 등 업체 정보를 수정할 수 있습니다.</p>
             </div>
+
+            <!-- 업체 로그인 사용자에게만 표시되는 알림 메일 전송 버튼 -->
+            <div th:if="${currentCompany != null}" class="module-item" data-module="email-notification" tabindex="0" role="button" aria-label="알림 메일 전송">
+                <div class="module-icon"><span class="icon">📧</span></div>
+                <h3 class="module-title">알림 메일 전송</h3>
+                <p class="module-description">SMS 동의한 고객들에게 특별 할인이나 신상품 알림 메일을 발송할 수 있습니다.</p>
+            </div>
         </div>
     </div>
 </section>
+
+<!-- 이메일 발송 모달 -->
+<div id="emailModal" class="email-modal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>📧 알림 메일 전송</h3>
+            <button class="modal-close" onclick="closeEmailModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="recipients-info">
+                <p>SMS 동의한 고객 <span id="recipientCount">-</span>명에게 메일을 발송합니다.</p>
+                <button type="button" id="checkRecipientsBtn" class="btn-secondary">수신자 확인</button>
+            </div>
+            
+            <form id="emailForm">
+                <div class="form-group">
+                    <label for="emailSubject">제목</label>
+                    <input type="text" id="emailSubject" name="subject" placeholder="메일 제목을 입력하세요" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="emailMessage">내용</label>
+                    <textarea id="emailMessage" name="message" rows="6" placeholder="메일 내용을 입력하세요&#10;&#10;{name} - 고객 이름으로 치환됩니다&#10;{email} - 고객 이메일로 치환됩니다" required></textarea>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" onclick="closeEmailModal()" class="btn-cancel">취소</button>
+                    <button type="submit" class="btn-send">메일 발송</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
 <!-- 푸터 -->
 <div th:replace="~{common/footer :: footer}"></div>
 
 <script th:src="@{/js/mypage_company.js}"></script>
+
+<style>
+/* 이메일 모달 스타일 */
+.email-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 1px solid #eee;
+}
+
+.modal-header h3 {
+    margin: 0;
+    color: #333;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #999;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-close:hover {
+    color: #333;
+}
+
+.modal-body {
+    padding: 20px;
+}
+
+.recipients-info {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.recipients-info p {
+    margin: 0 0 10px 0;
+    color: #666;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #333;
+}
+
+.form-group input,
+.form-group textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: #ff6f3f;
+    box-shadow: 0 0 0 2px rgba(255, 111, 63, 0.1);
+}
+
+.form-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 30px;
+}
+
+.btn-secondary,
+.btn-cancel,
+.btn-send {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.btn-secondary {
+    background: #6c757d;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: #545b62;
+}
+
+.btn-cancel {
+    background: #f8f9fa;
+    color: #666;
+    border: 1px solid #ddd;
+}
+
+.btn-cancel:hover {
+    background: #e9ecef;
+}
+
+.btn-send {
+    background: #ff6f3f;
+    color: white;
+}
+
+.btn-send:hover {
+    background: #e55a2b;
+}
+
+.btn-send:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+}
+</style>
+
+<script>
+// 이메일 모달 관련 JavaScript
+function openEmailModal() {
+    document.getElementById('emailModal').style.display = 'flex';
+    checkRecipients();
+}
+
+function closeEmailModal() {
+    document.getElementById('emailModal').style.display = 'none';
+    document.getElementById('emailForm').reset();
+}
+
+// 수신자 수 확인
+async function checkRecipients() {
+    try {
+        const response = await fetch('/api/admin/email/recipients');
+        const data = await response.json();
+        
+        if (data.success) {
+            document.getElementById('recipientCount').textContent = data.count;
+        } else {
+            document.getElementById('recipientCount').textContent = '0';
+            console.error('수신자 조회 실패:', data.message);
+        }
+    } catch (error) {
+        console.error('수신자 조회 에러:', error);
+        document.getElementById('recipientCount').textContent = '0';
+    }
+}
+
+// 수신자 확인 버튼
+document.getElementById('checkRecipientsBtn').addEventListener('click', async function() {
+    try {
+        const response = await fetch('/api/admin/email/recipients');
+        const data = await response.json();
+        
+        if (data.success) {
+            const userList = data.users.map(user => `${user.name} (${user.email})`).join('\n');
+            alert(`SMS 동의 고객 ${data.count}명:\n\n${userList}`);
+        } else {
+            alert('수신자 목록을 불러올 수 없습니다: ' + data.message);
+        }
+    } catch (error) {
+        alert('수신자 목록 조회 중 오류가 발생했습니다.');
+        console.error(error);
+    }
+});
+
+// 이메일 발송 폼 제출
+document.getElementById('emailForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const submitBtn = this.querySelector('.btn-send');
+    const originalText = submitBtn.textContent;
+    
+    submitBtn.disabled = true;
+    submitBtn.textContent = '발송 중...';
+    
+    const formData = new FormData();
+    formData.append('subject', document.getElementById('emailSubject').value);
+    formData.append('message', document.getElementById('emailMessage').value);
+    
+    try {
+        const response = await fetch('/api/admin/email/send-bulk', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            alert('메일 발송이 시작되었습니다! 발송 완료까지 시간이 소요될 수 있습니다.');
+            closeEmailModal();
+        } else {
+            alert('메일 발송 실패: ' + data.message);
+        }
+    } catch (error) {
+        alert('메일 발송 중 오류가 발생했습니다.');
+        console.error(error);
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
+    }
+});
+
+// 모달 외부 클릭 시 닫기
+document.getElementById('emailModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeEmailModal();
+    }
+});
+</script>
 </body>
 </html>

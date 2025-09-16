@@ -3,6 +3,7 @@ package com.apiround.greenhub.repository;
 import com.apiround.greenhub.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface UserRepository extends JpaRepository<User, Integer> {
@@ -15,4 +16,8 @@ public interface UserRepository extends JpaRepository<User, Integer> {
 
     // ✅ 비번 재설정 1차 확인용: 아이디+이름+이메일
     Optional<User> findByLoginIdAndNameAndEmail(String loginId, String name, String email);
+
+    // SMS 동의한 사용자들만 조회하는 메서드
+    List<User> findBySmsConsentTrueAndDeletedAtIsNull();
+
 }

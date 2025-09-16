@@ -39,6 +39,9 @@ document.addEventListener('DOMContentLoaded', function() {
             case 'products':
                 window.location.href = '/item-management';
                 break;
+            case 'email-notification':
+                openEmailModal();
+                break;
             default:
                 console.log('알 수 없는 모듈:', moduleType);
         }
