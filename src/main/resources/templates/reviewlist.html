@@ -15,8 +15,9 @@
 <!-- 헤더 include -->
 <div th:replace="common/header :: header"></div>
 
-<!-- ✅ productId를 data 속성으로 내려줍니다 (JS에서 읽어 API 호출용) -->
-<main class="main-content" th:attr="data-product-id=${product != null} ? ${product.productId} : 0">
+<!-- ✅ productId를 data 속성으로 ‘정확히’ 내려줌 -->
+<!-- 컨트롤러에서 model.addAttribute("productId", productId) 하고 있으므로 이 값만 쓰는 게 가장 안전 -->
+<main class="main-content" th:attr="data-product-id=${productId}">
     <div class="container">
         <!-- 뒤로가기 버튼 -->
         <div class="back-button">
@@ -35,18 +36,16 @@
                 </div>
             </div>
             <div class="product-image">
-                <img
-                        id="productImage"
-                        class="product-thumbnail"
-                        th:if="${product != null}"
-                        th:src="${product.thumbnailUrl}"
-                        th:alt="${product.productName}">
-                <img
-                        th:if="${product == null}"
-                        id="productImage"
-                        class="product-thumbnail"
-                        src=""
-                        alt="상품 이미지">
+                <img th:if="${product != null}"
+                     id="productImage"
+                     class="product-thumbnail"
+                     th:src="${product.thumbnailUrl}"
+                     th:alt="${product.productName}">
+                <img th:if="${product == null}"
+                     id="productImage"
+                     class="product-thumbnail"
+                     src=""
+                     alt="상품 이미지">
             </div>
         </div>
 
@@ -63,7 +62,7 @@
                 </div>
             </div>
 
-            <!-- ✅ 별점 분포 막대가 동적으로 채워질 컨테이너 -->
+            <!-- ✅ 별점 분포 컨테이너(막대는 JS에서 생성) -->
             <div class="rating-breakdown" id="ratingBreakdown"></div>
         </section>
 
@@ -71,13 +70,12 @@
         <section class="reviews-section" aria-label="전체 리뷰">
             <div class="reviews-header">
                 <h2 class="section-title">전체 리뷰</h2>
-                <!-- (선택) 정렬/필터 UI가 필요하면 여기 추가 -->
             </div>
 
-            <!-- ✅ 리뷰 카드들이 동적으로 들어갈 영역 -->
+            <!-- ✅ 리뷰 카드가 동적으로 들어옴 -->
             <div class="review-list" id="reviewList"></div>
 
-            <!-- ✅ 페이지네이션 영역 -->
+            <!-- ✅ 페이지네이션 -->
             <nav class="pagination" id="pagination" aria-label="페이지 이동"></nav>
         </section>
     </div>
@@ -86,14 +84,14 @@
 <!-- 푸터 include -->
 <div th:replace="common/footer :: footer"></div>
 
-<!-- ⚠️ JS: 백엔드 API를 호출해 목록/통계를 채우는 스크립트 (우리가 만든 reviewlist.js) -->
+<!-- JS -->
 <script th:src="@{/js/reviewlist.js}"></script>
 
-<!-- ✅ productId가 필요할 때를 대비한 안전장치(선택): 전역 변수로도 주입 -->
+<!-- (선택) 전역 변수로도 productId 주입 -->
 <script th:inline="javascript">
     window.__REVIEWLIST__ = window.__REVIEWLIST__ || {};
     /*<![CDATA[*/
-    window.__REVIEWLIST__.productId = /*[[${product != null ? product.productId : 0}]]*/ 0;
+    window.__REVIEWLIST__.productId = /*[[${productId}]]*/ 0;
     /*]]>*/
 </script>
 </body>

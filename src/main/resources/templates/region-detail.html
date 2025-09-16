@@ -10,28 +10,20 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
 </head>
 <body>
-<!-- 헤더 include -->
 <div th:replace="common/header :: header"></div>
 
-<!-- 메인 컨텐츠 -->
 <main class="main-content">
     <div class="container">
-        <!-- 뒤로가기 버튼 -->
         <div class="back-button">
-            <button class="back-btn" id="backBtn" onclick="history.back()">
-                <span>←</span> 목록으로 돌아가기
-            </button>
+            <button class="back-btn" id="backBtn" onclick="history.back()"><span>←</span> 목록으로 돌아가기</button>
         </div>
 
-        <!-- 메인 레이아웃 -->
         <div class="main-layout">
-            <!-- 왼쪽: 상품 이미지, 리뷰, 업체 정보 -->
+            <!-- 왼쪽 -->
             <div class="left-section">
                 <!-- 상품 이미지 -->
                 <div class="product-images">
-                    <div class="thumbnail-container" id="thumbnailContainer">
-                        <!-- 썸네일 이미지들이 여기에 동적으로 추가됩니다 -->
-                    </div>
+                    <div class="thumbnail-container" id="thumbnailContainer"></div>
                     <div class="main-image-container">
                         <img id="mainImage" th:src="${product.thumbnailUrl}" th:alt="${product.productName}" class="main-image">
                         <div class="image-nav">
@@ -41,39 +33,40 @@
                     </div>
                 </div>
 
-                <!-- 리뷰 섹션 -->
-                <div class="review-section"
-                     th:attr="data-product-id=${product.productId}">
+                <!-- 고객 리뷰 카드 -->
+                <div class="review-section" th:attr="data-product-id=${product.productId}">
                     <div class="review-header">
                         <h2 class="section-title">고객 리뷰</h2>
                         <a class="view-all-reviews-btn" th:href="@{'/products/' + ${product.productId} + '/reviews'}">리뷰보기</a>
                     </div>
-                    <div class="review-list" id="reviewList">
-                        <!-- 리뷰 미리보기(최신 3개)가 여기 채워집니다 -->
+
+                    <!-- ✅ 요약(평균/개수) 미니 위젯 -->
+                    <div class="review-summary-mini">
+                        <div class="mini-left">
+                            <span class="mini-rating-number" id="avgRatingMini">0.0</span>
+                            <div class="mini-stars" id="avgStarsMini" aria-hidden="true"></div>
+                        </div>
+                        <div class="mini-right">
+                            <span class="mini-count"><b id="totalReviewCountMini">0</b>개 리뷰</span>
+                        </div>
                     </div>
+
+                    <!-- 최신 3개 프리뷰 -->
+                    <div class="review-list" id="reviewList"></div>
                 </div>
 
-                <!-- 업체 정보 섹션 -->
+                <!-- 업체 정보 -->
                 <div class="company-section">
                     <h3 class="company-title">업체 정보</h3>
                     <div class="company-details">
-                        <div class="company-item">
-                            <span class="company-label">업체명:</span>
-                            <span class="company-value" id="companyName">문경농협</span>
-                        </div>
-                        <div class="company-item">
-                            <span class="company-label">전화번호:</span>
-                            <span class="company-value" id="companyPhone">054-555-1234</span>
-                        </div>
-                        <div class="company-item">
-                            <span class="company-label">이메일:</span>
-                            <span class="company-value" id="companyEmail">mungyeong@coop.co.kr</span>
-                        </div>
+                        <div class="company-item"><span class="company-label">업체명:</span><span class="company-value" id="companyName">문경농협</span></div>
+                        <div class="company-item"><span class="company-label">전화번호:</span><span class="company-value" id="companyPhone">054-555-1234</span></div>
+                        <div class="company-item"><span class="company-label">이메일:</span><span class="company-value" id="companyEmail">mungyeong@coop.co.kr</span></div>
                     </div>
                 </div>
             </div>
 
-            <!-- 오른쪽: 상품 정보 -->
+            <!-- 오른쪽 -->
             <div class="right-section">
                 <div class="product-info">
                     <div class="product-header">
@@ -86,24 +79,13 @@
 
                     <div class="product-price-section">
                         <h3 class="price-title">가격 옵션</h3>
-                        <div class="price-options" id="priceOptions">
-                            <!-- 가격 옵션들이 여기에 동적으로 추가됩니다 -->
-                        </div>
+                        <div class="price-options" id="priceOptions"></div>
                     </div>
 
                     <div class="product-details">
-                        <div class="detail-item">
-                            <span class="detail-label">원산지:</span>
-                            <span class="detail-value" id="originInfo" th:text="${product.regionText}">-</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">제철기간:</span>
-                            <span class="detail-value" id="seasonInfo" th:text="${product.harvestSeason}">-</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">상품 유형:</span>
-                            <span class="detail-value" id="typeInfo" th:text="${product.productType}">-</span>
-                        </div>
+                        <div class="detail-item"><span class="detail-label">원산지:</span><span class="detail-value" id="originInfo" th:text="${product.regionText}">-</span></div>
+                        <div class="detail-item"><span class="detail-label">제철기간:</span><span class="detail-value" id="seasonInfo" th:text="${product.harvestSeason}">-</span></div>
+                        <div class="detail-item"><span class="detail-label">상품 유형:</span><span class="detail-value" id="typeInfo" th:text="${product.productType}">-</span></div>
                     </div>
 
                     <div class="product-description">
@@ -139,69 +121,16 @@
             </div>
         </div>
 
-        <!-- 관련 상품 섹션 -->
+        <!-- 관련 상품 -->
         <div class="related-products-section">
             <h2 class="section-title">관련 상품</h2>
-            <div class="related-products-grid" id="relatedProductsGrid">
-                <!-- 관련 상품들이 여기에 동적으로 추가됩니다 -->
-            </div>
+            <div class="related-products-grid" id="relatedProductsGrid"></div>
         </div>
     </div>
 </main>
 
-<!-- 푸터 include -->
 <div th:replace="common/footer :: footer"></div>
 
-<!-- 기존 상세 JS -->
 <script th:src="@{/js/region-detail.js}"></script>
-
-<!-- 리뷰 미리보기 전용 인라인 스크립트 -->
-<script>
-    (function(){
-        const root = document.querySelector('.review-section');
-        if (!root) return;
-
-        const productId = root.getAttribute('data-product-id');
-        const listEl = document.getElementById('reviewList');
-
-        function maskStars(n) {
-            const full = '★'.repeat(n);
-            const empty = '☆'.repeat(5 - n);
-            return full + empty;
-        }
-        function fmtDate(iso) {
-            try {
-                const d = new Date(iso);
-                const yyyy = d.getFullYear();
-                const mm = String(d.getMonth()+1).padStart(2,'0');
-                const dd = String(d.getDate()).padStart(2,'0');
-                return `${yyyy}.${mm}.${dd}`;
-            } catch(e) {
-                return '';
-            }
-        }
-        function render(items){
-            if (!items || items.length === 0) {
-                listEl.innerHTML = '<div class="review-empty">아직 등록된 리뷰가 없습니다.</div>';
-                return;
-            }
-            listEl.innerHTML = items.map(rv => `
-                <div class="review-item">
-                    <div class="review-top">
-                        <div class="review-author">${rv.authorName ?? '익명'}</div>
-                        <div class="review-date">${fmtDate(rv.createdAt)}</div>
-                    </div>
-                    <div class="review-rating">${maskStars(rv.rating)}</div>
-                    <div class="review-content">${(rv.content ?? '').replace(/\n/g,'<br>')}</div>
-                </div>
-            `).join('');
-        }
-
-        fetch(`/api/products/${productId}/reviews/preview?page=0&size=3`)
-            .then(r => r.json())
-            .then(data => render(data.content))
-            .catch(() => { listEl.innerHTML = '<div class="review-empty">리뷰를 불러오지 못했습니다.</div>'; });
-    })();
-</script>
 </body>
 </html>

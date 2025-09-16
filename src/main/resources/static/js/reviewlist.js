@@ -1,36 +1,41 @@
-// reviewlist.js
-
 document.addEventListener('DOMContentLoaded', () => {
-  const productId = getProductId();
+  const productId = resolveProductId();
   if (!productId) {
-    alert('상품 ID가 없습니다.');
+    console.warn('productId를 찾을 수 없습니다.');
     return;
   }
 
-  // 첫 로드
+  // 통계/목록 로드
   loadSummary(productId);
   loadReviews(productId, 0, 20, 'createdAt,desc');
 
-  // 뒤로가기 버튼
+  // 뒤로가기
   const backBtn = document.getElementById('backBtn');
-  if (backBtn) {
-    backBtn.addEventListener('click', () => history.back());
-  }
+  if (backBtn) backBtn.addEventListener('click', () => history.back());
 });
 
-function getProductId() {
+// 안전하게 productId 해석
+function resolveProductId() {
+  // 1) main data-attr
   const main = document.querySelector('main.main-content');
-  if (main && main.dataset.productId) return main.dataset.productId;
-  // fallback
-  const url = new URL(location.href);
-  // /products/{id}/reviews 로 들어오므로 path에서 2번 index가 id
-  const parts = url.pathname.split('/').filter(Boolean); // ["products","{id}","reviews"]
-  if (parts.length >= 2) return parts[1];
+  const dataId = main?.dataset?.productId;
+  if (dataId && dataId !== '0') return dataId;
+
+  // 2) 전역 변수
+  if (window.__REVIEWLIST__?.productId) return String(window.__REVIEWLIST__.productId);
+
+  // 3) URL path: /products/{id}/reviews
+  const m = location.pathname.match(/\/products\/(\d+)\/reviews/);
+  if (m) return m[1];
+
+  // 4) querystring
+  const q = new URLSearchParams(location.search).get('productId');
+  if (q) return q;
+
   return null;
 }
 
-// ----- API -----
-
+// ===== API =====
 async function loadSummary(productId) {
   try {
     const res = await fetch(`/api/products/${productId}/reviews/summary`);
@@ -39,6 +44,7 @@ async function loadSummary(productId) {
     renderSummary(data);
   } catch (e) {
     console.error(e);
+    renderSummary({ averageRating: 0, totalCount: 0, distribution: [0,0,0,0,0] });
   }
 }
 
@@ -50,22 +56,22 @@ async function loadReviews(productId, page = 0, size = 20, sort = 'createdAt,des
     renderReviews(data);
   } catch (e) {
     console.error(e);
+    renderReviews({ content: [], page:0, size, totalElements:0, totalPages:0 });
   }
 }
 
-// ----- Render -----
-
+// ===== Render =====
 function renderSummary(summary) {
-  // 평균/총개수
   const avgEl = document.getElementById('averageRating');
   const totalEl = document.getElementById('totalReviewCount');
   const starsEl = document.getElementById('averageStars');
 
-  avgEl.textContent = (summary.averageRating || 0).toFixed(1);
+  const avg = Number(summary.averageRating || 0);
+  avgEl.textContent = avg.toFixed(1);
   totalEl.textContent = summary.totalCount || 0;
 
   // 평균 별
-  const rounded = Math.round(summary.averageRating || 0);
+  const rounded = Math.round(avg);
   starsEl.innerHTML = '';
   for (let i = 0; i < 5; i++) {
     const span = document.createElement('span');
@@ -74,21 +80,32 @@ function renderSummary(summary) {
     starsEl.appendChild(span);
   }
 
-  // 분포 바(요약 DTO distribution: index0=1점, index4=5점)
-  const bars = document.querySelectorAll('.rating-bar');
+  // 분포 막대(5~1점 순)
+  const container = document.getElementById('ratingBreakdown');
+  container.innerHTML = '';
+  for (let score = 5; score >= 1; score--) {
+    const row = document.createElement('div');
+    row.className = 'rating-row';
+
+    row.innerHTML = `
+      <div class="rating-label">${score}점</div>
+      <div class="rating-bar"><div class="bar-fill" style="width:0%"></div></div>
+      <div class="rating-count">0</div>
+    `;
+    container.appendChild(row);
+  }
+
+  // 데이터 반영
   const total = summary.totalCount || 0;
-  bars.forEach((bar, idxFromTop) => {
-    // 화면은 5점부터 내려오므로 매핑
-    const score = 5 - idxFromTop; // 5,4,3,2,1
-    const index = score - 1; // 4..0
-    const count = summary.distribution?.[index] ?? 0;
+  const rows = container.querySelectorAll('.rating-row');
+  rows.forEach((row, i) => {
+    const score = 5 - i;                 // 5,4,3,2,1
+    const idx = score - 1;               // 4..0
+    const count = summary.distribution?.[idx] ?? 0;
     const percent = total > 0 ? (count / total) * 100 : 0;
 
-    const fill = bar.querySelector('.bar-fill');
-    const countEl = bar.querySelector('.rating-count');
-
-    fill.style.width = `${percent}%`;
-    countEl.textContent = count;
+    row.querySelector('.bar-fill').style.width = `${percent}%`;
+    row.querySelector('.rating-count').textContent = count;
   });
 }
 
@@ -100,8 +117,9 @@ function renderReviews(pageData) {
     const item = document.createElement('div');
     item.className = 'review-item';
 
-    const stars = '★'.repeat(r.rating) + '☆'.repeat(5 - r.rating);
-    const dateStr = (r.createdAt || '').replace('T', ' ').substring(0, 16);
+    const rating = Number(r.rating || 0);
+    const stars = '★'.repeat(rating) + '☆'.repeat(5 - rating);
+    const dateStr = (r.createdAt || '').toString().replace('T', ' ').substring(0, 16);
 
     item.innerHTML = `
       <div class="review-header">
@@ -113,10 +131,10 @@ function renderReviews(pageData) {
       </div>
       <div class="review-text"></div>
     `;
-    item.querySelector('.review-text').textContent = r.content;
+    item.querySelector('.review-text').textContent = r.content || '';
 
     listEl.appendChild(item);
   });
 
-  // TODO: 페이지네이션 UI가 있으면 여기서 pageData.page/pageData.totalPages 사용해 구성
+  // (필요시) 페이지네이션 구성에 pageData.page/totalPages 사용
 }
