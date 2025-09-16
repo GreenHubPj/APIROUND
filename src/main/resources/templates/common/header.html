@@ -41,7 +41,7 @@
                 업체 님
             </span>
             <a th:href="@{/mypage-company}" class="btn-mypage">업체 마이페이지</a>
-            <form th:action="@{/auth/logout}" method="post" style="display:inline;">
+            <form th:action="@{/logout}" method="post" style="display:inline;">
                 <button type="submit" class="btn-logout">로그아웃</button>
             </form>
         </div>
@@ -54,7 +54,7 @@
                 회원 님
             </span>
             <a th:href="@{/mypage}" class="btn-mypage">마이페이지</a>
-            <form th:action="@{/auth/logout}" method="post" style="display:inline;">
+            <form th:action="@{/logout}" method="post" style="display:inline;">
                 <button type="submit" class="btn-logout">로그아웃</button>
             </form>
         </div>

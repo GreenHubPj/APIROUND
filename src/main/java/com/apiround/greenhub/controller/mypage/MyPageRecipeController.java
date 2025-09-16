@@ -3,6 +3,7 @@ package com.apiround.greenhub.controller.mypage;
 import com.apiround.greenhub.dto.mypage.MyPageRecipeRequestDto;
 import com.apiround.greenhub.dto.mypage.MyPageRecipeResponseDto;
 import com.apiround.greenhub.service.mypage.MyPageRecipeService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -51,23 +52,65 @@ public class MyPageRecipeController {
     }
 
     // 단일 레시피 조회
-    @GetMapping("/{recipeId}")
+    @GetMapping(value = "/{recipeId}", produces = "application/json;charset=UTF-8")
     @ResponseBody
     public ResponseEntity<MyPageRecipeResponseDto>getRecipe(
             @RequestParam Long userId,
             @PathVariable Long recipeId) {
         MyPageRecipeResponseDto dto = myPageRecipeService.getRecipe(userId, recipeId);
-        return ResponseEntity.ok(dto);
+        return ResponseEntity.ok()
+                .header("Content-Type", "application/json;charset=UTF-8")
+                .body(dto);
     }
 
     // 레시피 수정
-    @PutMapping("/{recipeId}")
+    @PutMapping(value = "/{recipeId}", consumes = "application/json;charset=UTF-8")
     public ResponseEntity<Void> updateRecipe(
             @RequestParam Long userId,
             @PathVariable Long recipeId,
             @RequestBody MyPageRecipeRequestDto requestDto) {
         myPageRecipeService.updateRecipe(userId, recipeId, requestDto);
         return ResponseEntity.ok().build();
+    }
+
+    // 이미지와 함께 레시피 수정
+    @PutMapping("/{recipeId}/with-image")
+    public ResponseEntity<Void> updateRecipeWithImage(
+            @RequestParam Long userId,
+            @PathVariable Long recipeId,
+            @RequestParam("imageFile") MultipartFile imageFile,
+            @RequestParam("recipeData") String recipeDataJson) {
+        
+        try {
+            // JSON 문자열을 DTO로 변환
+            ObjectMapper objectMapper = new ObjectMapper();
+            MyPageRecipeRequestDto requestDto = objectMapper.readValue(recipeDataJson, MyPageRecipeRequestDto.class);
+            
+            // 이미지 파일 처리
+            if (!imageFile.isEmpty()) {
+                String filename = System.currentTimeMillis() + "_" + imageFile.getOriginalFilename();
+                Path uploadPath = Paths.get("upload-dir/recipes");
+                
+                // 디렉토리 생성
+                Files.createDirectories(uploadPath);
+                
+                // 파일 저장
+                Path filePath = uploadPath.resolve(filename);
+                imageFile.transferTo(filePath);
+                
+                // DTO에 이미지 URL 설정
+                requestDto.setHeroImageUrl("/upload-dir/recipes/" + filename);
+            }
+            
+            // 레시피 업데이트
+            myPageRecipeService.updateRecipe(userId, recipeId, requestDto);
+            
+            return ResponseEntity.ok().build();
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().build();
+        }
     }
 
     // 레시피 삭제

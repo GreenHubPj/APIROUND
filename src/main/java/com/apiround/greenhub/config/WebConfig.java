@@ -141,5 +141,7 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addResourceHandler("/images/**").addResourceLocations("classpath:/static/images/");
         // 환경에 맞게 조정
         registry.addResourceHandler("/uploads/**").addResourceLocations("file:/var/greenhub/uploads/");
+        // 레시피 이미지 업로드 디렉토리
+        registry.addResourceHandler("/upload-dir/**").addResourceLocations("file:upload-dir/");
     }
 }

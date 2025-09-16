@@ -27,6 +27,17 @@
                                 <span th:if="${recipe != null and recipe.cookMinutes != null}" th:text="${recipe.cookMinutes + '분'}"></span>
                                 <span th:unless="${recipe != null and recipe.cookMinutes != null}">미설정</span>
                             </span>
+                            <div class="time-selection" id="timeSelection" style="display: none;">
+                                <select id="cookMinutes" name="cookMinutes" class="time-select">
+                                    <option value="">시간 선택</option>
+                                    <option value="15">15분 이하</option>
+                                    <option value="30">30분 이하</option>
+                                    <option value="60">1시간 이하</option>
+                                    <option value="90">1시간 30분 이하</option>
+                                    <option value="120">2시간 이하</option>
+                                    <option value="180">3시간 이상</option>
+                                </select>
+                            </div>
                         </div>
                         <div class="difficulty-display">
                             <span class="difficulty-label">난이도</span>
@@ -36,6 +47,14 @@
                                 <span th:if="${recipe != null and recipe.difficulty != null and recipe.difficulty == 'HARD'}">어려움 ⭐⭐⭐</span>
                                 <span th:unless="${recipe != null and recipe.difficulty != null}">미설정</span>
                             </span>
+                            <div class="difficulty-selection" id="difficultySelection" style="display: none;">
+                                <select id="difficulty" name="difficulty" class="difficulty-select">
+                                    <option value="">난이도 선택</option>
+                                    <option value="EASY">쉬움 ⭐</option>
+                                    <option value="MEDIUM">보통 ⭐⭐</option>
+                                    <option value="HARD">어려움 ⭐⭐⭐</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
                 </div>
