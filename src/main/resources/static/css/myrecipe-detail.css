@@ -101,24 +101,115 @@ body {
     box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
 }
 
+.recipe-meta {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+    margin-bottom: 1rem;
+}
+
 .recipe-servings {
     display: inline-block;
-    background-color: #FF6B35;
+    background-color: #f8f9fa;
     color: #333;
     padding: 0.5rem 1.5rem;
     border-radius: 25px;
     font-weight: 600;
     font-size: 1.1rem;
-    border: 2px solid transparent;
+    border: 2px solid #e9ecef;
     transition: all 0.3s ease;
-    margin-bottom: 1rem;
 }
 
 .recipe-servings:focus {
     outline: none;
-    border-color: #e55a2b;
-    background-color: #e55a2b;
+    border-color: #FF6B35;
+    background-color: #FF6B35;
+    color: white;
     box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.2);
+}
+
+.recipe-time-difficulty {
+    display: flex;
+    gap: 2rem;
+    align-items: center;
+    justify-content: center;
+}
+
+.time-display, .difficulty-display {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.time-label, .difficulty-label {
+    font-weight: 600;
+    color: #2c5530;
+    font-size: 0.9rem;
+    text-align: center;
+}
+
+.time-value, .difficulty-value {
+    padding: 0.4rem 1rem;
+    border: 2px solid #e9ecef;
+    border-radius: 20px;
+    background-color: #f8f9fa;
+    color: #333;
+    font-weight: 500;
+    font-size: 0.9rem;
+    min-width: 100px;
+    text-align: center;
+}
+
+.difficulty-value {
+    color: #FF6B35;
+    font-weight: 600;
+}
+
+/* 조리시간 및 난이도 선택기 스타일 */
+.time-selection, .difficulty-selection {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.time-selection label, .difficulty-selection label {
+    font-weight: 600;
+    color: #2c5530;
+    font-size: 0.9rem;
+    text-align: center;
+}
+
+.time-select, .difficulty-select {
+    padding: 0.5rem 1rem;
+    border: 2px solid #e9ecef;
+    border-radius: 20px;
+    background-color: #f8f9fa;
+    color: #333;
+    font-weight: 500;
+    font-size: 0.9rem;
+    min-width: 140px;
+    text-align: center;
+}
+
+.time-select:focus, .difficulty-select:focus {
+    outline: none;
+    border-color: #FF6B35;
+    background-color: #fff5f2;
+    box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+}
+
+.time-select:hover, .difficulty-select:hover {
+    border-color: #FF6B35;
+    background-color: #fff5f2;
+}
+
+.time-select option, .difficulty-select option {
+    padding: 0.5rem;
+    background-color: white;
+    color: #333;
 }
 
 /* 편집 컨트롤 */
@@ -468,7 +559,8 @@ body {
 .recipe-main-image {
     width: 100%;
     max-width: 280px;
-    height: auto;
+    height: 200px;
+    object-fit: cover;
     border-radius: 15px;
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
     transition: transform 0.3s ease;
@@ -642,6 +734,15 @@ body {
 
     .edit-btn, .save-btn, .cancel-btn, .delete-recipe-btn {
         width: 200px;
+    }
+
+    .recipe-time-difficulty {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .time-value, .difficulty-value {
+        min-width: 120px;
     }
 }
 

@@ -117,4 +117,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 페이지 로드 완료 메시지
     console.log('요리법 상세 페이지 초기화 완료');
+
+
 });
