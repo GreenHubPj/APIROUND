@@ -32,19 +32,23 @@ public class WebConfig implements WebMvcConfigurer {
 
     // 정적/공용 리소스
     private static final String[] STATIC_OPEN_PATHS = {
-            "/css/**","/js/**","/images/**","/webjars/**","/favicon.ico","/uploads/**"
+            "/css/**","/js/**","/images/**","/webjars/**","/favicon.ico","/uploads/**","/upload-dir/**"
     };
 
-    // 인증 없이 접근 가능한 공개 경로
+    // 인증 없이 접근 가능한 공개 경로 (+로그아웃/에러 포함)
     private static final String[] PUBLIC_PATHS = {
             "/","/main","/popular","/seasonal","/region","/recipe","/event",
-            // 개인/업체 로그인·회원가입 화면 + 처리
+            // 로그인/회원가입 화면
             "/login","/signup",
             "/company/login","/company/signup",
-            // (예전에 쓰던 /auth/** 엔드포인트가 남아있다면 공개로 둬도 무방)
-            "/auth/**",
-            // 공개 API가 있다면
-            "/api/public/**"
+            // 로그인/로그아웃 처리
+            "/auth/login","/auth/signup","/auth/signup-company",
+            "/auth/email/**",
+            "/auth/logout", "/logout", "/company/logout",
+            // 공개 API
+            "/api/public/**",
+            // 에러 페이지
+            "/error"
     };
 
     @Override
@@ -55,7 +59,7 @@ public class WebConfig implements WebMvcConfigurer {
                 .excludePathPatterns(PUBLIC_PATHS)
                 .excludePathPatterns(STATIC_OPEN_PATHS);
 
-        // 2) 세션 사용자/업체 정보를 모든 뷰 모델에 주입
+        // 2) 세션 사용자/업체 정보를 모든 뷰 모델에 주입 (GlobalModelAttributes 대체)
         registry.addInterceptor(new CurrentPrincipalInjectInterceptor())
                 .addPathPatterns("/**")
                 .excludePathPatterns(STATIC_OPEN_PATHS);
@@ -71,6 +75,10 @@ public class WebConfig implements WebMvcConfigurer {
 
         @Override
         public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+            // 공개/정적 경로는 통과 (혹시 별도 등록 누락 대비)
+            String uri = request.getRequestURI();
+            if (isStatic(uri) || isPublic(uri)) return true;
+
             HttpSession session = request.getSession(false);
             Object user = (session != null) ? session.getAttribute("user") : null;
             Object company = (session != null) ? session.getAttribute("company") : null;
@@ -109,6 +117,28 @@ public class WebConfig implements WebMvcConfigurer {
             String xhr = req.getHeader("X-Requested-With");
             return "XMLHttpRequest".equalsIgnoreCase(xhr);
         }
+
+        private boolean isPublic(String uri) {
+            for (String p : PUBLIC_PATHS) {
+                if (match(uri, p)) return true;
+            }
+            return false;
+        }
+
+        private boolean isStatic(String uri) {
+            for (String p : STATIC_OPEN_PATHS) {
+                if (match(uri, p)) return true;
+            }
+            return false;
+        }
+
+        private boolean match(String uri, String pattern) {
+            if (pattern.endsWith("/**")) {
+                String base = pattern.substring(0, pattern.length() - 3);
+                return uri.startsWith(base);
+            }
+            return uri.equals(pattern);
+        }
     }
 
     /**
@@ -139,9 +169,7 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addResourceHandler("/css/**").addResourceLocations("classpath:/static/css/");
         registry.addResourceHandler("/js/**").addResourceLocations("classpath:/static/js/");
         registry.addResourceHandler("/images/**").addResourceLocations("classpath:/static/images/");
-        // 환경에 맞게 조정
         registry.addResourceHandler("/uploads/**").addResourceLocations("file:/var/greenhub/uploads/");
-        // 레시피 이미지 업로드 디렉토리
         registry.addResourceHandler("/upload-dir/**").addResourceLocations("file:upload-dir/");
     }
 }

@@ -57,6 +57,12 @@ public class AuthController {
         return "login";
     }
 
+    /** 실수로 GET /auth/login 들어올 때 → /login 으로 우회 */
+    @GetMapping("/auth/login")
+    public String redirectAuthLoginGet(@RequestParam(value = "redirectURL", required = false) String redirectURL) {
+        return "redirect:/login" + (redirectURL != null && !redirectURL.isBlank() ? "?redirectURL=" + redirectURL : "");
+    }
+
     // ───────── 이메일 인증 (개인/판매 공용)
     @PostMapping("/auth/email/send")
     @ResponseBody
@@ -197,7 +203,6 @@ public class AuthController {
 
         try {
             if ("COMPANY".equalsIgnoreCase(accountType)) {
-                // 회사만 인증
                 Company c = companyRepository.findByLoginId(loginId)
                         .orElseThrow(() -> new IllegalArgumentException("NO_COMPANY"));
                 if (!PasswordUtil.matches(password, c.getPassword()))
@@ -210,7 +215,6 @@ public class AuthController {
 
                 return "redirect:" + (redirectURL != null && !redirectURL.isBlank() ? redirectURL : "/mypage-company");
             } else {
-                // 개인만 인증
                 User u = userRepository.findByLoginId(loginId)
                         .orElseThrow(() -> new IllegalArgumentException("NO_USER"));
                 if (!PasswordUtil.matches(password, u.getPassword()))
@@ -230,11 +234,19 @@ public class AuthController {
         }
     }
 
-    /** 폼 로그아웃 */
-    @PostMapping("/auth/logout")
-    public String logoutByForm(HttpSession session) {
+    /** 폼 로그아웃 (POST /auth/logout, POST /logout 모두 지원) */
+    @PostMapping({"/auth/logout", "/logout"})
+    public String logoutByFormPost(HttpSession session) {
         try { session.invalidate(); } catch (Exception ignored) {}
         return "redirect:/";
+    }
+
+    /** 혹시 GET 링크로 호출되는 경우까지 안전 처리 (선택) */
+    @GetMapping({"/auth/logout", "/logout"})
+    public String logoutByGet(HttpSession session,
+                              @RequestParam(value = "redirectURL", required = false) String redirectURL) {
+        try { session.invalidate(); } catch (Exception ignored) {}
+        return "redirect:" + (redirectURL != null && !redirectURL.isBlank() ? redirectURL : "/");
     }
 
     private boolean isBlank(String s) { return s == null || s.isBlank(); }

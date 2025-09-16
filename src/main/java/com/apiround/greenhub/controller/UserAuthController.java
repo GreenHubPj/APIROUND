@@ -29,7 +29,6 @@ public class UserAuthController {
         return userRepository.findByLoginId(loginId)
                 .filter(u -> PasswordUtil.matches(password, u.getPassword()))
                 .map(u -> {
-                    // 개인 세션 세팅, 회사 세션 제거
                     session.setAttribute("user", u);
                     session.removeAttribute("company");
                     session.setAttribute("LOGIN_USER", u);
