@@ -30,7 +30,6 @@ public class EmailNotiService {
         mail.setTo(to);
         mail.setSubject(subject);
         mail.setText(message);
-
         mailSender.send(mail);
     }
 
