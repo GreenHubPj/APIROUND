@@ -32,8 +32,18 @@
                     <div class="thumbnail-container" id="thumbnailContainer">
                         <!-- 썸네일 이미지들이 여기에 동적으로 추가됩니다 -->
                     </div>
-                    <div class="main-image-container">
-                        <img id="mainImage" th:src="${product.thumbnailUrl}" th:alt="${product.productName}" class="main-image">
+
+                    <!-- ★ 여기만 바뀜: th:with로 fallback/thumbnail 계산 후 변수끼리 삼항 사용 -->
+                    <div class="main-image-container"
+                         th:with="
+                 thumb=${#strings.trim(product.thumbnailUrl)},
+                 isBad=${#strings.isEmpty(thumb) or #strings.equalsIgnoreCase(thumb,'null') or #strings.equals(thumb,'#')},
+                 fallback=@{/images/따봉 트럭.png}">
+                        <img id="mainImage"
+                             class="main-image"
+                             th:alt="${product.productName}"
+                             th:src="${isBad} ? ${fallback} : ${thumb}"
+                             th:attr="onerror=|this.onerror=null;this.src='${fallback}'|">
                         <div class="image-nav">
                             <button class="nav-btn prev-btn" id="prevBtn">‹</button>
                             <button class="nav-btn next-btn" id="nextBtn">›</button>
@@ -129,9 +139,9 @@
                                 <button class="quantity-btn" id="increaseBtn">+</button>
                             </div>
                         </div>
+
                         <div class="price-option-selector">
                             <label for="priceOptionSelect">가격 옵션:</label>
-                            <!-- 셀렉트 박스에도 동일 옵션 제공 -->
                             <select id="priceOptionSelect" class="price-select"
                                     th:disabled="${options == null or #lists.isEmpty(options)}">
                                 <option value="">가격 옵션을 선택하세요</option>
@@ -142,10 +152,12 @@
                                 </option>
                             </select>
                         </div>
+
                         <div class="total-price">
                             <span class="total-label">총 가격:</span>
                             <span class="total-amount" id="totalAmount">0원</span>
                         </div>
+
                         <div class="purchase-buttons">
                             <button class="btn-cart" id="addToCartBtn">🛒 장바구니 담기</button>
                             <button class="btn-buy" id="buyNowBtn">💳 구매하기</button>
@@ -163,23 +175,18 @@
             <div class="related-products-grid" id="relatedProductsGrid"
                  th:with="r=${#strings.isEmpty(param.region) ? product.regionText : param.region}">
                 <a class="related-card"
-                   th:each="rp : ${relatedProducts}"
-                   th:href="@{/region-detail(id=${rp.productId}, region=${r})}">
+                   th:each="rp, stat : ${relatedProducts}"
+                   th:if="${stat.index < 4}"
+                   th:href="@{/region-detail(id=${rp.productId}, region=${r})}"
+                   th:with="
+                    thumb=${#strings.trim(rp.thumbnailUrl)},
+                    isBad=${#strings.isEmpty(thumb) or #strings.equalsIgnoreCase(thumb,'null') or #strings.equals(thumb,'#')},
+                    fallback=@{/images/따봉 트럭.png}">
                     <div class="related-thumb">
-                    <img id="Image" class="main-image"
-                         th:alt="${product.productName}"
-                         loading="lazy"
-                        th:src="${(
-                        #strings.isEmpty(#strings.trim(rp.thumbnailUrl)) or
-                        #strings.equalsIgnoreCase(#strings.trim(rp.thumbnailUrl), 'null')
-                        )
-                        ? @{/images/따봉 트럭.png}
-                        : ${product.thumbnailUrl}}"
-                        th:attr="onerror=|this.onerror=null;this.src='@{/images/따봉 트럭.png}'|">
-
+                        <img th:alt="${rp.productName}"
+                             th:src="${isBad} ? ${fallback} : ${thumb}"
+                             th:attr="onerror=|this.onerror=null;this.src='@{/images/따봉 트럭.png}'|">
                     </div>
-
-
                     <div class="related-info">
                         <div class="related-name" th:text="${rp.productName}">상품명</div>
                         <div class="related-meta">
@@ -189,7 +196,6 @@
                     </div>
                 </a>
             </div>
-
         </div>
 
         <!-- 아무것도 없을 때 안내 (선택) -->

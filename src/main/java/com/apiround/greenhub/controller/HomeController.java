@@ -1,20 +1,33 @@
 package com.apiround.greenhub.controller;
 
+import com.apiround.greenhub.entity.item.Region;
+import com.apiround.greenhub.service.item.SeasonalService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import com.apiround.greenhub.service.item.RegionService;
+
+import java.util.List;
+
 @Controller
+@RequiredArgsConstructor
 public class HomeController {
 
-    @GetMapping("/")
-    public String home() { return "main"; }
+    private final SeasonalService seasonalService;
 
-    @GetMapping("/main")
-    public String main() { return "main"; }
+    @GetMapping("/")
+    public String home(Model model) {
+        List<Region> seasonal = seasonalService.getRandomSeasonalForMain(8); // ✅ 인스턴스 호출
+        model.addAttribute("seasonalProducts", seasonal);
+        return "main";
+    }
 
     @GetMapping("/seasonal")
     public String seasonal() {
+        // SeasonalController로 리다이렉트
         return "redirect:/specialties/monthly";
     }
 

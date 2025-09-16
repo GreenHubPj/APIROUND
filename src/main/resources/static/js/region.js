@@ -170,7 +170,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // 검색 실행 함수
     function performSearch() {
         const searchTerm = searchInput.value.trim();
-        console.log('검색어:', searchTerm);
         // 통합 필터링 함수 사용
         filterProducts();
     }
@@ -299,12 +298,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // 다음 상품들을 표시하는 함수
     function showNextProducts() {
         const visibleCards = [];
-        
-        console.log('showNextProducts 호출됨');
-        console.log('현재 지역:', currentRegion);
-        console.log('현재 카테고리:', currentCategory);
-        console.log('현재 표시된 수:', displayedCount);
-        
+
         productCards.forEach(card => {
             const cardRegion = card.getAttribute('data-region');
             const cardCategory = card.getAttribute('data-category');
@@ -338,24 +332,19 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
         
-        console.log('필터링된 상품 수:', visibleCards.length);
-        
+
         // 현재 표시된 수부터 itemsPerPage만큼 더 표시
         const endIndex = Math.min(displayedCount + itemsPerPage, visibleCards.length);
-        console.log('표시할 범위:', displayedCount, '~', endIndex);
-        
+
         for (let i = displayedCount; i < endIndex; i++) {
             visibleCards[i].classList.remove('hidden');
-            console.log('상품 표시됨:', i, visibleCards[i].querySelector('.product-title').textContent);
         }
         
         displayedCount = endIndex;
-        console.log('업데이트된 표시된 수:', displayedCount);
-        
+
         // 더 표시할 상품이 있는지 반환
         const hasMore = displayedCount < visibleCards.length;
-        console.log('더 표시할 상품이 있는가:', hasMore);
-        
+
         return hasMore;
     }
     
@@ -426,8 +415,7 @@ document.addEventListener('DOMContentLoaded', function() {
     regionLabels.forEach(label => {
         label.addEventListener('click', function() {
             const regionName = this.getAttribute('data-region');
-            console.log('클릭된 지역:', regionName);
-            
+
             // 지역 라벨 활성화 상태 업데이트
             regionLabels.forEach(l => l.classList.remove('active'));
             this.classList.add('active');
@@ -445,24 +433,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 더보기 버튼 클릭 이벤트
     const loadMoreBtn = document.getElementById('loadMoreBtn');
-    console.log('더보기 버튼 요소:', loadMoreBtn);
-    
+
     if (loadMoreBtn) {
         loadMoreBtn.addEventListener('click', function() {
-            console.log('더보기 버튼 클릭됨');
-            console.log('현재 표시된 상품 수:', displayedCount);
             
             // 다음 상품들을 표시
             const hasMore = showNextProducts();
-            console.log('더 표시할 상품이 있는가:', hasMore);
-            console.log('클릭 후 표시된 상품 수:', displayedCount);
-            
+
             // 더보기 버튼 상태 업데이트
             updateLoadMoreButton();
             
             // 더 이상 상품이 없으면 메시지 표시
             if (!hasMore) {
-                console.log('더 이상 표시할 상품이 없음');
                 showNoMoreProductsMessage();
             }
             
@@ -527,7 +509,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const images = document.querySelectorAll('img');
     images.forEach(img => {
         img.addEventListener('error', function() {
-            console.log('이미지 로드 실패:', this.src);
             // 기본 이미지로 대체하거나 에러 메시지 표시
             this.style.display = 'none';
         });
@@ -616,11 +597,6 @@ function renderProductPrices() {
   });
 }
 
-
-    // 초기 로드 시 페이징 적용
-    console.log('초기 로드 시작');
-    console.log('총 상품 카드 수:', productCards.length);
-    
     // 가격 렌더링
     renderProductPrices();
     
