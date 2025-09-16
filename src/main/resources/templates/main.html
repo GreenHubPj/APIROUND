@@ -175,35 +175,12 @@
                 <img src="/images/뿡뿡 아이콘.png" alt="뿡뿡" class="truck-sound">
             </div>
         </div>
+        <!-- 기존 하드코딩 대신 -->
         <div class="recipes-grid">
-            <div class="recipe-item">
-                <img src="/images/감자전.jpg" alt="감자전" class="recipe-image">
+            <div th:each="recipe : ${randomRecipes}" class="recipe-item" th:onclick="|location.href='/recipe/detail?id=${recipe.recipeId}'|" style="cursor: pointer;">
+                <img th:src="${recipe.heroImageUrl}" th:alt="${recipe.title}" class="recipe-image">
                 <div class="recipe-info">
-                    <h4 class="recipe-name">강원도 감자로 만드는 감자전</h4>
-                </div>
-            </div>
-            <div class="recipe-item">
-                <img src="/images/굴비찜.jpg" alt="굴비찜" class="recipe-image">
-                <div class="recipe-info">
-                    <h4 class="recipe-name">전라도 굴비로 굴비찜 완성</h4>
-                </div>
-            </div>
-            <div class="recipe-item">
-                <img src="/images/애플파이.jpg" alt="애플파이" class="recipe-image">
-                <div class="recipe-info">
-                    <h4 class="recipe-name">안동 사과로 예쁜 애플파이 만들기</h4>
-                </div>
-            </div>
-            <div class="recipe-item">
-                <img src="/images/표고버섯밥.jpg" alt="표고버섯밥" class="recipe-image">
-                <div class="recipe-info">
-                    <h4 class="recipe-name">충청도의 명물 표고버섯으로 건강한 밥</h4>
-                </div>
-            </div>
-            <div class="recipe-item">
-                <img src="/images/포도잼.jpg" alt="포도잼" class="recipe-image">
-                <div class="recipe-info">
-                    <h4 class="recipe-name">경기도 포도잼 레시피</h4>
+                    <h4 class="recipe-name" th:text="${recipe.title}">레시피 제목</h4>
                 </div>
             </div>
         </div>

@@ -1,17 +1,34 @@
 package com.apiround.greenhub.controller;
 
+import com.apiround.greenhub.entity.Recipe;
+import com.apiround.greenhub.service.RecipeService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+
+import java.util.List;
 
 @Controller
 public class HomeController {
 
+    @Autowired
+    private RecipeService recipeService;
+
     @GetMapping("/")
-    public String home() { return "main"; }
+    public String home(Model model) {
+        List<Recipe> randomRecipes = recipeService.getRandomRecipesForMain();
+        model.addAttribute("randomRecipes", randomRecipes);
+        return "main";
+    }
 
     @GetMapping("/main")
-    public String main() { return "main"; }
+    public String main(Model model) {
+        List<Recipe> randomRecipes = recipeService.getRandomRecipesForMain();
+        model.addAttribute("randomRecipes", randomRecipes);
+        return "main";
+    }
 
     @GetMapping("/seasonal")
     public String seasonal() {
