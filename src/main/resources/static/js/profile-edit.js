@@ -9,37 +9,33 @@ function initializeProfileEdit() {
     setupLocationSelects();
     setupProfilePictureUpload();
     setupFormSubmission();
+    setupDeleteModal();  // ★ 탈퇴 모달
     console.log('정보수정 페이지가 초기화되었습니다.');
 }
 
-// 폼 유효성 검사 설정
+/* ========== 유효성 검사 ========== */
 function setupFormValidation() {
     const form = document.getElementById('profileEditForm');
     if (!form) return;
 
     const inputs = form.querySelectorAll('.form-input');
     inputs.forEach(input => {
-        // readonly/disabled 필드는 검사 제외
         if (input.readOnly || input.disabled) return;
-
         input.addEventListener('blur', function() { validateField(this); });
         input.addEventListener('input', function() { clearFieldError(this); });
     });
 }
 
-// 필수 필드 정의 (비밀번호는 선택 입력으로 변경)
 function getRequiredFields() {
-    const isCompanyPage = window.location.pathname.includes('company');
+    const isCompanyPage = isCompany();
     if (isCompanyPage) {
-        // 기업용 페이지 사용 시 필요한 필드
-        return ['companyName', 'contactPerson', 'contactNumber'];
+        // 업체 페이지라면 담당자명 정도만 필수(이름 input 재사용)
+        return ['name'];
     } else {
-        // 일반 회원: 비밀번호 제외
-        return ['name']; // 위치는 선택사항이라면 빼두세요. 필요하면 'city','district','detailAddress' 추가
+        return ['name']; // 일반 회원
     }
 }
 
-// 필드 유효성 검사
 function validateField(field) {
     if (field.readOnly || field.disabled) return true;
 
@@ -48,14 +44,12 @@ function validateField(field) {
 
     clearFieldError(field);
 
-    // 필수 필드
     const requiredFields = getRequiredFields();
     if (requiredFields.includes(fieldName) && !value) {
         showFieldError(field, '필수 입력 항목입니다.');
         return false;
     }
 
-    // 이메일
     if (fieldName === 'email' && value) {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(value)) {
@@ -64,25 +58,6 @@ function validateField(field) {
         }
     }
 
-    // 전화번호
-    if (fieldName === 'contactNumber' && value) {
-        const phoneRegex = /^[0-9-+\s()]+$/;
-        if (!phoneRegex.test(value)) {
-            showFieldError(field, '올바른 전화번호 형식을 입력해주세요.');
-            return false;
-        }
-    }
-
-    // 사업자등록번호
-    if (fieldName === 'businessNumber' && value) {
-        const businessRegex = /^\d{3}-\d{2}-\d{5}$/;
-        if (!businessRegex.test(value)) {
-            showFieldError(field, '올바른 사업자등록번호 형식입니다. (예: 123-45-67890)');
-            return false;
-        }
-    }
-
-    // 비밀번호(선택 입력) — 값이 있을 때만 검사
     if (fieldName === 'password' && value) {
         if (value.length < 8) {
             showFieldError(field, '비밀번호는 8자 이상 입력해주세요.');
@@ -122,7 +97,7 @@ function clearFieldError(field) {
     if (existing) existing.remove();
 }
 
-// 지역 선택 설정
+/* ========== 지역 선택 ========== */
 function setupLocationSelects() {
     const citySelect = document.getElementById('city');
     const districtSelect = document.getElementById('district');
@@ -132,12 +107,12 @@ function setupLocationSelects() {
         '서울': ['강남구','강동구','강북구','강서구','관악구','광진구','구로구','금천구','노원구','도봉구','동대문구','동작구','마포구','서대문구','서초구','성동구','성북구','송파구','양천구','영등포구','용산구','은평구','종로구','중구','중랑구'],
         '부산': ['강서구','금정구','남구','동구','동래구','부산진구','북구','사상구','사하구','서구','수영구','연제구','영도구','중구','해운대구','기장군'],
         '대구': ['남구','달서구','달성군','동구','북구','서구','수성구','중구'],
-        '인천': ['계양구','남구','남동구','동구','부평구','서구','연수구','중구','강화군','옹진군'],
+        '인천': ['계양구','남동구','동구','부평구','서구','연수구','중구','강화군','옹진군'],
         '광주': ['광산구','남구','동구','북구','서구'],
         '대전': ['대덕구','동구','서구','유성구','중구'],
         '울산': ['남구','동구','북구','울주군','중구'],
         '세종': ['세종특별자치시'],
-        '경기': ['수원시','성남시','의정부시','안양시','부천시','광명시','평택시','과천시','오산시','시흥시','군포시','의왕시','하남시','용인시','파주시','이천시','안성시','김포시','화성시','광주시','여주시','양평군','고양시','의정부시','동두천시','가평군','연천군'],
+        '경기': ['수원시','성남시','의정부시','안양시','부천시','광명시','평택시','과천시','오산시','시흥시','군포시','의왕시','하남시','용인시','파주시','이천시','안성시','김포시','화성시','광주시','여주시','양평군','고양시','동두천시','가평군','연천군'],
         '강원': ['춘천시','원주시','강릉시','동해시','태백시','속초시','삼척시','홍천군','횡성군','영월군','평창군','정선군','철원군','화천군','양구군','인제군','고성군','양양군'],
         '충북': ['청주시','충주시','제천시','보은군','옥천군','영동군','증평군','진천군','괴산군','음성군','단양군'],
         '충남': ['천안시','공주시','보령시','아산시','서산시','논산시','계룡시','당진시','금산군','부여군','서천군','청양군','홍성군','예산군','태안군'],
@@ -162,7 +137,7 @@ function setupLocationSelects() {
     });
 }
 
-// 프로필 사진 업로드
+/* ========== 프로필 사진 업로드 ========== */
 function setupProfilePictureUpload() {
     const cameraIcon = document.querySelector('.camera-icon');
     const profilePicture = document.querySelector('.profile-picture');
@@ -189,7 +164,7 @@ function setupProfilePictureUpload() {
     });
 }
 
-// 폼 제출
+/* ========== 저장 ========== */
 function setupFormSubmission() {
     const form = document.getElementById('profileEditForm');
     if (!form) return;
@@ -216,7 +191,6 @@ function setupFormSubmission() {
     });
 }
 
-// 폼 데이터 수집
 function collectFormData() {
     const form = document.getElementById('profileEditForm');
     const map = {};
@@ -229,9 +203,8 @@ function collectFormData() {
     return map;
 }
 
-// 저장(데모)
+// 데모: 실제 저장 API 연결 시 fetch 사용
 function saveProfileData(formData) {
-    // 로딩 표시
     const btn = document.querySelector('.save-btn');
     const old = btn.innerHTML;
     btn.innerHTML = '<span>⏳</span> 저장 중...';
@@ -244,10 +217,80 @@ function saveProfileData(formData) {
         btn.disabled = false;
 
         setTimeout(() => {
-            const isCompanyPage = window.location.pathname.includes('company');
-            window.location.href = isCompanyPage ? '/mypage-company' : '/mypage';
+            window.location.href = isCompany() ? '/mypage-company' : '/mypage';
         }, 1200);
     }, 1000);
+}
+
+/* ========== 탈퇴(모달 + 요청) ========== */
+function setupDeleteModal() {
+    const openBtn = document.getElementById('openDeleteModalBtn');
+    const modal = document.getElementById('deleteModal');
+    const cancelBtn = document.getElementById('cancelDeleteBtn');
+    const confirmBtn = document.getElementById('confirmDeleteBtn');
+
+    if (!openBtn || !modal) return;
+
+    openBtn.addEventListener('click', () => showModal(modal, true));
+    cancelBtn.addEventListener('click', () => showModal(modal, false));
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) showModal(modal, false);
+    });
+
+    confirmBtn.addEventListener('click', async () => {
+        const reason = document.getElementById('deleteReason').value.trim();
+        const ack = document.getElementById('deleteAcknowledge').checked;
+        if (!ack) {
+            alert('안내를 확인하고 체크해 주세요.');
+            return;
+        }
+
+        confirmBtn.disabled = true;
+        confirmBtn.textContent = '처리 중...';
+
+        // 엔드포인트 결정 (템플릿의 data-delete-url 사용)
+        const root = document.querySelector('.profile-edit-container');
+        const deleteUrl = root?.dataset?.deleteUrl || (isCompany() ? '/company/account/delete' : '/account/delete');
+
+        try {
+            // 실제 서버 연결 시:
+            // const res = await fetch(deleteUrl, {
+            //   method: 'POST',
+            //   headers: {'Content-Type':'application/x-www-form-urlencoded'},
+            //   body: new URLSearchParams({ reason })
+            // });
+            // if (!res.ok) throw new Error('탈퇴 실패');
+            // const data = await res.json();
+
+            // 데모: 성공 시나리오
+            await new Promise(r => setTimeout(r, 900));
+
+            showModal(modal, false);
+            showMessage('계정이 탈퇴 처리되었습니다.', 'success');
+
+            // 탈퇴 후 로그아웃 또는 홈으로
+            setTimeout(() => {
+                window.location.href = '/';
+            }, 900);
+
+        } catch (e) {
+            console.error(e);
+            showMessage('탈퇴 처리 중 오류가 발생했습니다.', 'error');
+        } finally {
+            confirmBtn.disabled = false;
+            confirmBtn.textContent = '영구 탈퇴';
+        }
+    });
+}
+
+function showModal(el, visible) {
+    el.style.display = visible ? 'flex' : 'none';
+}
+
+/* ========== 유틸 ========== */
+function isCompany() {
+    const root = document.querySelector('.profile-edit-container');
+    return root?.dataset?.isCompany === 'true';
 }
 
 function showMessage(message, type, targetElement = null) {

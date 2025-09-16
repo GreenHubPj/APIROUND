@@ -203,7 +203,8 @@ public class AuthController {
 
         try {
             if ("COMPANY".equalsIgnoreCase(accountType)) {
-                Company c = companyRepository.findByLoginId(loginId)
+                // ✅ 탈퇴한 업체 제외
+                Company c = companyRepository.findByLoginIdAndDeletedAtIsNull(loginId)
                         .orElseThrow(() -> new IllegalArgumentException("NO_COMPANY"));
                 if (!PasswordUtil.matches(password, c.getPassword()))
                     throw new IllegalArgumentException("BAD_PW");
@@ -215,7 +216,8 @@ public class AuthController {
 
                 return "redirect:" + (redirectURL != null && !redirectURL.isBlank() ? redirectURL : "/mypage-company");
             } else {
-                User u = userRepository.findByLoginId(loginId)
+                // ✅ 탈퇴한 개인 제외
+                User u = userRepository.findByLoginIdAndDeletedAtIsNull(loginId)
                         .orElseThrow(() -> new IllegalArgumentException("NO_USER"));
                 if (!PasswordUtil.matches(password, u.getPassword()))
                     throw new IllegalArgumentException("BAD_PW");
@@ -241,7 +243,7 @@ public class AuthController {
         return "redirect:/";
     }
 
-    /** 혹시 GET 링크로 호출되는 경우까지 안전 처리 (선택) */
+    /** 혹시 GET 링크로 호출되는 경우까지 안전 처리 */
     @GetMapping({"/auth/logout", "/logout"})
     public String logoutByGet(HttpSession session,
                               @RequestParam(value = "redirectURL", required = false) String redirectURL) {
