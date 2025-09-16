@@ -26,14 +26,17 @@ public class WebConfig implements WebMvcConfigurer {
             "/profile/**",
             "/profile-edit",
             "/profile-edit-company",
-            "/mypage-company"
+            "/mypage-company",
+            // 탈퇴/수정 POST 엔드포인트도 보호 경로(로그인 필요)
+            "/user/profile/**",
+            "/company/profile/**"
     };
 
     private static final String[] STATIC_OPEN_PATHS = {
             "/css/**","/js/**","/images/**","/webjars/**","/favicon.ico","/uploads/**","/upload-dir/**"
     };
 
-    // ✅ 계정찾기/비번재설정 API 공개 허용 추가 (/api/account/**)
+    // ✅ 공개 경로
     private static final String[] PUBLIC_PATHS = {
             "/","/main","/popular","/seasonal","/region","/recipe","/event",
             "/login","/signup",

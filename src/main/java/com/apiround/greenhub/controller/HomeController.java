@@ -62,8 +62,8 @@ public class HomeController {
     @GetMapping("/event")
     public String event() { return "event"; }
 
-    @GetMapping("/profile-edit")
-    public String profileEdit() { return "profile-edit"; }
+    //@GetMapping("/profile-edit")
+    //public String profileEdit() { return "profile-edit"; }
 
     // 🚫 /profile-edit-company는 CompanyProfileController가 담당
     // @GetMapping("/profile-edit-company")
