@@ -19,25 +19,25 @@ public class ProductReview {
     private Integer userId;
 
     @Column(name = "rating", nullable = false)
-    private Integer rating; // tinyint -> Integer
+    private Byte rating;
 
     @Lob
-    @Column(name = "content")
+    @Column(name = "content", nullable = false)
     private String content;
 
-    @Column(name = "created_at")
+    @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
-    @Column(name = "updated_at")
+    @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
-    @Column(name = "is_deleted")
-    private Boolean isDeleted;
+    @Column(name = "is_deleted", nullable = false)
+    private Boolean isDeleted = false;
 
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 
-    // getters/setters
+    // === getters/setters ===
     public Integer getReviewId() { return reviewId; }
     public void setReviewId(Integer reviewId) { this.reviewId = reviewId; }
 
@@ -47,8 +47,8 @@ public class ProductReview {
     public Integer getUserId() { return userId; }
     public void setUserId(Integer userId) { this.userId = userId; }
 
-    public Integer getRating() { return rating; }
-    public void setRating(Integer rating) { this.rating = rating; }
+    public Byte getRating() { return rating; }
+    public void setRating(Byte rating) { this.rating = rating; }
 
     public String getContent() { return content; }
     public void setContent(String content) { this.content = content; }

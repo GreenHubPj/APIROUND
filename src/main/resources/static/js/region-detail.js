@@ -1,3 +1,7 @@
+// ==============================
+// region-detail.js (전체 파일)
+// ==============================
+
 // 페이지 초기화
 document.addEventListener('DOMContentLoaded', function() {
     initializeRegionDetail();
@@ -32,7 +36,7 @@ function getRegionFromUrl() {
 function goBackToList() {
     const region = getRegionFromUrl();
     if (region) {
-        window.location.href = `/region?region=${region}`;
+        window.location.href = `/region?region=${encodeURIComponent(region)}`;
     } else {
         window.location.href = '/region';
     }
@@ -46,9 +50,9 @@ function loadProductDetail() {
         return;
     }
 
-    // 서버에서 전달된 상품 데이터 사용
+    // 서버에서 전달된 상품 데이터 사용(Thymeleaf 렌더된 DOM에서 읽기)
     currentProduct = getProductFromServer();
-    
+
     if (!currentProduct) {
         showMessage('상품을 찾을 수 없습니다.', 'error');
         return;
@@ -58,45 +62,43 @@ function loadProductDetail() {
     loadRelatedProducts();
 }
 
-// 서버에서 전달된 상품 데이터 가져오기
+// 서버에서 전달된 상품 데이터 가져오기(템플릿에서 채워진 DOM 기반)
 function getProductFromServer() {
-    // Thymeleaf로 전달된 데이터를 JavaScript에서 사용
-    const productName = document.getElementById('productTitle').textContent;
-    const productType = document.querySelector('.product-tag').textContent;
-    const regionText = document.querySelectorAll('.product-tag')[1].textContent;
-    const description = document.getElementById('descriptionText').textContent;
-    const thumbnailUrl = document.getElementById('mainImage').src;
-    const harvestSeason = document.getElementById('seasonInfo').textContent;
-    
+    const productName = document.getElementById('productTitle')?.textContent || '';
+    const productTagEls = document.querySelectorAll('.product-tag');
+    const productType = productTagEls?.[0]?.textContent || '';
+    const regionText  = productTagEls?.[1]?.textContent || '';
+    const description = document.getElementById('descriptionText')?.textContent || '';
+    const thumbnailUrl = document.getElementById('mainImage')?.src || '';
+    const harvestSeason = document.getElementById('seasonInfo')?.textContent || '';
+
     // 상품 ID는 URL에서 가져오기
-    const productId = getProductIdFromUrl();
-    
-    // localStorage에서 가격 정보를 가져오거나, 없으면 새로 생성
+    const productId = parseInt(getProductIdFromUrl(), 10);
+
+    // 가격 옵션: 페이지를 새로 열 때마다 동일하게 나오도록, 간단한 규칙 기반 생성
     let priceOptions;
-    const storedPrices = localStorage.getItem(`product_${productId}_prices`);
-    
+    const storedKey = `product_${productId}_prices`;
+    const storedPrices = localStorage.getItem(storedKey);
     if (storedPrices) {
         priceOptions = JSON.parse(storedPrices);
     } else {
-        // localStorage에 가격이 없으면 새로 생성하고 저장
-        priceOptions = generateConsistentPrices(parseInt(productId), productType);
-        localStorage.setItem(`product_${productId}_prices`, JSON.stringify(priceOptions));
+        priceOptions = generateConsistentPrices(productId, productType);
+        localStorage.setItem(storedKey, JSON.stringify(priceOptions));
     }
-    
-    // 랜덤 업체 정보 생성
+
+    // 랜덤 업체 정보 생성(지역으로 시드)
     const companyInfo = generateRandomCompany(regionText);
-    
+
     return {
-        id: parseInt(productId),
+        id: productId,
         name: productName,
         category: productType,
         region: regionText,
-        description: description,
-        thumbnailUrl: thumbnailUrl,
-        harvestSeason: harvestSeason,
-        priceOptions: priceOptions,
-        companyInfo: companyInfo,
-        // 기본 이미지 배열
+        description,
+        thumbnailUrl,
+        harvestSeason,
+        priceOptions,
+        companyInfo,
         images: [
             { id: 1, src: thumbnailUrl, alt: productName }
         ]
@@ -106,23 +108,22 @@ function getProductFromServer() {
 // 상품 ID와 타입에 따른 일관된 가격 생성
 function generateConsistentPrices(productId, productType) {
     const basePrices = {
-        '농산물': { min: 5000, max: 15000 },
+        '농산물': { min: 5000,  max: 15000 },
         '축산물': { min: 15000, max: 35000 },
         '수산물': { min: 10000, max: 25000 },
-        '가공식품': { min: 3000, max: 12000 }
+        '가공식품': { min: 3000,  max: 12000 }
     };
-    
     const priceRange = basePrices[productType] || { min: 5000, max: 20000 };
-    
-    // 상품 ID를 시드로 사용하여 일관된 가격 생성
-    const seed = productId * 12345; // 간단한 시드 생성
-    const random = (seed * 9301 + 49297) % 233280; // 선형 합동 생성기
-    const normalizedRandom = random / 233280;
-    
-    const price1 = Math.floor(normalizedRandom * (priceRange.max - priceRange.min + 1)) + priceRange.min;
-    const price2 = Math.floor(price1 * 1.8); // 1.8배
-    const price3 = Math.floor(price1 * 2.5); // 2.5배
-    
+
+    // 간단한 시드 기반 난수
+    const seed = productId * 12345;
+    const random = (seed * 9301 + 49297) % 233280;
+    const normalized = random / 233280;
+
+    const price1 = Math.floor(normalized * (priceRange.max - priceRange.min + 1)) + priceRange.min;
+    const price2 = Math.floor(price1 * 1.8);
+    const price3 = Math.floor(price1 * 2.5);
+
     return [
         { quantity: 1, unit: 'kg', price: price1 },
         { quantity: 2, unit: 'kg', price: price2 },
@@ -137,122 +138,35 @@ function generateRandomCompany(regionText) {
         '친환경농장', '전통농업', '청정농업', '자연농업', '유기농업',
         '지역특산품', '농가직판', '농산물도매', '신선농산물', '제철농산물'
     ];
-    
     const companySuffixes = [
         '협동조합', '농장', '직판장', '유통센터', '농협', '농업회사',
         '특산품센터', '농산물센터', '친환경농업', '자연농업'
     ];
-    
-    // 지역명에서 앞 2글자 추출
+
     const regionPrefix = regionText.substring(0, 2);
-    
-    // 랜덤 업체명 생성
     const randomName = companyNames[Math.floor(Math.random() * companyNames.length)];
     const randomSuffix = companySuffixes[Math.floor(Math.random() * companySuffixes.length)];
     const companyName = `${regionPrefix}${randomName}${randomSuffix}`;
-    
-    // 랜덤 전화번호 생성 (지역번호 기반)
+
     const areaCodes = {
         '서울': '02', '경기': '031', '인천': '032', '강원': '033',
         '충북': '043', '충남': '041', '대전': '042', '전북': '063',
         '전남': '061', '광주': '062', '경북': '054', '경남': '055',
         '대구': '053', '울산': '052', '부산': '051', '제주': '064'
     };
-    
     const areaCode = areaCodes[regionPrefix] || '02';
     const phoneNumber = `${areaCode}-${Math.floor(Math.random() * 9000) + 1000}-${Math.floor(Math.random() * 9000) + 1000}`;
-    
-    // 랜덤 이메일 생성
+
     const emailDomains = ['naver.com', 'gmail.com', 'daum.net', 'coop.co.kr', 'farm.co.kr'];
     const randomDomain = emailDomains[Math.floor(Math.random() * emailDomains.length)];
     const email = `${companyName.toLowerCase().replace(/[^a-z0-9]/g, '')}@${randomDomain}`;
-    
-    return {
-        name: companyName,
-        phone: phoneNumber,
-        email: email
-    };
+
+    return { name: companyName, phone: phoneNumber, email };
 }
 
-// 상품 ID로 상품 정보 가져오기
+// (데모) 상품 ID로 상품 정보 가져오기 - 현재는 사용하지 않지만 남겨둠
 function getProductById(id) {
-    // 실제로는 API 호출하지만, 여기서는 더미 데이터 사용
-    const products = [
-        {
-            id: 1,
-            name: '제주 감귤',
-            category: '과일',
-            region: '제주',
-            priceOptions: [
-                { quantity: 2, unit: 'kg', price: 30000 },
-                { quantity: 3, unit: 'kg', price: 45000 },
-                { quantity: 5, unit: 'kg', price: 70000 }
-            ],
-            stock: 50,
-            origin: '제주도',
-            expiryDays: 30,
-            storageMethod: '냉장보관',
-            seasons: ['11월', '12월', '1월', '2월'],
-            description: '제주도에서 직접 재배한 신선한 감귤입니다. 달콤하고 향긋한 맛이 일품이며, 비타민C가 풍부하여 건강에도 좋습니다. 신선한 상태로 포장하여 배송됩니다.',
-            images: [
-                { id: 1, src: 'https://via.placeholder.com/400x400/ff8c42/ffffff?text=제주+감귤+1', alt: '제주 감귤 1' },
-                { id: 2, src: 'https://via.placeholder.com/400x400/ff8c42/ffffff?text=제주+감귤+2', alt: '제주 감귤 2' },
-                { id: 3, src: 'https://via.placeholder.com/400x400/ff8c42/ffffff?text=제주+감귤+3', alt: '제주 감귤 3' }
-            ],
-            createdAt: '2024-01-15',
-            status: 'active'
-        },
-        {
-            id: 2,
-            name: '강원도 고랭지 배추',
-            category: '채소',
-            region: '강원',
-            priceOptions: [
-                { quantity: 1, unit: '개', price: 8000 },
-                { quantity: 2, unit: '개', price: 15000 },
-                { quantity: 3, unit: '개', price: 22000 }
-            ],
-            stock: 30,
-            origin: '강원도',
-            expiryDays: 15,
-            storageMethod: '냉장보관',
-            seasons: ['10월', '11월', '12월', '1월', '2월'],
-            description: '강원도 고랭지에서 재배한 아삭한 배추입니다. 김치 담그기에 최적이며, 신선하고 맛있습니다. 고랭지의 청정한 환경에서 자라 더욱 건강합니다.',
-            images: [
-                { id: 1, src: 'https://via.placeholder.com/400x400/27ae60/ffffff?text=강원+배추+1', alt: '강원도 배추 1' },
-                { id: 2, src: 'https://via.placeholder.com/400x400/27ae60/ffffff?text=강원+배추+2', alt: '강원도 배추 2' }
-            ],
-            createdAt: '2024-01-14',
-            status: 'active'
-        },
-        {
-            id: 3,
-            name: '경북 사과',
-            category: '과일',
-            region: '경북',
-            priceOptions: [
-                { quantity: 1, unit: 'kg', price: 12000 },
-                { quantity: 2, unit: 'kg', price: 23000 },
-                { quantity: 3, unit: 'kg', price: 34000 }
-            ],
-            stock: 25,
-            origin: '경상북도',
-            expiryDays: 60,
-            storageMethod: '냉장보관',
-            seasons: ['9월', '10월', '11월'],
-            description: '경북 지역의 맛있는 사과입니다. 아삭하고 달콤한 맛이 특징이며, 신선한 상태로 보관됩니다. 건강한 간식으로도 좋습니다.',
-            images: [
-                { id: 1, src: 'https://via.placeholder.com/400x400/e74c3c/ffffff?text=경북+사과+1', alt: '경북 사과 1' },
-                { id: 2, src: 'https://via.placeholder.com/400x400/e74c3c/ffffff?text=경북+사과+2', alt: '경북 사과 2' },
-                { id: 3, src: 'https://via.placeholder.com/400x400/e74c3c/ffffff?text=경북+사과+3', alt: '경북 사과 3' },
-                { id: 4, src: 'https://via.placeholder.com/400x400/e74c3c/ffffff?text=경북+사과+4', alt: '경북 사과 4' }
-            ],
-            createdAt: '2024-01-13',
-            status: 'active'
-        }
-    ];
-
-    return products.find(product => product.id == id);
+    return null;
 }
 
 // 상품 상세 정보 렌더링
@@ -273,17 +187,23 @@ function renderProductDetail() {
     // 가격 옵션
     renderPriceOptions();
 
-    // 상품 상세 정보
-    document.getElementById('stockInfo').textContent = currentProduct.stock ? `${currentProduct.stock}개` : '재고 없음';
-    document.getElementById('originInfo').textContent = currentProduct.origin || '-';
-    document.getElementById('expiryInfo').textContent = currentProduct.expiryDays ? `${currentProduct.expiryDays}일 이내 소모` : '-';
-    document.getElementById('storageInfo').textContent = currentProduct.storageMethod || '-';
-    document.getElementById('seasonInfo').textContent = currentProduct.seasons ? currentProduct.seasons.join(', ') : '-';
+    // 상세 정보
+    const stockEl   = document.getElementById('stockInfo');
+    const originEl  = document.getElementById('originInfo');
+    const expiryEl  = document.getElementById('expiryInfo');
+    const storageEl = document.getElementById('storageInfo');
+    const seasonEl  = document.getElementById('seasonInfo');
+
+    if (stockEl)   stockEl.textContent   = currentProduct.stock ? `${currentProduct.stock}개` : '재고 없음';
+    if (originEl)  originEl.textContent  = currentProduct.origin || currentProduct.region || '-';
+    if (expiryEl)  expiryEl.textContent  = currentProduct.expiryDays ? `${currentProduct.expiryDays}일 이내 소모` : '-';
+    if (storageEl) storageEl.textContent = currentProduct.storageMethod || '-';
+    if (seasonEl)  seasonEl.textContent  = currentProduct.seasons ? currentProduct.seasons.join(', ') : (currentProduct.harvestSeason || '-');
 
     // 상품 설명
-    document.getElementById('descriptionText').textContent = currentProduct.description;
+    document.getElementById('descriptionText').textContent = currentProduct.description || '';
 
-    // 업체 정보 렌더링
+    // 업체 정보
     renderCompanyInfo();
 
     // 상품 이미지
@@ -293,38 +213,26 @@ function renderProductDetail() {
 // 업체 정보 렌더링
 function renderCompanyInfo() {
     if (!currentProduct.companyInfo) return;
-    
-    const companyInfo = currentProduct.companyInfo;
-    
-    // 업체명
-    const companyNameElement = document.getElementById('companyName');
-    if (companyNameElement) {
-        companyNameElement.textContent = companyInfo.name;
-    }
-    
-    // 전화번호
+    const { name, phone, email } = currentProduct.companyInfo;
+
+    const companyNameElement  = document.getElementById('companyName');
     const companyPhoneElement = document.getElementById('companyPhone');
-    if (companyPhoneElement) {
-        companyPhoneElement.textContent = companyInfo.phone;
-    }
-    
-    // 이메일
     const companyEmailElement = document.getElementById('companyEmail');
-    if (companyEmailElement) {
-        companyEmailElement.textContent = companyInfo.email;
-    }
+
+    if (companyNameElement)  companyNameElement.textContent  = name;
+    if (companyPhoneElement) companyPhoneElement.textContent = phone;
+    if (companyEmailElement) companyEmailElement.textContent = email;
 }
 
 // 가격 옵션 렌더링
 function renderPriceOptions() {
     const priceOptionsContainer = document.getElementById('priceOptions');
     const priceSelect = document.getElementById('priceOptionSelect');
-    
+
     priceOptionsContainer.innerHTML = '';
     priceSelect.innerHTML = '<option value="">가격 옵션을 선택하세요</option>';
 
     currentProduct.priceOptions.forEach((option, index) => {
-        // 가격 옵션 카드
         const optionElement = document.createElement('div');
         optionElement.className = 'price-option';
         optionElement.innerHTML = `
@@ -333,7 +241,6 @@ function renderPriceOptions() {
         `;
         priceOptionsContainer.appendChild(optionElement);
 
-        // 가격 옵션 셀렉트
         const optionSelect = document.createElement('option');
         optionSelect.value = index;
         optionSelect.textContent = `${option.quantity}${option.unit} - ${option.price.toLocaleString()}원`;
@@ -343,19 +250,21 @@ function renderPriceOptions() {
 
 // 상품 이미지 렌더링
 function renderProductImages() {
+    const mainImage = document.getElementById('mainImage');
+    const thumbnailContainer = document.getElementById('thumbnailContainer');
+
     if (!currentProduct.images || currentProduct.images.length === 0) {
-        document.getElementById('mainImage').src = 'https://via.placeholder.com/400x400/cccccc/666666?text=이미지+없음';
+        if (mainImage) mainImage.src = 'https://via.placeholder.com/400x400/cccccc/666666?text=이미지+없음';
         return;
     }
 
-    const mainImage = document.getElementById('mainImage');
-    const thumbnailContainer = document.getElementById('thumbnailContainer');
-    
-    // 메인 이미지 설정
-    mainImage.src = currentProduct.images[0].src;
-    mainImage.alt = currentProduct.images[0].alt;
-    
-    // 썸네일 생성
+    // 메인 이미지
+    if (mainImage) {
+        mainImage.src = currentProduct.images[0].src;
+        mainImage.alt = currentProduct.images[0].alt;
+    }
+
+    // 썸네일
     thumbnailContainer.innerHTML = '';
     currentProduct.images.forEach((image, index) => {
         const thumbnail = document.createElement('img');
@@ -363,45 +272,45 @@ function renderProductImages() {
         thumbnail.alt = image.alt;
         thumbnail.className = 'thumbnail';
         if (index === 0) thumbnail.classList.add('active');
-        
+
         thumbnail.addEventListener('click', () => {
             currentImageIndex = index;
             updateMainImage();
             updateThumbnailActive();
         });
-        
+
         thumbnailContainer.appendChild(thumbnail);
     });
 
-    // 이미지가 1개뿐이면 네비게이션 버튼 숨기기
+    // 이미지가 1개뿐이면 네비게이션 버튼 숨김
     if (currentProduct.images.length <= 1) {
-        document.getElementById('prevBtn').style.display = 'none';
-        document.getElementById('nextBtn').style.display = 'none';
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        if (prevBtn) prevBtn.style.display = 'none';
+        if (nextBtn) nextBtn.style.display = 'none';
     }
 }
 
 // 메인 이미지 업데이트
 function updateMainImage() {
     if (!currentProduct.images || currentProduct.images.length === 0) return;
-    
     const mainImage = document.getElementById('mainImage');
     const currentImage = currentProduct.images[currentImageIndex];
-    
-    mainImage.src = currentImage.src;
-    mainImage.alt = currentImage.alt;
+    if (mainImage) {
+        mainImage.src = currentImage.src;
+        mainImage.alt = currentImage.alt;
+    }
 }
 
 // 썸네일 활성 상태 업데이트
 function updateThumbnailActive() {
-    const thumbnails = document.querySelectorAll('.thumbnail');
-    thumbnails.forEach((thumb, index) => {
+    document.querySelectorAll('.thumbnail').forEach((thumb, index) => {
         thumb.classList.toggle('active', index === currentImageIndex);
     });
 }
 
-// 관련 상품 로드
+// 관련 상품 로드(데모)
 function loadRelatedProducts() {
-    // 실제로는 API 호출하지만, 여기서는 더미 데이터 사용
     const relatedProducts = [
         {
             id: 4,
@@ -430,11 +339,11 @@ function loadRelatedProducts() {
     ];
 
     renderRelatedProducts(relatedProducts);
-    
-    // 리뷰 데이터 로드
-    loadReviews();
-    
-    // 리뷰보기 버튼 이벤트 리스너
+
+    // ✅ 리뷰 데이터 로드(백엔드 연동)
+    loadRecentReviews();
+
+    // ✅ 리뷰보기 버튼 이벤트 리스너
     setupReviewButton();
 }
 
@@ -443,109 +352,109 @@ function setupReviewButton() {
     const viewAllReviewsBtn = document.getElementById('viewAllReviewsBtn');
     if (viewAllReviewsBtn) {
         viewAllReviewsBtn.addEventListener('click', function() {
-            // 현재 상품 ID를 localStorage에 저장
             const productId = getProductIdFromUrl();
-            localStorage.setItem('currentProductId', productId);
-            
-            // reviewlist 페이지로 이동
-            window.location.href = '/reviewlist';
+            // ✅ 서버 렌더 reviewlist로 이동 (productId 쿼리로 전달)
+            window.location.href = `/reviewlist?productId=${encodeURIComponent(productId)}`;
         });
     }
 }
 
-// 리뷰 데이터 로드
-function loadReviews() {
-    // 더미 리뷰 데이터 (더 많은 리뷰 추가)
-    const allReviews = [
-        {
-            id: 1,
-            reviewerName: '김사과',
-            rating: 5,
-            date: '2025-09-05',
-            text: '정말 맛있는 사과였어요! 아삭하고 달콤한 맛이 일품입니다. 신선도도 최고고, 포장도 깔끔하게 잘 되어있었습니다. 다음에도 주문할 예정이에요!'
-        },
-        {
-            id: 2,
-            reviewerName: '이과일',
-            rating: 4,
-            date: '2025-09-03',
-            text: '품질이 좋네요. 크기도 적당하고 맛도 달콤합니다. 배송도 빠르게 왔어요. 추천합니다!'
-        },
-        {
-            id: 3,
-            reviewerName: '박농부',
-            rating: 5,
-            date: '2025-09-01',
-            text: '문경 사과의 진짜 맛을 느낄 수 있었습니다. 아삭한 식감과 달콤한 맛이 정말 좋아요. 가족들이 모두 만족했어요.'
-        },
-        {
-            id: 4,
-            reviewerName: '최고객',
-            rating: 4,
-            date: '2025-08-28',
-            text: '신선하고 맛있어요. 포장 상태도 좋고, 배송도 빠르게 왔습니다. 다음에도 주문하겠습니다.'
-        },
-        {
-            id: 5,
-            reviewerName: '정맛있',
-            rating: 5,
-            date: '2025-08-25',
-            text: '사과가 정말 크고 맛있어요! 아이들이 너무 좋아합니다. 다음에도 꼭 주문할게요.'
-        },
-        {
-            id: 6,
-            reviewerName: '홍사과',
-            rating: 4,
-            date: '2025-08-22',
-            text: '품질이 우수하고 신선해요. 배송도 빠르고 포장도 깔끔했습니다.'
-        },
-        {
-            id: 7,
-            reviewerName: '김달콤',
-            rating: 5,
-            date: '2025-08-20',
-            text: '달콤하고 아삭한 맛이 정말 좋아요! 가족 모두 만족했습니다.'
+// ✅ 최근 리뷰 3개 로드(백엔드)
+async function loadRecentReviews() {
+    const productId = getProductIdFromUrl();
+    const reviewList = document.getElementById('reviewList');
+    if (!reviewList || !productId) return;
+
+    reviewList.innerHTML = `
+        <div class="review-item skeleton">
+            <div class="review-header"><span class="skeleton-line w-30"></span><span class="skeleton-line w-20"></span></div>
+            <div class="review-rating"><span class="skeleton-line w-50"></span></div>
+            <div class="review-text"><span class="skeleton-line w-90"></span><span class="skeleton-line w-80"></span></div>
+        </div>
+        <div class="review-item skeleton">
+            <div class="review-header"><span class="skeleton-line w-30"></span><span class="skeleton-line w-20"></span></div>
+            <div class="review-rating"><span class="skeleton-line w-50"></span></div>
+            <div class="review-text"><span class="skeleton-line w-90"></span><span class="skeleton-line w-60"></span></div>
+        </div>
+        <div class="review-item skeleton">
+            <div class="review-header"><span class="skeleton-line w-30"></span><span class="skeleton-line w-20"></span></div>
+            <div class="review-rating"><span class="skeleton-line w-50"></span></div>
+            <div class="review-text"><span class="skeleton-line w-80"></span><span class="skeleton-line w-70"></span></div>
+        </div>
+    `;
+
+    try {
+        // /api/reviews?productId=...&page=0&size=3 (정렬은 createdAt desc가 기본이라고 가정)
+        const res = await fetch(`/api/reviews?productId=${encodeURIComponent(productId)}&page=0&size=3`, {
+            headers: { 'Accept': 'application/json' },
+            credentials: 'same-origin'
+        });
+        if (!res.ok) throw new Error(`리뷰 조회 실패: ${res.status}`);
+        const data = await res.json();
+
+        // data가 Page 형태라고 가정: { content: [ {rating, content, createdAt, userName? ...} ], totalElements, ... }
+        const reviews = Array.isArray(data?.content) ? data.content : [];
+        if (reviews.length === 0) {
+            reviewList.innerHTML = `
+                <div class="review-empty">
+                    아직 작성된 리뷰가 없습니다. 첫 리뷰의 주인공이 되어보세요!
+                </div>
+            `;
+            return;
         }
-    ];
-    
-    // 최신 3개 리뷰만 표시
-    const recentReviews = allReviews.slice(0, 3);
-    renderReviews(recentReviews);
-    
-    // 전체 리뷰 데이터를 localStorage에 저장 (review 페이지에서 사용)
-    localStorage.setItem('allReviews', JSON.stringify(allReviews));
+
+        renderReviews(reviews.map(r => ({
+            reviewerName: r.userName || '구매자',
+            rating: Number(r.rating) || 0,
+            date: (r.createdAt || '').slice(0, 10),
+            text: r.content || ''
+        })));
+    } catch (e) {
+        console.error(e);
+        reviewList.innerHTML = `
+            <div class="review-error">
+                리뷰를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.
+            </div>
+        `;
+    }
 }
 
 // 리뷰 렌더링
 function renderReviews(reviews) {
     const reviewList = document.getElementById('reviewList');
     reviewList.innerHTML = '';
-    
+
     reviews.forEach(review => {
         const reviewItem = document.createElement('div');
         reviewItem.className = 'review-item';
-        
-        // 별점 생성
+
         const stars = '★'.repeat(review.rating) + '☆'.repeat(5 - review.rating);
-        
+
         reviewItem.innerHTML = `
             <div class="review-header">
-                <span class="reviewer-name">${review.reviewerName}</span>
-                <span class="review-date">${review.date}</span>
+                <span class="reviewer-name">${escapeHtml(review.reviewerName)}</span>
+                <span class="review-date">${escapeHtml(review.date || '')}</span>
             </div>
             <div class="review-rating">
                 ${stars.split('').map(star => `<span class="star">${star}</span>`).join('')}
             </div>
-            <div class="review-text">${review.text}</div>
+            <div class="review-text">${escapeHtml(review.text)}</div>
         `;
-        
+
         reviewList.appendChild(reviewItem);
     });
+}
+
+function escapeHtml(s) {
+    return (s || '').replace(/[&<>"']/g, m => ({
+        '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+    }[m]));
 }
 
 // 관련 상품 렌더링
 function renderRelatedProducts(products) {
     const grid = document.getElementById('relatedProductsGrid');
+    if (!grid) return;
     grid.innerHTML = '';
 
     products.forEach(product => {
@@ -554,19 +463,19 @@ function renderRelatedProducts(products) {
         card.innerHTML = `
             <img src="${product.images[0].src}" alt="${product.images[0].alt}" class="related-product-image">
             <div class="related-product-info">
-                <h3 class="related-product-title">${product.name}</h3>
+                <h3 class="related-product-title">${escapeHtml(product.name)}</h3>
                 <div class="related-product-price">${product.priceOptions[0].quantity}${product.priceOptions[0].unit} ${product.priceOptions[0].price.toLocaleString()}원</div>
                 <div class="related-product-tags">
-                    <span class="related-product-tag">${product.category}</span>
-                    <span class="related-product-tag">${product.region}</span>
+                    <span class="related-product-tag">${escapeHtml(product.category)}</span>
+                    <span class="related-product-tag">${escapeHtml(product.region)}</span>
                 </div>
             </div>
         `;
-        
+
         card.addEventListener('click', () => {
-            window.location.href = `/region-detail?id=${product.id}&region=${product.region}`;
+            window.location.href = `/region-detail?id=${encodeURIComponent(product.id)}&region=${encodeURIComponent(product.region)}`;
         });
-        
+
         grid.appendChild(card);
     });
 }
@@ -574,69 +483,92 @@ function renderRelatedProducts(products) {
 // 이벤트 리스너 설정
 function setupEventListeners() {
     // 이미지 네비게이션
-    document.getElementById('prevBtn').addEventListener('click', () => {
-        if (currentProduct.images && currentProduct.images.length > 0) {
-            currentImageIndex = (currentImageIndex - 1 + currentProduct.images.length) % currentProduct.images.length;
-            updateMainImage();
-            updateThumbnailActive();
-        }
-    });
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
 
-    document.getElementById('nextBtn').addEventListener('click', () => {
-        if (currentProduct.images && currentProduct.images.length > 0) {
-            currentImageIndex = (currentImageIndex + 1) % currentProduct.images.length;
-            updateMainImage();
-            updateThumbnailActive();
-        }
-    });
+    if (prevBtn) {
+        prevBtn.addEventListener('click', () => {
+            if (currentProduct.images && currentProduct.images.length > 0) {
+                currentImageIndex = (currentImageIndex - 1 + currentProduct.images.length) % currentProduct.images.length;
+                updateMainImage();
+                updateThumbnailActive();
+            }
+        });
+    }
+    if (nextBtn) {
+        nextBtn.addEventListener('click', () => {
+            if (currentProduct.images && currentProduct.images.length > 0) {
+                currentImageIndex = (currentImageIndex + 1) % currentProduct.images.length;
+                updateMainImage();
+                updateThumbnailActive();
+            }
+        });
+    }
 
     // 수량 조절
-    document.getElementById('decreaseBtn').addEventListener('click', () => {
+    const decBtn = document.getElementById('decreaseBtn');
+    const incBtn = document.getElementById('increaseBtn');
+    const qtyInput = document.getElementById('quantity');
+
+    if (decBtn) decBtn.addEventListener('click', () => {
         if (quantity > 1) {
             quantity--;
-            document.getElementById('quantity').value = quantity;
+            qtyInput.value = quantity;
             updateTotalPrice();
         }
     });
 
-    document.getElementById('increaseBtn').addEventListener('click', () => {
+    if (incBtn) incBtn.addEventListener('click', () => {
         quantity++;
-        document.getElementById('quantity').value = quantity;
+        qtyInput.value = quantity;
         updateTotalPrice();
     });
 
-    document.getElementById('quantity').addEventListener('input', (e) => {
-        quantity = Math.max(1, parseInt(e.target.value) || 1);
-        e.target.value = quantity;
-        updateTotalPrice();
-    });
+    if (qtyInput) {
+        qtyInput.addEventListener('input', (e) => {
+            quantity = Math.max(1, parseInt(e.target.value) || 1);
+            e.target.value = quantity;
+            updateTotalPrice();
+        });
+    }
 
     // 가격 옵션 선택
-    document.getElementById('priceOptionSelect').addEventListener('change', (e) => {
-        const optionIndex = parseInt(e.target.value);
-        if (optionIndex >= 0 && optionIndex < currentProduct.priceOptions.length) {
-            selectedPriceOption = currentProduct.priceOptions[optionIndex];
-            updateTotalPrice();
-        } else {
-            selectedPriceOption = null;
-            updateTotalPrice();
-        }
-    });
+    const priceSelect = document.getElementById('priceOptionSelect');
+    if (priceSelect) {
+        priceSelect.addEventListener('change', (e) => {
+            const optionIndex = parseInt(e.target.value, 10);
+            if (!isNaN(optionIndex) && optionIndex >= 0 && optionIndex < currentProduct.priceOptions.length) {
+                selectedPriceOption = currentProduct.priceOptions[optionIndex];
+                updateTotalPrice();
+            } else {
+                selectedPriceOption = null;
+                updateTotalPrice();
+            }
+        });
+    }
 
     // 장바구니 담기
-    document.getElementById('addToCartBtn').addEventListener('click', (event) => addToCart(event));
+    const addToCartBtn = document.getElementById('addToCartBtn');
+    if (addToCartBtn) {
+        addToCartBtn.addEventListener('click', (event) => addToCart(event));
+    }
 
     // 바로 구매
-    document.getElementById('buyNowBtn').addEventListener('click', (event) => buyNow(event));
+    const buyNowBtn = document.getElementById('buyNowBtn');
+    if (buyNowBtn) {
+        buyNowBtn.addEventListener('click', (event) => buyNow(event));
+    }
 
     // 뒤로가기 버튼
-    document.getElementById('backBtn').addEventListener('click', goBackToList);
+    const backBtn = document.getElementById('backBtn');
+    if (backBtn) backBtn.addEventListener('click', goBackToList);
 }
 
 // 총 가격 업데이트
 function updateTotalPrice() {
     const totalAmountElement = document.getElementById('totalAmount');
-    
+    if (!totalAmountElement) return;
+
     if (selectedPriceOption) {
         const totalPrice = selectedPriceOption.price * quantity;
         totalAmountElement.textContent = `${totalPrice.toLocaleString()}원`;
@@ -647,57 +579,41 @@ function updateTotalPrice() {
 
 // 장바구니 담기
 function addToCart(event) {
-    console.log('장바구니 담기 버튼 클릭됨');
-    console.log('selectedPriceOption:', selectedPriceOption);
-    
     if (!selectedPriceOption) {
-        console.log('가격 옵션 미선택 - 에러 메시지 표시');
         showMessageAtPosition('가격 옵션을 선택해주세요.', 'error', event.target);
         return;
     }
 
-    // 장바구니 데이터 가져오기
-    let cart = JSON.parse(localStorage.getItem('cart') || '[]');
-    
-    // 기존 상품이 있는지 확인
-    const existingItemIndex = cart.findIndex(item => 
-        item.productId === currentProduct.id && 
+    const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+    const existingIndex = cart.findIndex(item =>
+        item.productId === currentProduct.id &&
         item.priceOptionIndex === currentProduct.priceOptions.indexOf(selectedPriceOption)
     );
 
-    if (existingItemIndex >= 0) {
-        // 기존 상품 수량 증가
-        cart[existingItemIndex].quantity += quantity;
+    if (existingIndex >= 0) {
+        cart[existingIndex].quantity += quantity;
     } else {
-        // 새 상품 추가
         cart.push({
             productId: currentProduct.id,
             productName: currentProduct.name,
             priceOptionIndex: currentProduct.priceOptions.indexOf(selectedPriceOption),
             priceOption: selectedPriceOption,
             quantity: quantity,
-            image: currentProduct.images[0].src
+            image: currentProduct.images?.[0]?.src || currentProduct.thumbnailUrl
         });
     }
 
-    // 장바구니 저장
     localStorage.setItem('cart', JSON.stringify(cart));
-    
     showMessageAtPosition('장바구니에 상품이 추가되었습니다.', 'success', event.target);
 }
 
 // 바로 구매
 function buyNow(event) {
-    console.log('구매하기 버튼 클릭됨');
-    console.log('selectedPriceOption:', selectedPriceOption);
-    
     if (!selectedPriceOption) {
-        console.log('가격 옵션 미선택 - 에러 메시지 표시');
         showMessageAtPosition('가격 옵션을 선택해주세요.', 'error', event.target);
         return;
     }
 
-    // 주문 데이터 생성
     const orderItem = {
         id: currentProduct.id,
         name: currentProduct.name,
@@ -706,17 +622,11 @@ function buyNow(event) {
         timestamp: new Date().toISOString()
     };
 
-    console.log('주문 데이터 생성됨:', orderItem);
-
-    // 주문 정보를 localStorage에 저장
     localStorage.setItem('currentOrder', JSON.stringify([orderItem]));
-    console.log('localStorage에 주문 정보 저장됨');
-
-    // 구매 페이지로 이동
     showMessageAtPosition('구매 페이지로 이동합니다...', 'success', event.target);
     setTimeout(() => {
         window.location.href = '/buying';
-    }, 1500);
+    }, 800);
 }
 
 // 메시지 표시 (기본 위치)
@@ -726,22 +636,13 @@ function showMessage(message, type) {
 
 // 특정 위치에 메시지 표시
 function showMessageAtPosition(message, type, targetElement = null) {
-    console.log('showMessageAtPosition 호출됨:', message, type, targetElement);
-    
-    // 기존 메시지 제거
     const existingMessage = document.querySelector('.message');
-    if (existingMessage) {
-        existingMessage.remove();
-    }
+    if (existingMessage) existingMessage.remove();
 
-    // 새 메시지 생성
     const messageDiv = document.createElement('div');
     messageDiv.className = `message message-${type}`;
     messageDiv.textContent = message;
-    
-    console.log('메시지 div 생성됨:', messageDiv);
-    
-    // 기본 스타일 설정
+
     messageDiv.style.cssText = `
         position: fixed;
         padding: 15px 20px;
@@ -754,7 +655,6 @@ function showMessageAtPosition(message, type, targetElement = null) {
         ${type === 'success' ? 'background: #27ae60;' : 'background: #e74c3c;'}
     `;
 
-    // 애니메이션 CSS 추가
     if (!document.querySelector('#messageAnimation')) {
         const style = document.createElement('style');
         style.id = 'messageAnimation';
@@ -763,33 +663,28 @@ function showMessageAtPosition(message, type, targetElement = null) {
                 from { transform: translateX(100%); opacity: 0; }
                 to { transform: translateX(0); opacity: 1; }
             }
-            .message {
-                animation: slideIn 0.3s ease;
-            }
+            .message { animation: slideIn 0.3s ease; }
+            .skeleton .skeleton-line{display:block;height:10px;margin:6px 0;background:#eee;border-radius:4px}
+            .skeleton .skeleton-line.w-20{width:20%}
+            .skeleton .skeleton-line.w-30{width:30%}
+            .skeleton .skeleton-line.w-50{width:50%}
+            .skeleton .skeleton-line.w-60{width:60%}
+            .skeleton .skeleton-line.w-70{width:70%}
+            .skeleton .skeleton-line.w-80{width:80%}
+            .skeleton .skeleton-line.w-90{width:90%}
         `;
         document.head.appendChild(style);
     }
 
-    // 위치 설정
     if (targetElement) {
-        // 클릭한 요소 근처에 표시 (간단한 방법)
         const rect = targetElement.getBoundingClientRect();
         messageDiv.style.top = `${rect.bottom + 10}px`;
         messageDiv.style.left = `${rect.left}px`;
-        console.log('타겟 요소 위치 설정:', rect.bottom, rect.left);
     } else {
-        // 기본 위치 (우상단)
         messageDiv.style.top = '20px';
         messageDiv.style.right = '20px';
-        console.log('기본 위치 설정');
     }
 
-    // DOM에 추가
     document.body.appendChild(messageDiv);
-    console.log('메시지 DOM에 추가됨');
-
-    // 3초 후 제거
-    setTimeout(() => {
-        messageDiv.remove();
-    }, 3000);
+    setTimeout(() => messageDiv.remove(), 3000);
 }
