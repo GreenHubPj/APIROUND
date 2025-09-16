@@ -41,7 +41,12 @@
                 업체 님
             </span>
             <a th:href="@{/mypage-company}" class="btn-mypage">업체 마이페이지</a>
+
+            <!-- 컨트롤러가 /logout POST도 받도록 구현됨 -->
             <form th:action="@{/logout}" method="post" style="display:inline;">
+                <!-- 시큐리티 사용 시 CSRF 토큰 추가
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                -->
                 <button type="submit" class="btn-logout">로그아웃</button>
             </form>
         </div>
@@ -54,7 +59,11 @@
                 회원 님
             </span>
             <a th:href="@{/mypage}" class="btn-mypage">마이페이지</a>
+
             <form th:action="@{/logout}" method="post" style="display:inline;">
+                <!-- 시큐리티 사용 시 CSRF 토큰 추가
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                -->
                 <button type="submit" class="btn-logout">로그아웃</button>
             </form>
         </div>
