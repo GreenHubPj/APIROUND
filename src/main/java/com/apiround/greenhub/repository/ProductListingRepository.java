@@ -1,10 +1,15 @@
 package com.apiround.greenhub.repository;
 
-import com.apiround.greenhub.entity.ProductListing;
-import com.apiround.greenhub.entity.ProductListing.Status;
-import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
-public interface ProductListingRepository extends JpaRepository<ProductListing, Long> {
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.apiround.greenhub.entity.ProductListing;
+import com.apiround.greenhub.entity.ProductListing.Status;
+
+public interface ProductListingRepository extends JpaRepository<ProductListing, Integer> {
     List<ProductListing> findByStatus(Status status);
+    List<ProductListing> findBySeller_CompanyIdOrderByListingIdDesc(Integer companyId);
+    List<ProductListing> findBySellerCompanyIdOrderByListingIdAsc(Integer companyId);
+
 }
