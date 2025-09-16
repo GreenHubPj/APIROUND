@@ -49,5 +49,4 @@ document.addEventListener('DOMContentLoaded', function () {
   const googleBtn = document.querySelector('.google-btn');
   if (kakaoBtn) kakaoBtn.addEventListener('click', () => alert('카카오 로그인 기능은 준비 중입니다.'));
   if (googleBtn) googleBtn.addEventListener('click', () => alert('구글 로그인 기능은 준비 중입니다.'));
-
 });
