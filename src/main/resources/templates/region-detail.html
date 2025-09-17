@@ -51,18 +51,26 @@
                     </div>
                 </div>
 
-                <!-- 리뷰 섹션 -->
-                <div class="review-section">
+                <!-- 고객 리뷰 카드 -->
+                <div class="review-section" th:attr="data-product-id=${product.productId}">
                     <div class="review-header">
                         <h2 class="section-title">고객 리뷰</h2>
-                        <a th:href="@{/reviewlist(product=${param.id})}">
-                            <button type="button" class="view-all-reviews-btn">리뷰보기</button>
-                        </a>
+                        <a class="view-all-reviews-btn" th:href="@{'/products/' + ${product.productId} + '/reviews'}">리뷰보기</a>
                     </div>
 
-                    <div class="review-list" id="reviewList">
-                        <!-- 리뷰들이 여기에 동적으로 추가됩니다 -->
+                    <!-- ✅ 요약(평균/개수) 미니 위젯 -->
+                    <div class="review-summary-mini">
+                        <div class="mini-left">
+                            <span class="mini-rating-number" id="avgRatingMini">0.0</span>
+                            <div class="mini-stars" id="avgStarsMini" aria-hidden="true"></div>
+                        </div>
+                        <div class="mini-right">
+                            <span class="mini-count"><b id="totalReviewCountMini">0</b>개 리뷰</span>
+                        </div>
                     </div>
+
+                    <!-- 최신 3개 프리뷰 -->
+                    <div class="review-list" id="reviewList"></div>
                 </div>
 
                 <!-- 업체 정보 섹션 -->
@@ -125,10 +133,10 @@
                         </div>
                     </div>
 
-                    <div class="product-description">
-                        <h3 class="description-title">상품 설명</h3>
-                        <p class="description-text" id="descriptionText" th:text="${product.description}">상품 설명이 여기에 표시됩니다.</p>
-                    </div>
+                        <div class="product-description">
+                            <h3 class="description-title">상품 설명</h3>
+                            <p class="description-text" id="descriptionText" th:text="${product.description}">상품 설명이 여기에 표시됩니다.</p>
+                        </div>
 
                     <div class="purchase-section">
                         <div class="quantity-selector">
