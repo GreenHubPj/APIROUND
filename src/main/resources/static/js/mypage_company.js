@@ -39,10 +39,104 @@ document.addEventListener('DOMContentLoaded', function() {
             case 'products':
                 window.location.href = '/item-management';
                 break;
+            case 'email-notification':
+                openEmailModal();
+                break;
             default:
                 console.log('알 수 없는 모듈:', moduleType);
         }
     }
+
+    // 이메일 모달 관련 JavaScript - 전역 스코프로 이동
+    window.openEmailModal = function() {
+        document.getElementById('emailModal').style.display = 'flex';
+        checkRecipients();
+    }
+
+    window.closeEmailModal = function() {
+        document.getElementById('emailModal').style.display = 'none';
+        document.getElementById('emailForm').reset();
+    }
+
+    // 수신자 수 확인
+    async function checkRecipients() {
+        try {
+            const response = await fetch('/api/admin/email/recipients');
+            const data = await response.json();
+            
+            if (data.success) {
+                document.getElementById('recipientCount').textContent = data.count;
+            } else {
+                document.getElementById('recipientCount').textContent = '0';
+                console.error('수신자 조회 실패:', data.message);
+            }
+        } catch (error) {
+            console.error('수신자 조회 에러:', error);
+            document.getElementById('recipientCount').textContent = '0';
+        }
+    }
+
+    // 수신자 확인 버튼
+    document.getElementById('checkRecipientsBtn').addEventListener('click', async function() {
+        try {
+            const response = await fetch('/api/admin/email/recipients');
+            const data = await response.json();
+            
+            if (data.success) {
+                const userList = data.users.map(user => `${user.name} (${user.email})`).join('\n');
+                alert(`SMS 동의 고객 ${data.count}명:\n\n${userList}`);
+            } else {
+                alert('수신자 목록을 불러올 수 없습니다: ' + data.message);
+            }
+        } catch (error) {
+            alert('수신자 목록 조회 중 오류가 발생했습니다.');
+            console.error(error);
+        }
+    });
+
+    // 이메일 발송 폼 제출
+    document.getElementById('emailForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const submitBtn = this.querySelector('.btn-send');
+        const originalText = submitBtn.textContent;
+        
+        submitBtn.disabled = true;
+        submitBtn.textContent = '발송 중...';
+        
+        const formData = new FormData();
+        formData.append('subject', document.getElementById('emailSubject').value);
+        formData.append('message', document.getElementById('emailMessage').value);
+        
+        try {
+            const response = await fetch('/api/admin/email/send-bulk', {
+                method: 'POST',
+                body: formData
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                alert('메일 발송이 시작되었습니다! 발송 완료까지 시간이 소요될 수 있습니다.');
+                closeEmailModal();
+            } else {
+                alert('메일 발송 실패: ' + data.message);
+            }
+        } catch (error) {
+            alert('메일 발송 중 오류가 발생했습니다.');
+            console.error(error);
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.textContent = originalText;
+        }
+    });
+
+    // 모달 외부 클릭 시 닫기
+    document.getElementById('emailModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeEmailModal();
+        }
+    });
 
     // 반응형 처리
     function handleResize() {
