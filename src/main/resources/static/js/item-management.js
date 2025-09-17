@@ -129,9 +129,13 @@ async function handleFormSubmit(e) {
     const fd = new FormData(form);
     console.log('FormData 생성됨');
 
-    // FormData 내용 확인
+    // FormData 내용 확인 (파일 제외)
     for (let [key, value] of fd.entries()) {
-      console.log(key, ':', value);
+      if (value instanceof File) {
+        console.log(key, ':', 'File -', value.name, '(' + value.size + ' bytes)');
+      } else {
+        console.log(key, ':', value);
+      }
     }
 
     const res = await fetch(action, { method: 'POST', body: fd });
@@ -153,14 +157,14 @@ async function handleFormSubmit(e) {
 function validateListingForm() {
   const sellerId = document.getElementById('sellerId')?.value;
   const productName = document.getElementById('productName')?.value.trim();
-  const productType = document.getElementById('productType')?.value;
-  const regionText = document.getElementById('regionText')?.value.trim();
+  const productType = document.getElementById('category')?.value; // HTML에서 category ID 사용
+  const regionText = document.getElementById('region')?.value.trim(); // HTML에서 region ID 사용
   const description = document.getElementById('description')?.value.trim();
 
   if (!sellerId) return showMessage('로그인 정보가 없습니다. 다시 로그인해 주세요.', 'error'), false;
   if (!productName) return showMessage('상품명을 입력하세요.', 'error'), false;
   if (!productType) return showMessage('상품 타입을 선택하세요.', 'error'), false;
-  if (!regionText) return showMessage('지역을 입력하세요.', 'error'), false;
+  if (!regionText) return showMessage('지역을 선택하세요.', 'error'), false;
   if (!description) return showMessage('상품 설명을 입력하세요.', 'error'), false;
 
   // 가격옵션 최소 1개 + 유효성
@@ -398,17 +402,93 @@ function escapeHtml(str) {
  * 이미지 업로드
  * ------------------------------ */
 function setupImageUpload() {
-  const selectBtn = document.getElementById('selectImageBtn');
-  const fileInput = document.getElementById('imageUpload');
-  const removeAllBtn = document.getElementById('removeAllImagesBtn');
-  const previewContainer = document.getElementById('imagePreviewContainer');
+  const imageFile = document.getElementById('imageFile');
+  const imageUploadArea = document.getElementById('imageUploadArea');
+  const imagePreview = document.getElementById('imagePreview');
+  const previewImg = document.getElementById('previewImg');
+  const removeImageBtn = document.getElementById('removeImageBtn');
+  const thumbnailUrlInput = document.getElementById('thumbnailUrl');
 
-  if (!selectBtn || !fileInput || !removeAllBtn || !previewContainer) return;
+  if (!imageFile || !imageUploadArea || !imagePreview || !previewImg || !removeImageBtn || !thumbnailUrlInput) {
+    console.log('이미지 업로드 요소를 찾을 수 없습니다.');
+    return;
+  }
 
-  selectBtn.addEventListener('click', () => fileInput.click());
+  // 클릭으로 파일 선택
+  imageUploadArea.addEventListener('click', () => {
+    imageFile.click();
+  });
 
-  fileInput.addEventListener('change', handleImageSelection);
-  removeAllBtn.addEventListener('click', resetImageUpload);
+  // 드래그 앤 드롭
+  imageUploadArea.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    imageUploadArea.classList.add('drag-over');
+  });
+
+  imageUploadArea.addEventListener('dragleave', () => {
+    imageUploadArea.classList.remove('drag-over');
+  });
+
+  imageUploadArea.addEventListener('drop', (e) => {
+    e.preventDefault();
+    imageUploadArea.classList.remove('drag-over');
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+      handleImageFile(files[0]);
+    }
+  });
+
+  // 파일 선택 시
+  imageFile.addEventListener('change', (e) => {
+    if (e.target.files.length > 0) {
+      handleImageFile(e.target.files[0]);
+    }
+  });
+
+  // 이미지 제거
+  removeImageBtn.addEventListener('click', () => {
+    resetImageUpload();
+  });
+
+  function handleImageFile(file) {
+    // 파일 타입 검증
+    if (!file.type.startsWith('image/')) {
+      showMessage('이미지 파일만 업로드 가능합니다.', 'error');
+      return;
+    }
+
+    // 파일 크기 검증 (5MB 제한)
+    if (file.size > 5 * 1024 * 1024) {
+      showMessage('파일 크기는 5MB 이하여야 합니다.', 'error');
+      return;
+    }
+
+    // 미리보기 표시
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      previewImg.src = e.target.result;
+      imageUploadArea.style.display = 'none';
+      imagePreview.style.display = 'block';
+      
+      // 임시 URL 생성 (실제로는 서버에 업로드 후 URL 받아야 함)
+      const tempUrl = e.target.result;
+      thumbnailUrlInput.value = tempUrl;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function resetImageUpload() {
+    imageFile.value = '';
+    thumbnailUrlInput.value = '';
+    imageUploadArea.style.display = 'block';
+    imagePreview.style.display = 'none';
+    previewImg.src = '';
+  }
+
+  // 전역 함수로 등록
+  window.resetImageUpload = resetImageUpload;
+  
+  console.log('이미지 업로드 설정 완료');
 }
 
 function handleImageSelection(event) {

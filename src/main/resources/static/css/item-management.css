@@ -1027,6 +1027,88 @@
     opacity: 0.5;
 }
 
+/* 이미지 업로드 스타일 */
+.image-upload-container {
+    margin-top: 10px;
+}
+
+.image-upload-area {
+    border: 2px dashed #ddd;
+    border-radius: 10px;
+    padding: 40px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: #fafafa;
+}
+
+.image-upload-area:hover {
+    border-color: #007bff;
+    background: #f0f8ff;
+}
+
+.image-upload-area.drag-over {
+    border-color: #007bff;
+    background: #e3f2fd;
+    transform: scale(1.02);
+}
+
+.upload-icon {
+    font-size: 3rem;
+    margin-bottom: 15px;
+    opacity: 0.6;
+}
+
+.upload-text {
+    font-size: 1.1rem;
+    color: #333;
+    margin-bottom: 8px;
+    font-weight: 500;
+}
+
+.upload-hint {
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.image-preview {
+    position: relative;
+    display: inline-block;
+    margin-top: 15px;
+}
+
+.image-preview img {
+    max-width: 200px;
+    max-height: 200px;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.btn-remove-image {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: #dc3545;
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-size: 18px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+}
+
+.btn-remove-image:hover {
+    background: #c82333;
+    transform: scale(1.1);
+}
+
 /* 반응형 디자인 */
 @media (max-width: 768px) {
     .table-container {
@@ -1035,5 +1117,18 @@
     
     .item-table {
         min-width: 800px;
+    }
+    
+    .image-upload-area {
+        padding: 30px 15px;
+    }
+    
+    .upload-icon {
+        font-size: 2.5rem;
+    }
+    
+    .image-preview img {
+        max-width: 150px;
+        max-height: 150px;
     }
 }

@@ -27,7 +27,7 @@
             <button type="button" class="btn-cancel" id="cancelBtn" style="display:none;">취소</button>
         </div>
 
-        <form class="item-form" id="itemForm" method="post" th:action="@{/item-management}">
+        <form class="item-form" id="itemForm" method="post" enctype="multipart/form-data" th:action="@{/item-management}">
             <!-- (선택) CSRF -->
             <input type="hidden" name="_csrf" th:value="${_csrf?.token}">
             <!-- 수정 시 사용 -->
@@ -174,9 +174,21 @@
             </div>
 
             <div class="form-group">
-                <label class="form-label">대표 이미지 URL</label>
+                <label class="form-label">대표 이미지</label>
                 <!-- 엔티티: thumbnailUrl -->
-                <input type="text" class="form-input" name="thumbnailUrl" placeholder="https://example.com/image.jpg">
+                <div class="image-upload-container">
+                    <input type="file" id="imageFile" name="imageFile" accept="image/*" class="image-file-input" style="display: none;">
+                    <div class="image-upload-area" id="imageUploadArea">
+                        <div class="upload-icon">📷</div>
+                        <div class="upload-text">이미지를 선택하거나 드래그하세요</div>
+                        <div class="upload-hint">JPG, PNG, GIF 파일만 업로드 가능</div>
+                    </div>
+                    <div class="image-preview" id="imagePreview" style="display: none;">
+                        <img id="previewImg" src="" alt="미리보기">
+                        <button type="button" class="btn-remove-image" id="removeImageBtn">×</button>
+                    </div>
+                    <input type="hidden" id="thumbnailUrl" name="thumbnailUrl" value="">
+                </div>
             </div>
 
             <div class="form-group">

@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.apiround.greenhub.dto.ListingDto;
@@ -106,6 +107,7 @@ public class ItemController {
             @RequestParam String regionText,
             @RequestParam String description,
             @RequestParam(required = false) String thumbnailUrl,
+            @RequestParam(required = false) MultipartFile imageFile,
             @RequestParam(name = "months", required = false) List<Integer> months,
 
             @RequestParam(name = "optionLabel", required = false) List<String> optionLabels,
@@ -142,6 +144,37 @@ public class ItemController {
             log.info("최종 판매자 정보: companyId={}, companyName={}", 
                     seller.getCompanyId(), seller.getCompanyName());
 
+            // 0) 이미지 파일 처리
+            String finalThumbnailUrl = thumbnailUrl;
+            if (imageFile != null && !imageFile.isEmpty()) {
+                try {
+                    // 파일 저장 경로 설정
+                    String uploadDir = "src/main/resources/static/images/uploads/";
+                    String fileName = System.currentTimeMillis() + "_" + imageFile.getOriginalFilename();
+                    String filePath = uploadDir + fileName;
+                    
+                    // 디렉토리 생성 (존재하지 않는 경우)
+                    java.io.File directory = new java.io.File(uploadDir);
+                    if (!directory.exists()) {
+                        directory.mkdirs();
+                    }
+                    
+                    // 파일 저장
+                    imageFile.transferTo(new java.io.File(filePath));
+                    
+                    // 웹에서 접근 가능한 URL로 변환
+                    finalThumbnailUrl = "/images/uploads/" + fileName;
+                    log.info("이미지 파일 저장 완료: {}", finalThumbnailUrl);
+                } catch (Exception e) {
+                    log.error("이미지 파일 저장 실패", e);
+                    ra.addFlashAttribute("error", "이미지 저장 실패: " + e.getMessage());
+                    return "redirect:/item-management";
+                }
+            } else if (thumbnailUrl == null || thumbnailUrl.trim().isEmpty()) {
+                // 기본 이미지 설정
+                finalThumbnailUrl = "/images/농산물.png";
+            }
+
             // 1) specialty_product + option 저장
             months       = months       == null ? Collections.emptyList() : months;
             optionLabels = optionLabels == null ? Collections.emptyList() : optionLabels;
@@ -159,7 +192,7 @@ public class ItemController {
             Integer savedProductId = itemService.saveProductWithOptions(
                     productId,
                     productName, productType, regionText, description,
-                    thumbnailUrl, null, // externalRef 제거
+                    finalThumbnailUrl, null, // externalRef 제거
                     months, optionLabels, quantities, units, prices
             );
             
