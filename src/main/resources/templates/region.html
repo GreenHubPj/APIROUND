@@ -69,16 +69,17 @@
             <!-- 상품 목록 -->
              <section class="products-section" id="productsSection">
                  <!-- 동적 상품 데이터 -->
-                 <div th:each="product : ${products}" 
-                      class="product-card" 
-                      th:data-region="${product.regionText}" 
-                      th:data-product-id="${product.productId}" 
-                      th:data-category="${product.productType}"
-                      th:onclick="'location.href=\'/region-detail?id=' + ${product.productId} + '\''">
+                        <div th:each="product : ${products}"
+                        class="product-card"
+                        th:attr="data-region=${product.regionText},
+                        data-product-id=${product.productId},
+                        data-category=${product.productType}"
+                        th:onclick="|location.href='@{/region-detail(id=${product.productId}, region=${product.regionText})}'|">
                      <div class="product-image">
                          <img th:src="${product.thumbnailUrl}" th:alt="${product.productName}">
                          <p class="product-place" th:text="${product.regionText}"></p>
                      </div>
+
                      <div class="product-content">
                          <h3 class="product-title" th:text="${product.productName}"></h3>
                          <div class="product-info">
@@ -100,7 +101,7 @@
                  </div>
 
              </section>
-             
+
              <!-- 더보기 버튼 -->
              <div class="load-more-container">
                  <button class="load-more-btn" id="loadMoreBtn">더보기</button>

@@ -1,5 +1,4 @@
-// /static/js/item-management.js
-// 상품관리 페이지 JavaScript (서버 연동 버전)
+// 상품관리 페이지 JS (product_listing 최소 컬럼 + 옵션만 입력)
 
 document.addEventListener('DOMContentLoaded', function () {
   initializeItemManagement();
@@ -9,82 +8,162 @@ function initializeItemManagement() {
   setupAddProductButton();
   setupFormHandlers();
   setupPriceOptions();
-  setupImageUpload();
   wireSearchAndFilters();
-  console.log('상품관리 페이지가 초기화되었습니다.');
+  ensureSellerIdHidden(); // 로그인 판매자 hidden 값 보정
+  setupImageUpload(); // 이미지 업로드 설정
+  console.log('상품관리 페이지 초기화 (product_listing 전송)');
+  
+  // 기본 이미지 URL 설정
+  document.getElementById('thumbnailUrl').value = '/images/농산물.png';
 }
 
 /* ------------------------------
- * 공통: CSRF
+ * 로그인 판매자 hidden 값 보정
+ * ------------------------------ */
+function ensureSellerIdHidden() {
+  const sellerInput = document.getElementById('sellerId');
+  if (sellerInput && sellerInput.value) return;
+
+  // 메타 태그 백업
+  const meta = document.querySelector('meta[name="login-company-id"]');
+  const v = meta?.getAttribute('content');
+  if (sellerInput && v) sellerInput.value = v;
+}
+
+/* ------------------------------
+ * CSRF
  * ------------------------------ */
 function getCsrfToken() {
-  // 1) 폼 hidden _csrf (권장)
   const input = document.querySelector('input[name="_csrf"]');
   if (input && input.value) return input.value;
-  // 2) meta 태그 백업
   const meta = document.querySelector('meta[name="_csrf"]');
   return meta ? meta.getAttribute('content') : null;
 }
 
 /* ------------------------------
- * 폼/제출
+ * 폼/제출 (product_listing)
  * ------------------------------ */
 function setupFormHandlers() {
   const form = document.getElementById('itemForm');
   const resetBtn = document.getElementById('resetBtn');
   const cancelBtn = document.getElementById('cancelBtn');
 
-  form.addEventListener('submit', handleFormSubmit);
+  // form.addEventListener('submit', handleFormSubmit);
+  form.addEventListener('submit', handleFormSubmitSimple);
   resetBtn.addEventListener('click', resetForm);
   cancelBtn.addEventListener('click', cancelEdit);
+  
+  // 이미지 업로드 핸들러
+  setupImageUpload();
+}
+
+function handleFormSubmitSimple(e) {
+  console.log('간단한 폼 제출 시작');
+  
+  // 최소한의 검증만 수행
+  const productName = document.getElementById('productName')?.value?.trim();
+  const productType = document.getElementById('productType')?.value;
+  const regionText = document.getElementById('regionText')?.value?.trim();
+  const description = document.getElementById('description')?.value?.trim();
+
+  console.log('폼 필드 값 확인:', {
+    productName: productName,
+    productType: productType,
+    regionText: regionText,
+    description: description
+  });
+
+  if (!productName || !productType || !regionText || !description) {
+    e.preventDefault();
+    alert('필수 필드를 모두 입력해주세요.');
+    return false;
+  }
+
+  // 가격 옵션 검증
+  const priceRows = document.querySelectorAll('.price-option-item');
+  if (priceRows.length === 0) {
+    e.preventDefault();
+    alert('가격 옵션을 최소 1개 추가해주세요.');
+    return false;
+  }
+
+  console.log('폼 제출 진행:', {
+    productName,
+    productType,
+    regionText,
+    description,
+    priceOptions: priceRows.length
+  });
+
+  return true;
 }
 
 async function handleFormSubmit(e) {
   e.preventDefault();
   const form = document.getElementById('itemForm');
 
-  // 유효성 (간단 체크: 필수값 & 가격옵션 1개 이상)
-  if (!basicValidate()) return;
+  console.log('폼 제출 시작');
+  console.log('폼 요소:', form);
+  
+  if (!validateListingForm()) {
+    console.log('폼 검증 실패');
+    return;
+  }
+  console.log('폼 검증 성공');
 
-  const action = form.getAttribute('action') || form.getAttribute('data-action') || '/item-management';
-  const method = (form.getAttribute('method') || 'post').toUpperCase();
+  // ✅ price_value = 옵션 최저가로 자동 반영
+  const minPrice = getMinOptionPrice();
+  const pv = document.getElementById('priceValue');
+  if (pv) pv.value = (minPrice != null) ? String(minPrice) : '';
 
+  // ✅ 대표 옵션 인덱스(첫 옵션) 고정 — 필요 시 라디오로 바꿔도 됨
+  const primaryIdx = document.getElementById('primaryOptionIndex');
+  if (primaryIdx && (primaryIdx.value === '' || primaryIdx.value == null)) {
+    primaryIdx.value = '0';
+  }
+
+  const action = form.getAttribute('action') || '/item-management';
+  console.log('제출 URL:', action);
+  
   try {
     const fd = new FormData(form);
-    // 옵션 라벨이 비어있으면 빈 문자열 그대로 전송 (선택 필드)
-
-    const res = await fetch(action, {
-      method,
-      body: fd
-      // CSRF: FormData 안의 hidden _csrf 로 처리됨 (Spring Security 기본)
-    });
-
+    console.log('FormData 생성됨');
+    
+    // FormData 내용 확인
+    for (let [key, value] of fd.entries()) {
+      console.log(key, ':', value);
+    }
+    
+    const res = await fetch(action, { method: 'POST', body: fd });
+    console.log('서버 응답 상태:', res.status);
+    
     if (!res.ok) {
-      const txt = await res.text();
+      const txt = await res.text().catch(()=>'');
+      console.error('서버 오류:', txt);
       throw new Error(txt || '서버 오류');
     }
-
-    // 성공: 페이지 리로드(목록 반영)
     showMessage('상품이 저장되었습니다.', 'success');
     setTimeout(() => window.location.reload(), 600);
   } catch (err) {
-    console.error(err);
+    console.error('폼 제출 오류:', err);
     showMessage('저장에 실패했습니다. 입력값을 확인해 주세요.', 'error');
   }
 }
 
-function basicValidate() {
-  const name = document.getElementById('productName').value.trim();
-  const category = document.getElementById('category').value;
-  const region = document.getElementById('region').value;
-  const desc = document.getElementById('description').value.trim();
+function validateListingForm() {
+  const sellerId = document.getElementById('sellerId')?.value;
+  const productName = document.getElementById('productName')?.value.trim();
+  const productType = document.getElementById('productType')?.value;
+  const regionText = document.getElementById('regionText')?.value.trim();
+  const description = document.getElementById('description')?.value.trim();
 
-  if (!name) return showMessage('상품명을 입력하세요.', 'error'), false;
-  if (!category) return showMessage('카테고리를 선택하세요.', 'error'), false;
-  if (!region) return showMessage('지역을 선택하세요.', 'error'), false;
-  if (!desc) return showMessage('상품 설명을 입력하세요.', 'error'), false;
+  if (!sellerId) return showMessage('로그인 정보가 없습니다. 다시 로그인해 주세요.', 'error'), false;
+  if (!productName) return showMessage('상품명을 입력하세요.', 'error'), false;
+  if (!productType) return showMessage('상품 타입을 선택하세요.', 'error'), false;
+  if (!regionText) return showMessage('지역을 입력하세요.', 'error'), false;
+  if (!description) return showMessage('상품 설명을 입력하세요.', 'error'), false;
 
-  // 가격옵션 최소 1개, 모든 필드 채움(가격/수량/단위)
+  // 가격옵션 최소 1개 + 유효성
   const rows = document.querySelectorAll('.price-option-item');
   if (rows.length === 0) return showMessage('가격 옵션을 최소 1개 추가하세요.', 'error'), false;
 
@@ -92,18 +171,21 @@ function basicValidate() {
     const q = row.querySelector('input[name="quantity"]')?.value;
     const u = row.querySelector('select[name="unit"]')?.value;
     const p = row.querySelector('input[name="price"]')?.value;
-    if (!q || !u || p === '' || p === null) {
+    if (!q || !u || p === '' || p == null) {
       return showMessage('가격 옵션의 수량/단위/가격을 모두 입력하세요.', 'error'), false;
     }
     if (Number(q) <= 0) return showMessage('수량은 0보다 커야 합니다.', 'error'), false;
-    if (Number(p) < 0) return showMessage('가격은 0 이상이어야 합니다.', 'error'), false;
+    if (Number(p) < 0)  return showMessage('가격은 0 이상이어야 합니다.', 'error'), false;
   }
-
-  // 제철기간 체크 최소 1
-  const monthChecked = document.querySelectorAll('input[name="months"]:checked').length;
-  if (monthChecked === 0) return showMessage('제철기간을 최소 1개 이상 선택하세요.', 'error'), false;
-
   return true;
+}
+
+function getMinOptionPrice() {
+  const prices = Array.from(document.querySelectorAll('.price-option-item input[name="price"]'))
+    .map(i => Number(i.value))
+    .filter(v => !Number.isNaN(v));
+  if (prices.length === 0) return null;
+  return Math.min(...prices);
 }
 
 /* ------------------------------
@@ -112,7 +194,6 @@ function basicValidate() {
 function setupPriceOptions() {
   document.getElementById('addPriceOption').addEventListener('click', addPriceOption);
 
-  // 초기 한 줄이 없다면 생성
   const container = document.getElementById('priceOptionsContainer');
   if (!container.querySelector('.price-option-item')) addPriceOption();
 }
@@ -172,90 +253,6 @@ function removePriceOption(buttonEl) {
 }
 
 /* ------------------------------
- * 이미지 프리뷰(선택사항: 서버 업로드는 백엔드 구성 후)
- * ------------------------------ */
-let uploadedImages = [];
-
-function setupImageUpload() {
-  const uploadBtn = document.getElementById('uploadBtn');
-  const imageUpload = document.getElementById('imageUpload');
-  const removeAllImagesBtn = document.getElementById('removeAllImagesBtn');
-  const imagePreviewContainer = document.getElementById('imagePreviewContainer');
-
-  if (!uploadBtn || !imageUpload || !removeAllImagesBtn || !imagePreviewContainer) return;
-
-  uploadBtn.addEventListener('click', () => imageUpload.click());
-  imageUpload.addEventListener('change', onFilesSelected);
-  removeAllImagesBtn.addEventListener('click', () => {
-    uploadedImages = [];
-    renderImages();
-  });
-
-  imagePreviewContainer.addEventListener('dragover', function (e) {
-    e.preventDefault();
-    this.style.borderColor = '#ff8c42';
-  });
-  imagePreviewContainer.addEventListener('dragleave', function (e) {
-    e.preventDefault();
-    this.style.borderColor = '#e1e8ed';
-  });
-  imagePreviewContainer.addEventListener('drop', function (e) {
-    e.preventDefault();
-    this.style.borderColor = '#e1e8ed';
-    onFilesSelected({ target: { files: e.dataTransfer.files } });
-  });
-}
-
-function onFilesSelected(e) {
-  const files = Array.from(e.target.files || []);
-  if (uploadedImages.length + files.length > 5) {
-    showMessage('이미지는 최대 5장까지 업로드할 수 있습니다.', 'error');
-    return;
-  }
-  files.forEach(file => {
-    if (!file.type.startsWith('image/')) return;
-    const reader = new FileReader();
-    reader.onload = (evt) => {
-      uploadedImages.push({ id: Date.now() + Math.random(), src: evt.target.result, file });
-      renderImages();
-    };
-    reader.readAsDataURL(file);
-  });
-}
-
-function renderImages() {
-  const imagePreviewContainer = document.getElementById('imagePreviewContainer');
-  const removeAllImagesBtn = document.getElementById('removeAllImagesBtn');
-  if (!imagePreviewContainer) return;
-
-  if (uploadedImages.length === 0) {
-    imagePreviewContainer.innerHTML = `
-      <div class="image-preview" id="imagePreview">
-        <div class="image-placeholder">
-          <span class="upload-icon">📷</span>
-          <p>이미지를 업로드하세요</p>
-          <small>드래그 앤 드롭 또는 클릭하여 선택</small>
-        </div>
-      </div>`;
-    if (removeAllImagesBtn) removeAllImagesBtn.style.display = 'none';
-    return;
-  }
-
-  imagePreviewContainer.innerHTML = uploadedImages.map(img => `
-    <div class="image-item">
-      <img src="${img.src}" alt="상품 이미지">
-      <button type="button" class="remove-btn" onclick="removeImage('${img.id}')">×</button>
-    </div>
-  `).join('');
-  if (removeAllImagesBtn) removeAllImagesBtn.style.display = 'inline-block';
-}
-
-function removeImage(imageId) {
-  uploadedImages = uploadedImages.filter(x => String(x.id) !== String(imageId));
-  renderImages();
-}
-
-/* ------------------------------
  * 폼 열기/닫기/초기화
  * ------------------------------ */
 function setupAddProductButton() {
@@ -281,22 +278,25 @@ function resetForm() {
   const form = document.getElementById('itemForm');
   form.reset();
 
-  // 가격옵션 1개만 남기고 나머지 제거
+  // 가격옵션 1개만 남기고 초기화
   const container = document.getElementById('priceOptionsContainer');
   container.innerHTML = '';
   addPriceOption();
 
-  // 이미지 초기화
-  uploadedImages = [];
-  renderImages();
+  // hidden값 초기화
+  const pv = document.getElementById('priceValue');
+  if (pv) pv.value = '';
+  const po = document.getElementById('primaryOptionIndex');
+  if (po) po.value = '0';
 
-  // 버튼/타이틀
+  // 이미지 초기화
+  resetImageUpload();
+
   document.getElementById('formTitle').textContent = '새 상품 등록';
   document.getElementById('cancelBtn').style.display = 'none';
 
-  // hidden productId 초기화
-  const hiddenId = document.getElementById('productId');
-  if (hiddenId) hiddenId.value = '';
+  // 로그인 판매자 보정(혹시 비어있으면 메타에서 채움)
+  ensureSellerIdHidden();
 }
 
 function cancelEdit() {
@@ -308,105 +308,24 @@ function cancelEdit() {
 }
 
 /* ------------------------------
- * 테이블 액션 (수정/삭제) - 서버 연동
- * ------------------------------ */
-async function editProduct(productId) {
-  try {
-    const res = await fetch(`/api/products/${productId}`);
-    if (!res.ok) throw new Error('상품 정보 로드 실패');
-    const data = await res.json();
-    fillFormWithProduct(data);
-  } catch (e) {
-    console.error(e);
-    showMessage('상품 정보를 불러오지 못했습니다.', 'error');
-  }
-}
-
-function fillFormWithProduct(data) {
-  const p = data.product;
-  const opts = data.options || [];
-
-  // 폼 열기
-  const itemFormSection = document.getElementById('itemFormSection');
-  const addProductBtn = document.getElementById('addProductBtn');
-  const cancelBtn = document.getElementById('cancelBtn');
-  itemFormSection.style.display = 'block';
-  addProductBtn.style.display = 'none';
-  cancelBtn.style.display = 'inline-flex';
-  document.getElementById('formTitle').textContent = '상품 수정';
-
-  // 기본 필드 주입
-  document.getElementById('productId').value = p.productId ?? '';
-  document.getElementById('productName').value = p.productName ?? '';
-  document.getElementById('category').value = p.productType ?? '';
-  document.getElementById('region').value = p.regionText ?? '';
-  document.getElementById('description').value = p.description ?? '';
-  document.querySelector('input[name="thumbnailUrl"]').value = p.thumbnailUrl ?? '';
-  document.querySelector('input[name="externalRef"]').value = p.externalRef ?? '';
-
-  // 제철기간 체크
-  document.querySelectorAll('input[name="months"]').forEach(chk => chk.checked = false);
-  (p.harvestSeason || '').split(',').forEach(m => {
-    const el = document.querySelector(`input[name="months"][value="${m.trim()}"]`);
-    if (el) el.checked = true;
-  });
-
-  // 옵션 다시 그림
-  const container = document.getElementById('priceOptionsContainer');
-  container.innerHTML = '';
-  if (opts.length === 0) {
-    addPriceOption();
-  } else {
-    opts.forEach(o => addPriceOption({
-      optionLabel: o.optionLabel,
-      quantity: o.quantity, // BigDecimal도 문자열로 들어오므로 그대로 출력 가능
-      unit: o.unit,
-      price: o.price
-    }));
-  }
-}
-
-async function deleteProduct(productId) {
-  if (!confirm('정말로 이 상품을 삭제하시겠습니까?')) return;
-  try {
-    const csrf = getCsrfToken();
-    const res = await fetch(`/api/products/${productId}`, {
-      method: 'DELETE',
-      headers: csrf ? { 'X-CSRF-TOKEN': csrf } : {}
-    });
-    if (!res.ok) throw new Error('삭제 실패');
-    const json = await res.json().catch(() => ({}));
-    if (json && json.ok) {
-      showMessage('삭제되었습니다.', 'success');
-      setTimeout(() => window.location.reload(), 400);
-    } else {
-      throw new Error('삭제 실패');
-    }
-  } catch (e) {
-    console.error(e);
-    showMessage('삭제 중 오류가 발생했습니다.', 'error');
-  }
-}
-
-/* ------------------------------
- * 검색/필터 (프론트 단순 필터링, 선택)
+ * (기존) 검색/필터 (프론트 단순 필터링)
  * ------------------------------ */
 function wireSearchAndFilters() {
   const input = document.getElementById('searchInput');
   const btn = document.getElementById('searchBtn');
-  const filter = document.getElementById('filterCategory');
+  const filter = document.getElementById('filterStatus');
   if (!input || !btn || !filter) return;
 
   const run = () => {
     const q = (input.value || '').trim().toLowerCase();
-    const cat = filter.value || '';
+    const status = filter.value || '';
     const rows = document.querySelectorAll('#itemTableBody tr');
     rows.forEach(tr => {
-      const name = (tr.querySelector('.name-col span')?.textContent || '').toLowerCase();
-      const category = (tr.querySelector('.category-col .category-tag')?.textContent || '').trim();
-      const matchQ = !q || name.includes(q);
-      const matchC = !cat || category === cat;
-      tr.style.display = (matchQ && matchC) ? '' : 'none';
+      const title = (tr.querySelector('.title-col')?.textContent || '').toLowerCase();
+      const rowStatus = (tr.querySelector('.status-col')?.textContent || '').trim();
+      const matchQ = !q || title.includes(q);
+      const matchS = !status || rowStatus === status;
+      tr.style.display = (matchQ && matchS) ? '' : 'none';
     });
   };
 
@@ -433,6 +352,37 @@ function showMessage(message, type) {
 }
 
 /* ------------------------------
+ * 수정/삭제 기능
+ * ------------------------------ */
+function editListing(listingId) {
+  showMessage('수정 기능은 준비 중입니다.', 'info');
+  // TODO: 수정 폼 구현
+}
+
+async function deleteListing(listingId) {
+  if (!confirm('정말로 이 상품을 삭제하시겠습니까?')) return;
+  
+  try {
+    const response = await fetch(`/api/listings/${listingId}`, {
+      method: 'DELETE',
+      headers: {
+        'X-CSRF-TOKEN': getCsrfToken()
+      }
+    });
+    
+    if (response.ok) {
+      showMessage('상품이 삭제되었습니다.', 'success');
+      setTimeout(() => window.location.reload(), 600);
+    } else {
+      throw new Error('삭제 실패');
+    }
+  } catch (error) {
+    console.error('삭제 오류:', error);
+    showMessage('삭제에 실패했습니다.', 'error');
+  }
+}
+
+/* ------------------------------
  * 유틸
  * ------------------------------ */
 function escapeHtml(str) {
@@ -444,8 +394,113 @@ function escapeHtml(str) {
     .replaceAll("'", '&#39;');
 }
 
-// 전역 노출(HTML onclick 연동용)
-window.removePriceOption = removePriceOption;
-window.removeImage = removeImage;
-window.editProduct = editProduct;
-window.deleteProduct = deleteProduct;
+/* ------------------------------
+ * 이미지 업로드
+ * ------------------------------ */
+function setupImageUpload() {
+  const selectBtn = document.getElementById('selectImageBtn');
+  const fileInput = document.getElementById('imageUpload');
+  const removeAllBtn = document.getElementById('removeAllImagesBtn');
+  const previewContainer = document.getElementById('imagePreviewContainer');
+
+  if (!selectBtn || !fileInput || !removeAllBtn || !previewContainer) return;
+
+  selectBtn.addEventListener('click', () => fileInput.click());
+  
+  fileInput.addEventListener('change', handleImageSelection);
+  removeAllBtn.addEventListener('click', resetImageUpload);
+}
+
+function handleImageSelection(event) {
+  const files = Array.from(event.target.files);
+  if (files.length === 0) return;
+
+  // 파일 유효성 검사
+  const validFiles = files.filter(file => {
+    if (!file.type.startsWith('image/')) {
+      showMessage(`${file.name}은 이미지 파일이 아닙니다.`, 'error');
+      return false;
+    }
+    if (file.size > 5 * 1024 * 1024) { // 5MB 제한
+      showMessage(`${file.name}은 파일 크기가 너무 큽니다. (5MB 이하)`, 'error');
+      return false;
+    }
+    return true;
+  });
+
+  if (validFiles.length === 0) return;
+
+  displayImages(validFiles);
+}
+
+function displayImages(files) {
+  const previewContainer = document.getElementById('imagePreviewContainer');
+  const removeAllBtn = document.getElementById('removeAllImagesBtn');
+  
+  // 기존 미리보기 제거
+  previewContainer.innerHTML = '';
+
+  files.forEach((file, index) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const imageItem = document.createElement('div');
+      imageItem.className = 'image-item';
+      imageItem.innerHTML = `
+        <img src="${e.target.result}" alt="상품 이미지">
+        <button type="button" class="remove-btn" onclick="removeImage(this)">×</button>
+      `;
+      previewContainer.appendChild(imageItem);
+    };
+    reader.readAsDataURL(file);
+  });
+
+  // 첫 번째 이미지를 썸네일로 설정 (간단한 URL로)
+  if (files.length > 0) {
+    const firstFile = files[0];
+    // 실제 파일명을 기반으로 URL 생성 (임시)
+    const fileName = firstFile.name;
+    const timestamp = Date.now();
+    const thumbnailUrl = `/images/products/${timestamp}_${fileName}`;
+    document.getElementById('thumbnailUrl').value = thumbnailUrl;
+    console.log('썸네일 URL 설정:', thumbnailUrl);
+  }
+
+  removeAllBtn.style.display = 'block';
+}
+
+function removeImage(button) {
+  const imageItem = button.closest('.image-item');
+  imageItem.remove();
+  
+  // 모든 이미지가 제거되면 초기 상태로
+  const previewContainer = document.getElementById('imagePreviewContainer');
+  if (previewContainer.children.length === 0) {
+    resetImageUpload();
+  } else {
+    // 첫 번째 이미지를 썸네일로 설정
+    const firstImg = previewContainer.querySelector('.image-item img');
+    if (firstImg) {
+      document.getElementById('thumbnailUrl').value = firstImg.src;
+    }
+  }
+}
+
+function resetImageUpload() {
+  const previewContainer = document.getElementById('imagePreviewContainer');
+  const removeAllBtn = document.getElementById('removeAllImagesBtn');
+  const fileInput = document.getElementById('imageUpload');
+  
+  previewContainer.innerHTML = `
+    <div class="image-preview" id="imagePreview">
+      <div class="image-placeholder">
+        <span class="upload-icon">📷</span>
+        <div>이미지를 업로드하세요</div>
+        <small>JPG, PNG, GIF 파일만 가능합니다</small>
+      </div>
+    </div>
+  `;
+  
+  removeAllBtn.style.display = 'none';
+  fileInput.value = '';
+  document.getElementById('thumbnailUrl').value = '/images/농산물.png'; // 기본 이미지 URL
+}

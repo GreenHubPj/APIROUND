@@ -4,28 +4,46 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>상품 상세 - GreenHub</title>
-    <link rel="stylesheet" th:href="@{/css/header.css}">
-    <link rel="stylesheet" th:href="@{/css/footer.css}">
-    <link rel="stylesheet" th:href="@{/css/region-detail.css}">
+    <link rel="stylesheet" href="/css/header.css">
+    <link rel="stylesheet" href="/css/region-detail.css">
+    <link rel="stylesheet" href="/css/footer.css">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
 </head>
 <body>
+<!-- 헤더 include (요청대로 유지) -->
 <div th:replace="common/header :: header"></div>
 
+<!-- 메인 컨텐츠 -->
 <main class="main-content">
     <div class="container">
+        <!-- 뒤로가기 버튼 -->
         <div class="back-button">
-            <button class="back-btn" id="backBtn" onclick="history.back()"><span>←</span> 목록으로 돌아가기</button>
+            <button type="button" class="back-btn" id="backBtn">
+                <span>←</span> 목록으로 돌아가기
+            </button>
         </div>
 
+        <!-- 메인 레이아웃 -->
         <div class="main-layout">
-            <!-- 왼쪽 -->
+            <!-- 왼쪽: 상품 이미지, 리뷰, 업체 정보 -->
             <div class="left-section">
                 <!-- 상품 이미지 -->
                 <div class="product-images">
-                    <div class="thumbnail-container" id="thumbnailContainer"></div>
-                    <div class="main-image-container">
-                        <img id="mainImage" th:src="${product.thumbnailUrl}" th:alt="${product.productName}" class="main-image">
+                    <div class="thumbnail-container" id="thumbnailContainer">
+                        <!-- 썸네일 이미지들이 여기에 동적으로 추가됩니다 -->
+                    </div>
+
+                    <!-- ★ 여기만 바뀜: th:with로 fallback/thumbnail 계산 후 변수끼리 삼항 사용 -->
+                    <div class="main-image-container"
+                         th:with="
+                 thumb=${#strings.trim(product.thumbnailUrl)},
+                 isBad=${#strings.isEmpty(thumb) or #strings.equalsIgnoreCase(thumb,'null') or #strings.equals(thumb,'#')},
+                 fallback=@{/images/따봉 트럭.png}">
+                        <img id="mainImage"
+                             class="main-image"
+                             th:alt="${product.productName}"
+                             th:src="${isBad} ? ${fallback} : ${thumb}"
+                             th:attr="onerror=|this.onerror=null;this.src='${fallback}'|">
                         <div class="image-nav">
                             <button class="nav-btn prev-btn" id="prevBtn">‹</button>
                             <button class="nav-btn next-btn" id="nextBtn">›</button>
@@ -55,18 +73,27 @@
                     <div class="review-list" id="reviewList"></div>
                 </div>
 
-                <!-- 업체 정보 -->
+                <!-- 업체 정보 섹션 -->
                 <div class="company-section">
                     <h3 class="company-title">업체 정보</h3>
                     <div class="company-details">
-                        <div class="company-item"><span class="company-label">업체명:</span><span class="company-value" id="companyName">문경농협</span></div>
-                        <div class="company-item"><span class="company-label">전화번호:</span><span class="company-value" id="companyPhone">054-555-1234</span></div>
-                        <div class="company-item"><span class="company-label">이메일:</span><span class="company-value" id="companyEmail">mungyeong@coop.co.kr</span></div>
+                        <div class="company-item">
+                            <span class="company-label">업체명:</span>
+                            <span class="company-value" id="companyName">문경농협</span>
+                        </div>
+                        <div class="company-item">
+                            <span class="company-label">전화번호:</span>
+                            <span class="company-value" id="companyPhone">054-555-1234</span>
+                        </div>
+                        <div class="company-item">
+                            <span class="company-label">이메일:</span>
+                            <span class="company-value" id="companyEmail">mungyeong@coop.co.kr</span>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- 오른쪽 -->
+            <!-- 오른쪽: 상품 정보 -->
             <div class="right-section">
                 <div class="product-info">
                     <div class="product-header">
@@ -77,21 +104,39 @@
                         </div>
                     </div>
 
-                    <div class="product-price-section">
-                        <h3 class="price-title">가격 옵션</h3>
-                        <div class="price-options" id="priceOptions"></div>
+                    <!-- 옵션 없음: 메시지 -->
+                    <div id="storepriceOptions" th:if="${options == null or #lists.isEmpty(options)}">
+                        <p class="no-price">업체에 문의해주세요</p>
+                    </div>
+
+                    <!-- 옵션 있음: 카드 렌더 + dataset 부착 -->
+                    <div id="priceOptions" th:if="${options != null and !#lists.isEmpty(options)}">
+                        <div th:each="opt : ${options}" class="price-option"
+                             th:attr="data-quantity=${opt.quantity},data-unit=${opt.unit},data-price=${opt.price}">
+                            <span class="price-option-info" th:text="|${opt.quantity}${opt.unit}|"></span>
+                            <span class="price-option-amount" th:text="|${#numbers.formatInteger(opt.price, 0)}원|"></span>
+                        </div>
                     </div>
 
                     <div class="product-details">
-                        <div class="detail-item"><span class="detail-label">원산지:</span><span class="detail-value" id="originInfo" th:text="${product.regionText}">-</span></div>
-                        <div class="detail-item"><span class="detail-label">제철기간:</span><span class="detail-value" id="seasonInfo" th:text="${product.harvestSeason}">-</span></div>
-                        <div class="detail-item"><span class="detail-label">상품 유형:</span><span class="detail-value" id="typeInfo" th:text="${product.productType}">-</span></div>
+                        <div class="detail-item">
+                            <span class="detail-label">원산지:</span>
+                            <span class="detail-value" id="originInfo" th:text="${product.regionText}">-</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">제철기간:</span>
+                            <span class="detail-value" id="seasonInfo" th:text="${product.harvestSeason}">-</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">상품 유형:</span>
+                            <span class="detail-value" id="typeInfo" th:text="${product.productType}">-</span>
+                        </div>
                     </div>
 
-                    <div class="product-description">
-                        <h3 class="description-title">상품 설명</h3>
-                        <p class="description-text" id="descriptionText" th:text="${product.description}">상품 설명이 여기에 표시됩니다.</p>
-                    </div>
+                        <div class="product-description">
+                            <h3 class="description-title">상품 설명</h3>
+                            <p class="description-text" id="descriptionText" th:text="${product.description}">상품 설명이 여기에 표시됩니다.</p>
+                        </div>
 
                     <div class="purchase-section">
                         <div class="quantity-selector">
@@ -102,16 +147,25 @@
                                 <button class="quantity-btn" id="increaseBtn">+</button>
                             </div>
                         </div>
+
                         <div class="price-option-selector">
                             <label for="priceOptionSelect">가격 옵션:</label>
-                            <select id="priceOptionSelect" class="price-select">
+                            <select id="priceOptionSelect" class="price-select"
+                                    th:disabled="${options == null or #lists.isEmpty(options)}">
                                 <option value="">가격 옵션을 선택하세요</option>
+                                <option th:each="opt, stat : ${options}"
+                                        th:value="${stat.index}"
+                                        th:attr="data-quantity=${opt.quantity},data-unit=${opt.unit},data-price=${opt.price}"
+                                        th:text="|${opt.quantity}${opt.unit} - ${#numbers.formatInteger(opt.price, 0)}원|">
+                                </option>
                             </select>
                         </div>
+
                         <div class="total-price">
                             <span class="total-label">총 가격:</span>
                             <span class="total-amount" id="totalAmount">0원</span>
                         </div>
+
                         <div class="purchase-buttons">
                             <button class="btn-cart" id="addToCartBtn">🛒 장바구니 담기</button>
                             <button class="btn-buy" id="buyNowBtn">💳 구매하기</button>
@@ -121,16 +175,55 @@
             </div>
         </div>
 
-        <!-- 관련 상품 -->
-        <div class="related-products-section">
+        <!-- 관련 상품 섹션 -->
+        <div class="related-products-section"
+             th:if="${relatedProducts != null and !#lists.isEmpty(relatedProducts)}">
             <h2 class="section-title">관련 상품</h2>
-            <div class="related-products-grid" id="relatedProductsGrid"></div>
+
+            <div class="related-products-grid" id="relatedProductsGrid"
+                 th:with="r=${#strings.isEmpty(param.region) ? product.regionText : param.region}">
+                <a class="related-card"
+                   th:each="rp, stat : ${relatedProducts}"
+                   th:if="${stat.index < 4}"
+                   th:href="@{/region-detail(id=${rp.productId}, region=${r})}"
+                   th:with="
+                    thumb=${#strings.trim(rp.thumbnailUrl)},
+                    isBad=${#strings.isEmpty(thumb) or #strings.equalsIgnoreCase(thumb,'null') or #strings.equals(thumb,'#')},
+                    fallback=@{/images/따봉 트럭.png}">
+                    <div class="related-thumb">
+                        <img th:alt="${rp.productName}"
+                             th:src="${isBad} ? ${fallback} : ${thumb}"
+                             th:attr="onerror=|this.onerror=null;this.src='@{/images/따봉 트럭.png}'|">
+                    </div>
+                    <div class="related-info">
+                        <div class="related-name" th:text="${rp.productName}">상품명</div>
+                        <div class="related-meta">
+                            <span th:text="${rp.regionText}">지역</span>
+                            <span th:text="${rp.productType}">유형</span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <!-- 아무것도 없을 때 안내 (선택) -->
+        <div class="related-products-section"
+             th:if="${relatedProducts == null or #lists.isEmpty(relatedProducts)}">
+            <h2 class="section-title">관련 상품</h2>
+            <p class="no-related">같은 지역의 다른 상품이 아직 없어요.</p>
         </div>
     </div>
 </main>
 
+<!-- 푸터 include (요청대로 유지) -->
 <div th:replace="common/footer :: footer"></div>
 
-<script th:src="@{/js/region-detail.js}"></script>
+<script src="/js/region-detail.js"></script>
+
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    window.__NO_PRICE__ = /*[[${options == null or #lists.isEmpty(options)}]]*/ false;
+    /*]]>*/
+</script>
 </body>
 </html>

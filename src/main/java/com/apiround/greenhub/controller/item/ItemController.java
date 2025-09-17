@@ -1,61 +1,99 @@
 // src/main/java/com/apiround/greenhub/controller/item/ItemController.java
 package com.apiround.greenhub.controller.item;
 
-import com.apiround.greenhub.service.item.ItemService;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import java.math.BigDecimal;
+import java.util.Collections;
+import java.util.HashMap; // enum Status 포함
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.math.BigDecimal;
-import java.util.*;
-import java.util.stream.Collectors;
+import com.apiround.greenhub.dto.ListingDto;
+import com.apiround.greenhub.entity.Company;
+import com.apiround.greenhub.entity.ProductListing;
+import com.apiround.greenhub.entity.item.SpecialtyProduct;
+import com.apiround.greenhub.repository.CompanyRepository;
+import com.apiround.greenhub.repository.ProductListingRepository;
+import com.apiround.greenhub.service.item.ItemService;
+import com.apiround.greenhub.service.item.ListingService;
+
+import jakarta.servlet.http.HttpSession;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Controller
 @RequiredArgsConstructor
 @Slf4j
 public class ItemController {
 
-    private final ItemService itemService;
+    private final ItemService itemService;                 // specialty_product + options
+    private final ListingService listingService;           // product_listing
+    private final CompanyRepository companyRepository;
+    private final ProductListingRepository listingRepo;
 
-    // 목록 + 페이지 렌더
+    /** 상품관리 페이지 */
     @GetMapping("/item-management")
-    public String page(Model model) {
-        var summaries = itemService.listAll(); // 상품 + 최저가
+    public String page(Model model, HttpSession session) {
 
-        // Java 8+ 호환 리스트 변환
-        List<com.apiround.greenhub.entity.item.SpecialtyProduct> productList =
-                summaries.stream()
-                        .map(ItemService.ProductSummary::product)
-                        .collect(Collectors.toList());
+        // (세션) 로그인 회사 정보 조회
+        Company loginCompany = (Company) session.getAttribute("company");
+        if (loginCompany == null) {
+            // 세션에서 회사 ID로 조회 시도
+            Integer companyId = (Integer) session.getAttribute("loginCompanyId");
+            if (companyId != null) {
+                loginCompany = companyRepository.findById(companyId).orElse(null);
+            }
+        }
 
-        // ❗ NPE 방지: null 키/값은 넣지 않음 (옵션 미등록 상품의 minPrice가 null일 수 있음)
+        // 1) (기존) specialty_product + 최저가 옵션
+        var summaries = itemService.listAll();
+
+        List<SpecialtyProduct> productList = summaries.stream()
+                .map(ItemService.ProductSummary::product)
+                .collect(Collectors.toList());
+
         Map<Integer, Integer> minPriceMap = new HashMap<>();
         for (var s : summaries) {
             Integer pid = s.product().getProductId();
             Integer min = s.minPrice();
-            if (pid != null && min != null) {
-                minPriceMap.put(pid, min);
-            }
+            if (pid != null && min != null) minPriceMap.put(pid, min);
         }
+
+        // 2) (신규) 로그인 회사의 리스팅 목록
+        List<ProductListing> listings = (loginCompany == null)
+                ? Collections.emptyList()
+                : listingRepo.findBySellerCompanyIdOrderByListingIdAsc(loginCompany.getCompanyId());
 
         model.addAttribute("products", productList);
         model.addAttribute("minPriceMap", minPriceMap);
+        model.addAttribute("listings", listings);
+        model.addAttribute("loginCompany", loginCompany);
+        model.addAttribute("listingStatuses", ProductListing.Status.values());
+        model.addAttribute("listingForm", new ListingDto());
+
         return "item-management";
     }
 
-    // 등록/수정
+    /** 상품 등록: specialty_product + product_price_option 저장하고, 곧바로 product_listing도 자동 생성 */
     @PostMapping("/item-management")
-    public String save(
+    public String saveSpecialty(
             @RequestParam(required = false) Integer productId,
             @RequestParam String productName,
             @RequestParam String productType,
             @RequestParam String regionText,
             @RequestParam String description,
             @RequestParam(required = false) String thumbnailUrl,
-            @RequestParam(required = false) String externalRef,
             @RequestParam(name = "months", required = false) List<Integer> months,
 
             @RequestParam(name = "optionLabel", required = false) List<String> optionLabels,
@@ -63,25 +101,69 @@ public class ItemController {
             @RequestParam(name = "unit",        required = false) List<String> units,
             @RequestParam(name = "price",       required = false) List<Integer> prices,
 
+            HttpSession session,
             RedirectAttributes ra
     ) {
+        log.info("상품 등록 요청 시작 - productName: {}, productType: {}, regionText: {}", 
+                productName, productType, regionText);
+        log.info("세션 정보 - company: {}, loginCompanyId: {}", 
+                session.getAttribute("company"), session.getAttribute("loginCompanyId"));
+        
         try {
-            // null-safe
+            // 0) 로그인 회사 확인
+            Company seller = (Company) session.getAttribute("company");
+            log.info("세션에서 회사 정보: {}", seller);
+            
+            if (seller == null) {
+                // 세션에서 회사 ID로 조회 시도
+                Integer companyId = (Integer) session.getAttribute("loginCompanyId");
+                log.info("세션에서 회사 ID: {}", companyId);
+                
+                if (companyId == null) {
+                    log.error("로그인 정보가 없습니다.");
+                    throw new IllegalStateException("로그인 후 이용해 주세요.");
+                }
+                seller = companyRepository.findById(companyId)
+                        .orElseThrow(() -> new IllegalStateException("회사 정보를 찾을 수 없습니다."));
+            }
+            
+            log.info("최종 판매자 정보: companyId={}, companyName={}", 
+                    seller.getCompanyId(), seller.getCompanyName());
+
+            // 1) specialty_product + option 저장
             months       = months       == null ? Collections.emptyList() : months;
             optionLabels = optionLabels == null ? Collections.emptyList() : optionLabels;
             quantities   = quantities   == null ? Collections.emptyList() : quantities;
             units        = units        == null ? Collections.emptyList() : units;
             prices       = prices       == null ? Collections.emptyList() : prices;
+            
+            log.info("파라미터 검증 - months: {}, optionLabels: {}, quantities: {}, units: {}, prices: {}", 
+                    months, optionLabels, quantities, units, prices);
 
-            Integer savedId = itemService.saveProductWithOptions(
+            // 옵션까지 저장하고 productId 반환
+            log.info("상품 저장 시작 - optionLabels: {}, quantities: {}, units: {}, prices: {}", 
+                    optionLabels, quantities, units, prices);
+            
+            Integer savedProductId = itemService.saveProductWithOptions(
                     productId,
                     productName, productType, regionText, description,
-                    thumbnailUrl, externalRef,
+                    thumbnailUrl, null, // externalRef 제거
                     months, optionLabels, quantities, units, prices
             );
+            
+            log.info("상품 저장 완료 - savedProductId: {}", savedProductId);
 
+            // 2) 저장한 상품을 기반으로 product_listing 자동 생성 (옵션은 내부에서 가장 첫/최소를 매칭)
+            Integer listingId = listingService.createListingFromSpecialty(
+                    savedProductId,
+                    seller.getCompanyId(),
+                    productName,         // title
+                    description          // description
+            );
+
+            log.info("상품 저장 성공 - productId: {}, listingId: {}", savedProductId, listingId);
             ra.addFlashAttribute("msg", "상품이 저장되었습니다.");
-            return "redirect:/item-management#id=" + savedId;
+            return "redirect:/item-management#id=" + savedProductId;
 
         } catch (Exception e) {
             log.error("상품 저장 중 오류", e);
@@ -90,22 +172,50 @@ public class ItemController {
         }
     }
 
-    // 단건 조회 (수정 모달/폼 채움)
+    @PostMapping("/listings")
+    public String saveListingFromForm(@ModelAttribute("listingForm") ListingDto form,
+                                      HttpSession session, RedirectAttributes ra) {
+        // 로그인 회사 주입
+        Company seller = (Company) session.getAttribute("company");
+        if (seller == null) {
+            // 세션에서 회사 ID로 조회 시도
+            Integer companyId = (Integer) session.getAttribute("loginCompanyId");
+            if (companyId == null) {
+                throw new IllegalStateException("로그인 후 이용해 주세요.");
+            }
+            seller = companyRepository.findById(companyId)
+                    .orElseThrow(() -> new IllegalStateException("회사 정보를 찾을 수 없습니다."));
+        }
+        form.setSellerId(seller.getCompanyId());
+
+        Integer id = listingService.saveListing(form);
+        ra.addFlashAttribute("msg", "리스팅이 저장되었습니다.");
+        return "redirect:/item-management#listing=" + id;
+    }
+
+    /** specialty_product 단건 조회 (수정용) */
     @GetMapping("/api/products/{id}")
     @ResponseBody
     public Map<String, Object> getOne(@PathVariable Integer id) {
         var detail = itemService.getProductWithOptions(id);
-        return Map.of(
-                "product", detail.product(),
-                "options", detail.options()
-        );
+        return Map.of("product", detail.product(), "options", detail.options());
     }
 
-    // 삭제
+    /** specialty_product 삭제 */
     @DeleteMapping("/api/products/{id}")
     @ResponseBody
     public Map<String, Object> delete(@PathVariable Integer id) {
         itemService.deleteProduct(id);
         return Map.of("ok", true);
     }
+
+    /** product_listing 삭제 */
+    @DeleteMapping("/api/listings/{id}")
+    @ResponseBody
+    public Map<String, Object> deleteListing(@PathVariable Integer id) {
+        listingRepo.deleteById(id);
+        return Map.of("ok", true);
+    }
+
+
 }

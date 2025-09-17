@@ -1,5 +1,8 @@
 package com.apiround.greenhub.controller;
 
+import com.apiround.greenhub.entity.item.Region;
+import com.apiround.greenhub.service.item.SeasonalService;
+import lombok.RequiredArgsConstructor;
 import com.apiround.greenhub.entity.Recipe;
 import com.apiround.greenhub.service.RecipeService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,16 +11,24 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import com.apiround.greenhub.service.item.RegionService;
+
 import java.util.List;
 
 @Controller
+@RequiredArgsConstructor
 public class HomeController {
 
     @Autowired
     private RecipeService recipeService;
 
+    private final SeasonalService seasonalService;
+
     @GetMapping("/")
     public String home(Model model) {
+        List<Region> seasonal = seasonalService.getRandomSeasonalForMain(8); // ✅ 인스턴스 호출
+        model.addAttribute("seasonalProducts", seasonal);
+        return "main";
         List<Recipe> randomRecipes = recipeService.getRandomRecipesForMain();
         model.addAttribute("randomRecipes", randomRecipes);
         return "main";

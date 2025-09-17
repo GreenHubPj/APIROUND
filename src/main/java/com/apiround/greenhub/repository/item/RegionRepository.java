@@ -41,4 +41,17 @@ public interface RegionRepository extends JpaRepository<Region, Integer> {
     @Query("SELECT r FROM Region r WHERE r.productType = :productType ORDER BY r.productId DESC")
     List<Region> findByProductTypeOrderByProductIdDesc(@Param("productType") String productType);
 
-}
+
+    @Query(value = """
+            SELECT *
+            FROM specialty_product
+            WHERE region_text = :regionText
+              AND product_id <> :excludeId
+            ORDER BY RAND()
+            LIMIT :limit
+            """, nativeQuery = true)
+    List<Region> findRandomByRegionText(
+            @Param("regionText") String regionText,
+            @Param("excludeId") Integer excludeId,
+            @Param("limit") int limit
+    );}
