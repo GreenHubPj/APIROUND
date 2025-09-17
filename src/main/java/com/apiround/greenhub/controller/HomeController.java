@@ -2,6 +2,7 @@ package com.apiround.greenhub.controller;
 
 import com.apiround.greenhub.entity.Recipe;
 import com.apiround.greenhub.service.RecipeService;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import com.apiround.greenhub.entity.Recipe;
 import com.apiround.greenhub.entity.item.Region;
@@ -41,17 +42,17 @@ public class HomeController {
             if (recipe == null) {
                 return ResponseEntity.ok().body(Map.of("error", "추천할 레시피가 없습니다."));
             }
-            
+
             // 응답 데이터 구성
             Map<String, Object> response = Map.of(
                 "name", recipe.getTitle() != null ? recipe.getTitle() : "맛있는 요리",
                 "region", "전국 지역 특산품", // 기본값 또는 추후 지역 정보 연동
-                "ingredients", getRecipeIngredients(recipe.getRecipeId()),
+                "ingredients", getRecipeIngredients(recipe.getRecipeId().intValue()),
                 "description", recipe.getSummary() != null ? recipe.getSummary() : "특별한 레시피입니다.",
                 "recipeId", recipe.getRecipeId(),
                 "imageUrl", recipe.getHeroImageUrl()
             );
-            
+
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             return ResponseEntity.ok().body(Map.of("error", "레시피 추천 중 오류가 발생했습니다."));
@@ -87,8 +88,16 @@ public class HomeController {
     // @GetMapping("/mypage-company")
     // public String mypageCompany() { return "mypage_company"; }
 
+
     @GetMapping("/myrecipe")
-    public String myrecipe() { return "myrecipe"; }
+    public String myrecipe(HttpSession session, Model model) {
+        Integer userId = (Integer) session.getAttribute("loginUserId");
+        if (userId == null) {
+            return "redirect:/login";
+        }
+        model.addAttribute("userId", userId);
+        return "myrecipe";
+    }
 
     /** 레시피 재료 목록을 문자열 배열로 반환 */
     private List<String> getRecipeIngredients(Integer recipeId) {

@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     let recipeData = [];  // 서버에서 받아온 레시피 데이터 저장용
 
-    const currentUserId = 1; // 예시용 로그인 유저 ID
+    //const currentUserId = 1; // 예시용 로그인 유저 ID
 
     console.log('현재 유저 ID:', currentUserId);
 
