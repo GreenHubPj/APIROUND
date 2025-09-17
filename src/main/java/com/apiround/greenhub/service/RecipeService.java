@@ -49,4 +49,9 @@ public class RecipeService {
     public List<RecipeXProduct> getProducts(Integer recipeId) {
         return rxpRepo.findByRecipeRecipeId(recipeId);
     }
+
+    public List<Recipe> getRandomRecipesForMain() {
+        return recipeRepo.findRandomPublishedRecipes(5);
+    }
+
 }

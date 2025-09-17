@@ -12,193 +12,6 @@
     <link rel="stylesheet" th:href="@{/css/footer.css}" />
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet" />
 
-    <!-- 🔒 여백/레이아웃 보호용 보조 스타일 -->
-    <style>
-        /* 페이지 전체 폰트 & 배경 */
-        body {
-          font-family: "Noto Sans KR", system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
-          background: #fafafa;
-          color: #222;
-        }
-
-        /* ✅ 항상 가운데 정렬 + 양옆 여백 보장 */
-        .mypage-company-section .container {
-          max-width: 1140px;     /* 원하는 최대 폭 */
-          margin: 0 auto;        /* 가운데 정렬 */
-          padding: 0 20px;       /* 양옆 여백 */
-          box-sizing: border-box;
-          width: 100%;
-        }
-
-        /* 타이틀 영역 */
-        .mypage-title {
-          margin: 24px 0 12px;
-        }
-        .page-title-container {
-          display: flex;
-          align-items: center;
-          gap: 14px;
-        }
-
-        /* 아이콘(원형 배지) */
-        .page-icon .store-icon {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-
-          user-select: none;
-        }
-
-        .store-icon {
-          width: 60px;
-          height: 60px;
-        }
-
-        .page-title {
-          font-size: 28px;
-          font-weight: 800;
-          letter-spacing: -0.2px;
-          margin: 0;
-          color: #222;
-        }
-        .page-description {
-          margin: 4px 0 0;
-          color: #666;
-          font-size: 14px;
-        }
-
-        /* 회사 카드/섹션 기본 여백 보호 */
-        .company-info-section {
-          margin-top: 16px;
-        }
-
-        /* 카드형 레이아웃이 아닌 경우를 대비한 최소 스타일 */
-        .company-profile {
-          display: grid;
-          grid-template-columns: 120px 1fr auto;
-          gap: 18px;
-          background: #f7fbe9;
-          border: 1px solid #e5f0c2;
-          border-radius: 12px;
-          padding: 18px;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.03);
-        }
-
-        .company-avatar {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          background: #ff7c37;
-          border-radius: 999px;
-          width: 88px;
-          height: 88px;
-          margin: auto;
-          color: #2e7d32;
-          font-weight: 800;
-          font-size: 18px;
-        }
-        .avatar-text { user-select: none; }
-
-        .company-name {
-          margin: 4px 0 10px;
-          font-size: 22px;
-          font-weight: 800;
-          color: #222;
-        }
-        .company-info-item {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          margin: 6px 0;
-          color: #444;
-          font-size: 14px;
-        }
-        .info-icon { width: 18px; text-align: center; }
-
-        .company-badge .badge-text {
-          display: inline-block;
-          padding: 6px 10px;
-          border-radius: 999px;
-          font-size: 12px;
-          font-weight: 700;
-          white-space: nowrap;
-          height: max-content;
-        }
-
-        /* 통계 박스 그리드 */
-        .company-stats {
-          margin-top: 16px;
-          display: grid;
-          grid-template-columns: repeat(4, 1fr);
-          gap: 12px;
-        }
-        .stat-item {
-          background: #fff;
-          border: 1px solid #eee;
-          border-radius: 12px;
-          padding: 16px 14px;
-          text-align: center;
-          box-shadow: 0 1px 3px rgba(0,0,0,0.03);
-        }
-        .stat-number {
-          font-size: 26px;
-          font-weight: 800;
-          color: #ff6f3f;
-          line-height: 1.1;
-        }
-        .stat-label {
-          margin-top: 6px;
-          color: #777;
-          font-size: 13px;
-        }
-
-        /* 모듈 그리드 */
-        .modules-grid {
-          margin-top: 16px;
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 14px;
-        }
-        .module-item {
-          background: #fff;
-          border: 1px solid #eee;
-          border-radius: 14px;
-          padding: 16px;
-          box-shadow: 0 1px 3px rgba(0,0,0,0.03);
-          cursor: pointer;
-          transition: transform .15s ease, box-shadow .15s ease;
-        }
-        .module-item:hover {
-          transform: translateY(-3px);
-          box-shadow: 0 6px 16px rgba(0,0,0,0.05);
-        }
-        .module-icon .icon { font-size: 24px; }
-        .module-title {
-          margin: 10px 0 6px;
-          font-weight: 700;
-          color: #222;
-        }
-        .module-description {
-          margin: 0;
-          color: #666;
-          font-size: 13px;
-          line-height: 1.5;
-        }
-
-        /* 반응형 */
-        @media (max-width: 1024px) {
-          .modules-grid { grid-template-columns: repeat(2, 1fr); }
-        }
-        @media (max-width: 640px) {
-          .company-profile {
-            grid-template-columns: 1fr;
-            text-align: left;
-          }
-          .company-avatar { margin: 0; }
-          .company-stats { grid-template-columns: repeat(2, 1fr); }
-          .modules-grid { grid-template-columns: 1fr; }
-        }
-    </style>
 </head>
 <body>
 <!-- 헤더 -->
@@ -317,13 +130,55 @@
                 <h3 class="module-title">업체정보수정</h3>
                 <p class="module-description">농장 정보, 연락처, 주소 등 업체 정보를 수정할 수 있습니다.</p>
             </div>
+
+            <!-- 업체 로그인 사용자에게만 표시되는 알림 메일 전송 버튼 -->
+            <div th:if="${currentCompany != null}" class="module-item" data-module="email-notification" tabindex="0" role="button" aria-label="알림 메일 전송">
+                <div class="module-icon"><span class="icon">📧</span></div>
+                <h3 class="module-title">알림 메일 전송</h3>
+                <p class="module-description">SMS 동의한 고객들에게 특별 할인이나 신상품 알림 메일을 발송할 수 있습니다.</p>
+            </div>
         </div>
     </div>
 </section>
+
+<!-- 이메일 발송 모달 -->
+<div id="emailModal" class="email-modal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>📧 알림 메일 전송</h3>
+            <button class="modal-close" onclick="closeEmailModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="recipients-info">
+                <p>SMS 동의한 고객 <span id="recipientCount">-</span>명에게 메일을 발송합니다.</p>
+                <button type="button" id="checkRecipientsBtn" class="btn-secondary">수신자 확인</button>
+            </div>
+            
+            <form id="emailForm">
+                <div class="form-group">
+                    <label for="emailSubject">제목</label>
+                    <input type="text" id="emailSubject" name="subject" placeholder="메일 제목을 입력하세요" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="emailMessage">내용</label>
+                    <textarea id="emailMessage" name="message" rows="6" placeholder="메일 내용을 입력하세요&#10;&#10;" required></textarea>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" onclick="closeEmailModal()" class="btn-cancel">취소</button>
+                    <button type="submit" class="btn-send">메일 발송</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
 <!-- 푸터 -->
 <div th:replace="~{common/footer :: footer}"></div>
 
 <script th:src="@{/js/mypage_company.js}"></script>
+
+
 </body>
 </html>

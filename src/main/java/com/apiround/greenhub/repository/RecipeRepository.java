@@ -17,4 +17,8 @@ public interface RecipeRepository extends JpaRepository<Recipe, Integer> {
     // RecipeRepository에서 User와 함께 Recipe을 조회하는 쿼리
     @Query("SELECT r FROM Recipe r LEFT JOIN FETCH r.user WHERE r.recipeId = :recipeId")
     Optional<Recipe> findByIdWithUser(@Param("recipeId") Integer recipeId);
+
+    // RecipeRepository.java
+    @Query(value = "SELECT * FROM recipe WHERE status = 'PUBLISHED' ORDER BY RAND() LIMIT :limit", nativeQuery = true)
+    List<Recipe> findRandomPublishedRecipes(@Param("limit") int limit);
 }

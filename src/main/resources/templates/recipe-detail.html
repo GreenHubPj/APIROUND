@@ -40,9 +40,10 @@
                         <ul class="ingredients-list">
                             <li class="ingredient-item" th:each="ing : ${ingredients}">
                                 <span class="ingredient-name" th:text="${ing.nameText}">재료명</span>
-                                <span class="ingredient-amount"
-                                      th:text="|${#numbers.formatDecimal(ing.qtyValue,0,'COMMA',2,'POINT')} ${ing.unitCode != null ? ing.unitCode : ''}|">수량</span>
-                                <small th:if="${ing.note != null}" th:text="'(' + ${ing.note} + ')'"></small>
+                                <span class="ingredient-amount">
+                                    <span th:if="${ing.qtyValue != null}" th:text="|${#numbers.formatDecimal(ing.qtyValue,0,'COMMA',2,'POINT')} ${ing.unitCode != null ? ing.unitCode : ''}|"></span>
+                                    <small th:if="${ing.note != null}" th:text="'(' + ${ing.note} + ')'"></small>
+                                </span>
                             </li>
                         </ul>
 
