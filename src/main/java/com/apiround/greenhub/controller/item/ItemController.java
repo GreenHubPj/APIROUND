@@ -36,10 +36,12 @@ import com.apiround.greenhub.dto.ListingDto;
 import com.apiround.greenhub.entity.Company;
 import com.apiround.greenhub.entity.ProductListing;
 import com.apiround.greenhub.entity.item.ProductPriceOption;
+import com.apiround.greenhub.entity.item.Region;
 import com.apiround.greenhub.entity.item.SpecialtyProduct;
 import com.apiround.greenhub.repository.CompanyRepository;
 import com.apiround.greenhub.repository.ProductListingRepository;
 import com.apiround.greenhub.repository.item.ProductPriceOptionRepository;
+import com.apiround.greenhub.repository.item.RegionRepository;
 import com.apiround.greenhub.repository.item.SpecialtyProductRepository;
 import com.apiround.greenhub.service.item.ItemService;
 import com.apiround.greenhub.service.item.ListingService;
@@ -62,6 +64,7 @@ public class ItemController {
     private final ProductListingRepository listingRepo;
     private final SpecialtyProductRepository productRepo;
     private final ProductPriceOptionRepository optionRepo;
+    private final RegionRepository regionRepo;
 
     /** 상품관리 페이지 */
     @GetMapping("/item-management")
@@ -475,9 +478,18 @@ public class ItemController {
             ProductListing listing = listingRepo.findById(id)
                     .orElseThrow(() -> new IllegalArgumentException("상품을 찾을 수 없습니다: " + id));
 
+            // ProductListing의 isDeleted를 Y로 설정
             listing.setIsDeleted("Y");
             listing.setUpdatedAt(java.time.LocalDateTime.now());
             listingRepo.save(listing);
+
+            // Region(specialty_product)의 isDeleted도 Y로 설정
+            Region region = regionRepo.findById(listing.getProduct().getProductId()).orElse(null);
+            if (region != null) {
+                region.setIsDeleted("Y");
+                regionRepo.save(region);
+                log.info("Region 삭제 완료 - productId: {}", listing.getProduct().getProductId());
+            }
 
             log.info("상품 삭제 완료 - listingId: {}", id);
             return Map.of("success", true);

@@ -3,10 +3,10 @@ package com.apiround.greenhub.service.item;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.apiround.greenhub.entity.item.Region;
 import com.apiround.greenhub.repository.item.RegionRepository;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class RegionService {
@@ -29,7 +29,67 @@ public class RegionService {
 
     // 모든 특산품 조회 (내림차순 정렬)
     public List<Region> getAllProductsOrderByProductIdDesc() {
-        return regionRepository.findAllOrderByProductIdDesc();
+        List<Region> products = regionRepository.findAllOrderByProductIdDesc();
+        
+        // 각 상품에 업체 정보 설정
+        for (Region product : products) {
+            setCompanyInfoForProduct(product);
+        }
+        
+        return products;
+    }
+
+    // 활성 상태인 상품만 조회 (내림차순 정렬)
+    public List<Region> getActiveProductsOrderByProductIdDesc() {
+        List<Region> products = regionRepository.findActiveProductsOrderByProductIdDesc();
+        
+        // 각 상품에 업체 정보 설정
+        for (Region product : products) {
+            setCompanyInfoForProduct(product);
+        }
+        
+        return products;
+    }
+
+    // 중지 상태인 상품만 조회 (내림차순 정렬)
+    public List<Region> getStoppedProductsOrderByProductIdDesc() {
+        return regionRepository.findStoppedProductsOrderByProductIdDesc();
+    }
+
+    // region 페이지에 표시할 상품 조회 (ACTIVE 상태이면서 삭제되지 않은 상품만)
+    public List<Region> getRegionDisplayProductsOrderByProductIdDesc() {
+        List<Region> products = regionRepository.findRegionDisplayProductsOrderByProductIdDesc();
+        
+        // 각 상품에 업체 정보 설정
+        for (Region product : products) {
+            setCompanyInfoForProduct(product);
+        }
+        
+        return products;
+    }
+
+    // 임시: 모든 상품 조회 (테스트용)
+    public List<Region> getAllProductsForTest() {
+        List<Region> products = regionRepository.findAllProductsForTest();
+        
+        // 각 상품에 업체 정보 설정
+        for (Region product : products) {
+            setCompanyInfoForProduct(product);
+        }
+        
+        return products;
+    }
+
+    // 상품에 업체 정보 설정
+    private void setCompanyInfoForProduct(Region product) {
+        // 기본값 설정 (실제 데이터가 없을 때 사용)
+        product.setCompanyName("문경이좋아");
+        product.setCompanyEmail("monkyeon@naver.com");
+        product.setCompanyPhone("053-555-444");
+        
+        // TODO: 실제 업체 정보를 ProductListing을 통해 가져오는 로직 추가
+        // 현재는 기본값으로 설정
+        // 추후 ProductListing과 Company를 조인하여 실제 업체 정보를 가져올 수 있음
     }
 
     // 타입별 조회 (내림차순 정렬)
@@ -88,9 +148,14 @@ public class RegionService {
         }
     }
 
-    // ID로 상품 조회
+    // ID로 상품 조회 (모든 상품 조회)
     public Region getProductById(Integer id) {
         return regionRepository.findById(id).orElse(null);
+    }
+
+    // 상품 상태 조회 (ProductListing과 조인)
+    public String getProductStatusById(Integer productId) {
+        return regionRepository.findProductStatusById(productId);
     }
 
     // 이번달 특산품 조회 (더 정확한 월별 검색)

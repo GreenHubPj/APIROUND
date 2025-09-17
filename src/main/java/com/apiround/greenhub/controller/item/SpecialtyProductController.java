@@ -1,6 +1,9 @@
 package com.apiround.greenhub.controller.item;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Controller;
@@ -31,7 +34,14 @@ public class SpecialtyProductController {
         } else if (region != null && !region.isEmpty()) {
             products = safeList(regionService.getProductsByRegionCode(region));
         } else {
-            products = safeList(regionService.getAllProductsOrderByProductIdDesc());
+            // ACTIVE 상태인 상품만 조회
+            products = safeList(regionService.getActiveProductsOrderByProductIdDesc());
+        }
+
+        // 디버깅을 위한 로그 추가
+        System.out.println("Region 페이지 상품 수: " + products.size());
+        for (Region product : products) {
+            System.out.println("상품 ID: " + product.getProductId() + ", 상품명: " + product.getProductName());
         }
 
         model.addAttribute("products", products);
@@ -45,9 +55,24 @@ public class SpecialtyProductController {
                                 Model model) {
         Region product = regionService.getProductById(id);
         if (product == null) {
+            // 존재하지 않는 상품인 경우 region 페이지로 리다이렉트
             return "redirect:/region";
         }
+        
+        // 상품 상태 확인 (ProductListing과 조인하여 상태 정보 가져오기)
+        String productStatus = regionService.getProductStatusById(id);
         model.addAttribute("product", product);
+        model.addAttribute("productStatus", productStatus);
+        
+        // 가격 옵션 정보 추가
+        System.out.println("상품 ID: " + id + ", 가격 옵션 수: " + (product.getPriceOptions() != null ? product.getPriceOptions().size() : 0));
+        if (product.getPriceOptions() != null && !product.getPriceOptions().isEmpty()) {
+            model.addAttribute("options", product.getPriceOptions());
+            System.out.println("가격 옵션 설정됨");
+        } else {
+            model.addAttribute("options", null);
+            System.out.println("가격 옵션이 없음");
+        }
 
         // 기준 지역(파라미터가 없으면 상품의 regionText)
         String regionKey = (region != null && !region.isBlank())

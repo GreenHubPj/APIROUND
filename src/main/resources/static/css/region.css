@@ -395,18 +395,41 @@ body {
 
 .product-prices {
     display: flex;
-    gap: 15px;
+    gap: 8px;
     margin-bottom: 20px;
     flex-direction: column;
+    max-height: 120px;
+    overflow-y: auto;
 }
 
 .price {
     background-color: #f8f9fa;
     padding: 6px 12px;
     border-radius: 4px;
-    font-weight: 600;
+}
+
+.price-option {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #f8f9fa;
+    padding: 6px 10px;
+    border-radius: 4px;
+    margin-bottom: 4px;
+    border: 1px solid #e9ecef;
+    font-size: 13px;
+}
+
+.price-option-info {
+    font-size: 12px;
+    color: #666;
+    font-weight: 500;
+}
+
+.price-option-amount {
+    font-size: 13px;
     color: #ff6b35;
-    font-size: 14px;
+    font-weight: 600;
 }
 
 .company-info {

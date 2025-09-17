@@ -71,6 +71,15 @@ function handleFormSubmitSimple(e) {
     return false;
   }
 
+  // 파일 크기 체크 (50MB 제한)
+  const imageFileEl = document.getElementById('imageFile');
+  const file = imageFileEl?.files?.[0];
+  if (file && file.size > 50 * 1024 * 1024) {
+    e.preventDefault();
+    alert('파일 크기가 50MB를 초과합니다. 더 작은 파일을 선택해주세요.');
+    return false;
+  }
+
   // 가격 옵션 검증
   const priceRows = document.querySelectorAll('.price-option-item');
   if (priceRows.length === 0) {
@@ -138,6 +147,12 @@ async function handleEditSubmit(listingId, productName, productType, regionText,
     console.log('수정 시 제철기간:', harvestSeason);
     const imageFileEl = document.getElementById('imageFile');
     const file = imageFileEl?.files?.[0];
+    
+    // 파일 크기 체크 (50MB 제한)
+    if (file && file.size > 50 * 1024 * 1024) {
+      showMessage('파일 크기가 50MB를 초과합니다. 더 작은 파일을 선택해주세요.', 'error');
+      return;
+    }
     
     const formData = new FormData();
     formData.append('productName', productName);
