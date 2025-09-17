@@ -50,16 +50,27 @@ public class CompanyStatsJdbcRepository {
         return v != null ? v : 0L;
     }
 
-    /** 평균 평점 (product_review ⟷ product_listing) */
+    /**
+     * 평균 평점
+     * - product_review(pr).product_id  → product_price_option(ppo).product_id
+     * - product_listing(pl).option_id  → ppo.option_id
+     * - 회사 필터는 pl.seller_id = ?
+     * - pl.product_id 컬럼은 더 이상 사용하지 않음
+     */
     public Double findAvgRatingByCompany(int companyId) {
         String sql = """
-            SELECT AVG(CAST(pr.rating AS DECIMAL(10,2)))
+            SELECT COALESCE(AVG(CAST(pr.rating AS DECIMAL(10,2))), 0)
             FROM product_review pr
-            JOIN product_listing pl
-              ON pr.product_id = pl.product_id
-            WHERE pl.seller_id = ?
-              AND (pr.is_deleted = 0 OR pr.is_deleted IS NULL)
+            WHERE (pr.is_deleted = 0 OR pr.is_deleted IS NULL)
+              AND EXISTS (
+                SELECT 1
+                FROM product_price_option ppo
+                JOIN product_listing pl ON pl.option_id = ppo.option_id
+                WHERE ppo.product_id = pr.product_id
+                  AND pl.seller_id = ?
+              )
         """;
-        return jdbcTemplate.queryForObject(sql, Double.class, companyId);
+        Double v = jdbcTemplate.queryForObject(sql, Double.class, companyId);
+        return v != null ? v : 0.0;
     }
 }

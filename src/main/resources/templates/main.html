@@ -102,63 +102,40 @@
                 <img src="/images/뿡뿡 아이콘.png" alt="뿡뿡" class="truck-sound">
             </div>
         </div>
+
         <div class="products-grid">
-            <div class="product-item">
-                <img src="/images/제철 사과.jpg" alt="문경 사과" class="product-image">
-                <div class="product-info">
-                    <div class="product-catchphrase">문경이좋아</div>
-                    <span class="season-badge">[지금이 제철]</span>
-                    <h4 class="product-name">문경 사과</h4>
-                    <p class="product-description">문경에서 유명한 사과</p>
-                    <p class="product-subtitle">지금이 딱 제철!</p>
-                    <p class="product-action">맛이 좋은 지금 데려가보세요</p>
-                </div>
+            <!-- 없을 때 안내 -->
+            <div class="product-empty" th:if="${#lists.isEmpty(seasonalProducts)}">
+                이번 달 제철 상품을 준비 중입니다.
             </div>
-            <div class="product-item">
-                <img src="/images/제철 돼지.jpg" alt="고흥 돼지" class="product-image">
-                <div class="product-info">
-                    <div class="product-catchphrase">꿀꿀</div>
-                    <span class="season-badge">[지금이 제철]</span>
-                    <h4 class="product-name">고흥 돼지</h4>
-                    <p class="product-description">좋은 품질만 선별하는 고흥에서</p>
-                    <p class="product-subtitle">맛좋은 돼지고기가 가득</p>
-                    <p class="product-action">남녀노소 누구나 좋아할거에요</p>
+
+            <!-- 있을 때 카드 렌더 -->
+            <a class="product-item"
+               th:each="p : ${seasonalProducts}"
+               th:href="@{/region-detail(id=${p.productId}, region=${p.regionText})}"
+               th:with="img=${#strings.trim(p.thumbnailUrl)}">
+
+                <div class="product-image">
+                    <img
+                            th:src="${#strings.isEmpty(img) or img.toLowerCase() == 'null' ? '/images/따봉 트럭.png' : img}"
+                            th:alt="${p.productName}"
+                            loading="lazy"
+                            onerror="this.onerror=null;this.src='/images/따봉 트럭.png';" />
                 </div>
-            </div>
-            <div class="product-item">
-                <img src="/images/제철 천도복숭아.jpg" alt="경산 복숭아" class="product-image">
-                <div class="product-info">
-                    <div class="product-catchphrase">달디단복숭</div>
+
+            <div class="product-info">
+                    <div class="product-catchphrase" th:text="${p.productType}">카테고리</div>
                     <span class="season-badge">[지금이 제철]</span>
-                    <h4 class="product-name">경산 복숭아</h4>
-                    <p class="product-description">새콤달콤 복숭아</p>
-                    <p class="product-subtitle">제철 끝물에 다들 즐겨야죠?</p>
-                    <p class="product-action">침이 그냥 고입니다</p>
+                    <h4 class="product-name" th:text="${p.productName}">상품명</h4>
+                    <p class="product-description" th:text="${p.regionText}">지역</p>
+                    <p class="product-subtitle" th:text="|제철: ${p.harvestSeason}|">제철기간</p>
+                    <p class="product-action">지금 만나보세요</p>
                 </div>
-            </div>
-            <div class="product-item">
-                <img src="/images/제철 당근.jpg" alt="구좌 당근" class="product-image">
-                <div class="product-info">
-                    <div class="product-catchphrase">당근당근</div>
-                    <span class="season-badge">[지금이 제철]</span>
-                    <h4 class="product-name">구좌 당근</h4>
-                    <p class="product-description">제주도 말들 조차 즐겨먹는!</p>
-                    <p class="product-subtitle">눈에 좋고 몸에 좋고 좋은 거 투성이</p>
-                    <p class="product-action">당근으로 건강챙기세요</p>
-                </div>
-            </div>
-            <div class="product-item">
-                <img src="/images/제철 마늘.jpg" alt="의성 마늘" class="product-image">
-                <div class="product-info">
-                    <div class="product-catchphrase">의성마늘군</div>
-                    <span class="season-badge">[지금이 제철]</span>
-                    <h4 class="product-name">의성 마늘</h4>
-                    <p class="product-description">한국인에게 필수 음식</p>
-                    <p class="product-subtitle">마늘이 빠질 수 없죠</p>
-                    <p class="product-action">의성 마늘 말이 필요 없습니다</p>
-                </div>
-            </div>
+            </a>
+
         </div>
+
+
     </div>
 </section>
 
