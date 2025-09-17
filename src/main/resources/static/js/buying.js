@@ -41,18 +41,22 @@ function displayOrderItems(orderItems) {
     
     const item = orderItems[0]; // 첫 번째 상품 (단일 상품 주문)
     
+    // 상품 이미지 처리
+    const productImage = item.image && item.image !== '' 
+        ? `<img src="${item.image}" alt="${item.name}" class="product-thumbnail">`
+        : `<div class="product-placeholder"><span class="product-icon">🛒</span></div>`;
+    
     productItemContainer.innerHTML = `
         <div class="product-image">
-            <div class="product-placeholder">
-                <span class="product-icon">🛒</span>
-            </div>
+            ${productImage}
         </div>
         <div class="product-details">
             <div class="product-name">${item.name}</div>
+            <div class="product-category">${item.category || ''} | ${item.region || ''}</div>
             <div class="product-desc">${item.quantity}</div>
             <div class="product-price">
                 <span class="quantity">1개</span>
-                <span class="price">${item.price}</span>
+                <span class="price">${item.priceFormatted || item.price}</span>
             </div>
         </div>
     `;
@@ -63,9 +67,16 @@ function calculateTotalAmount(orderItems) {
     if (!orderItems || orderItems.length === 0) return;
     
     const item = orderItems[0];
-    const productPrice = parsePrice(item.price);
+    // price가 숫자인 경우와 문자열인 경우 모두 처리
+    const productPrice = typeof item.price === 'number' ? item.price : parsePrice(item.price);
     const deliveryFee = 3000; // 배송비 고정
     const totalAmount = productPrice + deliveryFee;
+    
+    console.log('가격 계산:', {
+        productPrice: productPrice,
+        deliveryFee: deliveryFee,
+        totalAmount: totalAmount
+    });
     
     // UI 업데이트
     document.getElementById('productAmount').textContent = formatPrice(productPrice);

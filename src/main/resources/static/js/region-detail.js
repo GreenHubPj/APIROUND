@@ -405,77 +405,38 @@ function setupReviewButton() {
 function loadReviews() {
     // 더미 리뷰 데이터 (더 많은 리뷰 추가)
     const allReviews = [
-        {
-            id: 1,
-            reviewerName: '김사과',
-            rating: 5,
-            date: '2025-09-05',
-            text: '정말 맛있는 사과였어요! 아삭하고 달콤한 맛이 일품입니다. 신선도도 최고고, 포장도 깔끔하게 잘 되어있었습니다. 다음에도 주문할 예정이에요!'
-        },
-        {
-            id: 2,
-            reviewerName: '이과일',
-            rating: 4,
-            date: '2025-09-03',
-            text: '품질이 좋네요. 크기도 적당하고 맛도 달콤합니다. 배송도 빠르게 왔어요. 추천합니다!'
-        },
-        {
-            id: 3,
-            reviewerName: '박농부',
-            rating: 5,
-            date: '2025-09-01',
-            text: '문경 사과의 진짜 맛을 느낄 수 있었습니다. 아삭한 식감과 달콤한 맛이 정말 좋아요. 가족들이 모두 만족했어요.'
-        },
-        {
-            id: 4,
-            reviewerName: '최고객',
-            rating: 4,
-            date: '2025-08-28',
-            text: '신선하고 맛있어요. 포장 상태도 좋고, 배송도 빠르게 왔습니다. 다음에도 주문하겠습니다.'
-        },
-        {
-            id: 5,
-            reviewerName: '정맛있',
-            rating: 5,
-            date: '2025-08-25',
-            text: '사과가 정말 크고 맛있어요! 아이들이 너무 좋아합니다. 다음에도 꼭 주문할게요.'
-        },
-        {
-            id: 6,
-            reviewerName: '홍사과',
-            rating: 4,
-            date: '2025-08-22',
-            text: '품질이 우수하고 신선해요. 배송도 빠르고 포장도 깔끔했습니다.'
-        },
-        {
-            id: 7,
-            reviewerName: '김달콤',
-            rating: 5,
-            date: '2025-08-20',
-            text: '달콤하고 아삭한 맛이 정말 좋아요! 가족 모두 만족했습니다.'
-        }
+        { id: 1, reviewerName: '김사과', rating: 5, date: '2025-09-05', text: '정말 맛있는 사과였어요! 아삭하고 달콤한 맛이 일품입니다. 신선도도 최고고, 포장도 깔끔하게 잘 되어있었습니다. 다음에도 주문할 예정이에요!' },
+        { id: 2, reviewerName: '이과일', rating: 4, date: '2025-09-03', text: '품질이 좋네요. 크기도 적당하고 맛도 달콤합니다. 배송도 빠르게 왔어요. 추천합니다!' },
+        { id: 3, reviewerName: '박농부', rating: 5, date: '2025-09-01', text: '문경 사과의 진짜 맛을 느낄 수 있었습니다. 아삭한 식감과 달콤한 맛이 정말 좋아요. 가족들이 모두 만족했어요.' },
+        { id: 4, reviewerName: '최고객', rating: 4, date: '2025-08-28', text: '신선하고 맛있어요. 포장 상태도 좋고, 배송도 빠르게 왔습니다. 다음에도 주문하겠습니다.' },
+        { id: 5, reviewerName: '정맛있', rating: 5, date: '2025-08-25', text: '사과가 정말 크고 맛있어요! 아이들이 너무 좋아합니다. 다음에도 꼭 주문할게요.' },
+        { id: 6, reviewerName: '홍사과', rating: 4, date: '2025-08-22', text: '품질이 우수하고 신선해요. 배송도 빠르고 포장도 깔끔했습니다.' },
+        { id: 7, reviewerName: '김달콤', rating: 5, date: '2025-08-20', text: '달콤하고 아삭한 맛이 정말 좋아요! 가족 모두 만족했습니다.' }
     ];
-    
+
     // 최신 3개 리뷰만 표시
     const recentReviews = allReviews.slice(0, 3);
     renderReviews(recentReviews);
-    
+
     // 전체 리뷰 데이터를 localStorage에 저장 (review 페이지에서 사용)
     localStorage.setItem('allReviews', JSON.stringify(allReviews));
+
+    // ✅ 미니 요약(평균/개수/별) 갱신
+    updateReviewSummaryMini(allReviews);
 }
 
 // 리뷰 렌더링
 function renderReviews(reviews) {
     const reviewList = document.getElementById('reviewList');
     reviewList.innerHTML = '';
-    
+
     reviews.forEach(review => {
         const reviewItem = document.createElement('div');
         reviewItem.className = 'review-item';
-        
+
         // 별점 생성
         const stars = '★'.repeat(review.rating) + '☆'.repeat(5 - review.rating);
-        
+
         reviewItem.innerHTML = `
             <div class="review-header">
                 <span class="reviewer-name">${review.reviewerName}</span>
@@ -486,7 +447,7 @@ function renderReviews(reviews) {
             </div>
             <div class="review-text">${review.text}</div>
         `;
-        
+
         reviewList.appendChild(reviewItem);
     });
 }
@@ -510,11 +471,11 @@ function renderRelatedProducts(products) {
                 </div>
             </div>
         `;
-        
+
         card.addEventListener('click', () => {
             window.location.href = `/region-detail?id=${product.id}&region=${product.region}`;
         });
-        
+
         grid.appendChild(card);
     });
 }
@@ -584,7 +545,7 @@ function setupEventListeners() {
 // 총 가격 업데이트
 function updateTotalPrice() {
     const totalAmountElement = document.getElementById('totalAmount');
-    
+
     if (selectedPriceOption) {
         const totalPrice = selectedPriceOption.price * quantity;
         totalAmountElement.textContent = `${totalPrice.toLocaleString()}원`;
@@ -597,7 +558,7 @@ function updateTotalPrice() {
 function addToCart(event) {
     console.log('장바구니 담기 버튼 클릭됨');
     console.log('selectedPriceOption:', selectedPriceOption);
-    
+
     if (!selectedPriceOption) {
         console.log('가격 옵션 미선택 - 에러 메시지 표시');
         showMessageAtPosition('가격 옵션을 선택해주세요.', 'error', event.target);
@@ -606,10 +567,10 @@ function addToCart(event) {
 
     // 장바구니 데이터 가져오기
     let cart = JSON.parse(localStorage.getItem('cart') || '[]');
-    
+
     // 기존 상품이 있는지 확인
-    const existingItemIndex = cart.findIndex(item => 
-        item.productId === currentProduct.id && 
+    const existingItemIndex = cart.findIndex(item =>
+        item.productId === currentProduct.id &&
         item.priceOptionIndex === currentProduct.priceOptions.indexOf(selectedPriceOption)
     );
 
@@ -630,7 +591,7 @@ function addToCart(event) {
 
     // 장바구니 저장
     localStorage.setItem('cart', JSON.stringify(cart));
-    
+
     showMessageAtPosition('장바구니에 상품이 추가되었습니다.', 'success', event.target);
 }
 
@@ -638,7 +599,7 @@ function addToCart(event) {
 function buyNow(event) {
     console.log('구매하기 버튼 클릭됨');
     console.log('selectedPriceOption:', selectedPriceOption);
-    
+
     if (!selectedPriceOption) {
         console.log('가격 옵션 미선택 - 에러 메시지 표시');
         showMessageAtPosition('가격 옵션을 선택해주세요.', 'error', event.target);
@@ -670,6 +631,38 @@ function buyNow(event) {
 // 메시지 표시 (기본 위치)
 function showMessage(message, type) {
     showMessageAtPosition(message, type);
+}
+
+// ===== 리뷰 요약 미니 위젯 갱신 =====
+function updateReviewSummaryMini(reviews) {
+  const avgEl = document.getElementById('avgRatingMini');
+  const starsEl = document.getElementById('avgStarsMini');
+  const countEl = document.getElementById('totalReviewCountMini');
+  if (!avgEl || !starsEl || !countEl) return;
+
+  const count = Array.isArray(reviews) ? reviews.length : 0;
+  if (count === 0) {
+    avgEl.textContent = '0.0';
+    countEl.textContent = '0';
+    starsEl.innerHTML = createStarsHtml(0);
+    return;
+  }
+
+  const sum = reviews.reduce((acc, r) => acc + (Number(r.rating) || 0), 0);
+  const avg = sum / count;
+  avgEl.textContent = avg.toFixed(1);
+  countEl.textContent = String(count);
+  // 별은 반올림해서 표시(예: 4.2 → 4개 꽉 찬 별)
+  starsEl.innerHTML = createStarsHtml(Math.round(avg));
+}
+
+function createStarsHtml(filled) {
+  const total = 5;
+  let html = '';
+  for (let i = 0; i < total; i++) {
+    html += `<span class="star">${i < filled ? '★' : '☆'}</span>`;
+  }
+  return html;
 }
 
 // 특정 위치에 메시지 표시

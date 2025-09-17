@@ -23,7 +23,6 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     // ✅ 비번 재설정 1차 확인용: 아이디+이름+이메일
     Optional<User> findByLoginIdAndNameAndEmail(String loginId, String name, String email);
 
-    // SMS 동의한 사용자들만 조회하는 메서드
+    // ✅ 알림용: SMS 동의 + 탈퇴 제외
     List<User> findBySmsConsentTrueAndDeletedAtIsNull();
-
 }
