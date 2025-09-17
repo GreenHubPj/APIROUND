@@ -13,6 +13,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.http.ResponseEntity;
+import java.util.Map;
 
 import java.util.List;
 
@@ -28,6 +31,32 @@ public class HomeController {
     private RecipeService recipeService;
 
     private final SeasonalService seasonalService;
+
+    /** API: 오늘 뭐먹지 랜덤 레시피 추천 */
+    @GetMapping("/api/random-recipe")
+    @ResponseBody
+    public ResponseEntity<?> getRandomRecipe() {
+        try {
+            Recipe recipe = recipeService.getRandomRecipeForRecommendation();
+            if (recipe == null) {
+                return ResponseEntity.ok().body(Map.of("error", "추천할 레시피가 없습니다."));
+            }
+            
+            // 응답 데이터 구성
+            Map<String, Object> response = Map.of(
+                "name", recipe.getTitle() != null ? recipe.getTitle() : "맛있는 요리",
+                "region", "전국 지역 특산품", // 기본값 또는 추후 지역 정보 연동
+                "ingredients", getRecipeIngredients(recipe.getRecipeId()),
+                "description", recipe.getSummary() != null ? recipe.getSummary() : "특별한 레시피입니다.",
+                "recipeId", recipe.getRecipeId(),
+                "imageUrl", recipe.getHeroImageUrl()
+            );
+            
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.ok().body(Map.of("error", "레시피 추천 중 오류가 발생했습니다."));
+        }
+    }
 
     @GetMapping("/")
     public String home(Model model) {
@@ -54,18 +83,24 @@ public class HomeController {
     @GetMapping("/find-password")
     public String findPassword() { return "find-password"; }
 
-    // ✅ /mypage-company는 CompanyMypageController가 담당
+    // /mypage-companyCompanyMypageController
     // @GetMapping("/mypage-company")
     // public String mypageCompany() { return "mypage_company"; }
 
     @GetMapping("/myrecipe")
     public String myrecipe() { return "myrecipe"; }
 
-    @GetMapping("/myrecipe-detail")
-    public String myrecipeDetail(@RequestParam(required = false) String id,
-                                 @RequestParam(required = false) String name,
-                                 @RequestParam(required = false) String mode) {
-        return "myrecipe-detail";
+    /** 레시피 재료 목록을 문자열 배열로 반환 */
+    private List<String> getRecipeIngredients(Integer recipeId) {
+        try {
+            return recipeService.getIngredients(recipeId)
+                    .stream()
+                    .map(ingredient -> ingredient.getNameText())
+                    .limit(4) // 최대 4개만
+                    .toList();
+        } catch (Exception e) {
+            return List.of("신선한 재료");
+        }
     }
 
     @GetMapping("/newrecipe")
@@ -73,6 +108,13 @@ public class HomeController {
 
     @GetMapping("/orderhistory")
     public String orderhistory() { return "orderhistory"; }
+
+    @GetMapping("/myrecipe-detail")
+    public String myrecipeDetail(@RequestParam(required = false) String id,
+                                 @RequestParam(required = false) String name,
+                                 @RequestParam(required = false) String mode) {
+        return "myrecipe-detail";
+    }
 
     @GetMapping("/shoppinglist")
     public String shoppinglist() { return "shoppinglist"; }
