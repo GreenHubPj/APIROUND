@@ -58,21 +58,29 @@ public class AuthController {
     /** 로그인 화면(유일한 /login 매핑) */
     @GetMapping("/login")
     public String loginForm(@RequestParam(value = "redirectURL", required = false) String redirectURL,
+                            @RequestParam(value = "redirect", required = false) String redirect, // ← 추가: 두 파라미터 모두 지원
                             Model model) {
-        if (redirectURL != null && !redirectURL.isBlank()) {
-            model.addAttribute("redirectURL", redirectURL);
+        String to = (redirectURL != null && !redirectURL.isBlank()) ? redirectURL
+                : (redirect != null && !redirect.isBlank()) ? redirect
+                : null;
+        if (to != null) {
+            model.addAttribute("redirectURL", to); // 뷰에서는 redirectURL 하나만 사용
         }
         return "login";
     }
 
     /** 실수로 GET /auth/login 들어올 때 → /login 으로 우회 */
     @GetMapping("/auth/login")
-    public String redirectAuthLoginGet(@RequestParam(value = "redirectURL", required = false) String redirectURL) {
-        return "redirect:/login" + (redirectURL != null && !redirectURL.isBlank() ? "?redirectURL=" + redirectURL : "");
+    public String redirectAuthLoginGet(@RequestParam(value = "redirectURL", required = false) String redirectURL,
+                                       @RequestParam(value = "redirect", required = false) String redirect) {
+        String to = (redirectURL != null && !redirectURL.isBlank()) ? redirectURL
+                : (redirect != null && !redirect.isBlank()) ? redirect
+                : null;
+        return "redirect:/login" + (to != null ? "?redirectURL=" + to : "");
     }
 
     // ─────────────────────────────────────────────────────────────
-    // 이메일 인증 (개인/판매 공용) —— JSON 바디/폼 파라미터 모두 지원
+    // 이메일 인증 (개인/판매 공용)
     // ─────────────────────────────────────────────────────────────
     @PostMapping("/auth/email/send")
     @ResponseBody
@@ -96,10 +104,9 @@ public class AuthController {
     }
 
     // ─────────────────────────────────────────────────────────────
-    // 비밀번호 재설정: ① 본인확인 → 토큰 발급 ② 토큰으로 새 비밀번호 저장
+    // 비밀번호 재설정
     // ─────────────────────────────────────────────────────────────
 
-    /** ① 본인확인 후 재설정 토큰 발급 (개인/판매 공용) */
     @PostMapping("/auth/password/request-reset")
     @ResponseBody
     public ResponseEntity<?> requestReset(@RequestBody Map<String, String> req) {
@@ -121,7 +128,6 @@ public class AuthController {
             String token = passwordResetService.issueForUser(u.get().getUserId());
             return ResponseEntity.ok(Map.of("token", token));
         } else {
-            // 판매회원
             String loginId       = opt(req.get("loginId"));
             String companyName   = opt(req.get("companyName"));
             String businessNo    = opt(req.get("businessNumber"));
@@ -139,7 +145,6 @@ public class AuthController {
         }
     }
 
-    /** ② 토큰으로 실제 비밀번호 변경 */
     @PostMapping("/auth/password/reset")
     @ResponseBody
     public ResponseEntity<?> resetPassword(@RequestBody Map<String, String> req) {
@@ -164,7 +169,7 @@ public class AuthController {
         return ResponseEntity.ok(Map.of("success", true));
     }
 
-    // ───────── 개인 회원가입 (글로벌 아이디 중복 체크)
+    // ───────── 개인 회원가입
     @PostMapping("/auth/signup")
     public String signupUser(@ModelAttribute("user") User form, RedirectAttributes ra) {
         if (isBlank(form.getLoginId()) || isBlank(form.getPassword())) {
@@ -189,7 +194,6 @@ public class AuthController {
             return "redirect:/signup";
         }
 
-        // 개인/회사 전체에서 아이디 중복 금지
         if (userRepository.existsByLoginId(form.getLoginId()) ||
                 companyRepository.existsByLoginId(form.getLoginId())) {
             ra.addFlashAttribute("error", "이미 사용 중인 아이디입니다.");
@@ -221,7 +225,7 @@ public class AuthController {
         return "redirect:/login";
     }
 
-    // ───────── 판매 회원가입 (글로벌 아이디 중복 체크)
+    // ───────── 판매 회원가입
     @PostMapping("/auth/signup-company")
     public String signupCompany(@RequestParam String companyName,
                                 @RequestParam String loginId,
@@ -244,7 +248,6 @@ public class AuthController {
             return "redirect:/signup";
         }
 
-        // 개인/회사 전체에서 아이디 중복 금지
         if (companyRepository.existsByLoginId(loginId) ||
                 userRepository.existsByLoginId(loginId)) {
             ra.addFlashAttribute("error", "이미 사용 중인 아이디입니다.");
@@ -283,8 +286,14 @@ public class AuthController {
                           @RequestParam String password,
                           @RequestParam(value = "accountType", defaultValue = "PERSONAL") String accountType,
                           @RequestParam(value = "redirectURL", required = false) String redirectURL,
+                          @RequestParam(value = "redirect", required = false) String redirect, // ← 추가
                           HttpSession session,
                           RedirectAttributes ra) {
+
+        // 두 파라미터 중 하나라도 값이 있으면 그것으로
+        String to = (redirectURL != null && !redirectURL.isBlank()) ? redirectURL
+                : (redirect != null && !redirect.isBlank()) ? redirect
+                : null;
 
         try {
             if ("COMPANY".equalsIgnoreCase(accountType)) {
@@ -298,7 +307,7 @@ public class AuthController {
                 session.setAttribute("loginCompanyId", c.getCompanyId());
                 session.setAttribute("loginCompanyName", c.getCompanyName());
 
-                return "redirect:" + (redirectURL != null && !redirectURL.isBlank() ? redirectURL : "/mypage-company");
+                return "redirect:" + (to != null ? to : "/mypage-company");
             } else {
                 User u = userRepository.findByLoginIdAndDeletedAtIsNull(loginId)
                         .orElseThrow(() -> new IllegalArgumentException("NO_USER"));
@@ -311,11 +320,12 @@ public class AuthController {
                 session.setAttribute("loginUserId", u.getUserId());
                 session.setAttribute("loginUserName", u.getName());
 
-                return "redirect:" + (redirectURL != null && !redirectURL.isBlank() ? redirectURL : "/mypage");
+                return "redirect:" + (to != null ? to : "/mypage");
             }
         } catch (Exception e) {
             ra.addFlashAttribute("error", "아이디/비밀번호 또는 계정 유형을 확인해주세요.");
-            return "redirect:/login" + (redirectURL != null ? "?redirectURL=" + redirectURL : "");
+            String backTo = (to != null ? "?redirectURL=" + to : "");
+            return "redirect:/login" + backTo;
         }
     }
 
@@ -329,9 +339,13 @@ public class AuthController {
     /** GET 로그아웃 링크 */
     @GetMapping({"/auth/logout", "/logout"})
     public String logoutByGet(HttpSession session,
-                              @RequestParam(value = "redirectURL", required = false) String redirectURL) {
+                              @RequestParam(value = "redirectURL", required = false) String redirectURL,
+                              @RequestParam(value = "redirect", required = false) String redirect) {
         try { session.invalidate(); } catch (Exception ignored) {}
-        return "redirect:" + (redirectURL != null && !redirectURL.isBlank() ? redirectURL : "/");
+        String to = (redirectURL != null && !redirectURL.isBlank()) ? redirectURL
+                : (redirect != null && !redirect.isBlank()) ? redirect
+                : "/";
+        return "redirect:" + to;
     }
 
     private boolean isBlank(String s) { return s == null || s.isBlank(); }
