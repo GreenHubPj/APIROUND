@@ -84,6 +84,6 @@ public class ProductListing {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id", nullable = false)
-    private ProductPriceOption option;
+    private ProductPriceOption product;
 
 }

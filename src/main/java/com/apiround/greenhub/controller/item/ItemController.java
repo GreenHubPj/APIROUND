@@ -2,11 +2,11 @@
 package com.apiround.greenhub.controller.item;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap; // enum Status 포함
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -25,6 +25,7 @@ import com.apiround.greenhub.entity.ProductListing;
 import com.apiround.greenhub.entity.item.SpecialtyProduct;
 import com.apiround.greenhub.repository.CompanyRepository;
 import com.apiround.greenhub.repository.ProductListingRepository;
+import com.apiround.greenhub.repository.item.SpecialtyProductRepository;
 import com.apiround.greenhub.service.item.ItemService;
 import com.apiround.greenhub.service.item.ListingService;
 
@@ -41,6 +42,7 @@ public class ItemController {
     private final ListingService listingService;           // product_listing
     private final CompanyRepository companyRepository;
     private final ProductListingRepository listingRepo;
+    private final SpecialtyProductRepository productRepo;
 
     /** 상품관리 페이지 */
     @GetMapping("/item-management")
@@ -56,24 +58,34 @@ public class ItemController {
             }
         }
 
-        // 1) (기존) specialty_product + 최저가 옵션
-        var summaries = itemService.listAll();
-
-        List<SpecialtyProduct> productList = summaries.stream()
-                .map(ItemService.ProductSummary::product)
-                .collect(Collectors.toList());
-
-        Map<Integer, Integer> minPriceMap = new HashMap<>();
-        for (var s : summaries) {
-            Integer pid = s.product().getProductId();
-            Integer min = s.minPrice();
-            if (pid != null && min != null) minPriceMap.put(pid, min);
-        }
-
-        // 2) (신규) 로그인 회사의 리스팅 목록
+        // 1) 로그인 회사의 리스팅 목록만 표시 (사용자별 데이터)
         List<ProductListing> listings = (loginCompany == null)
                 ? Collections.emptyList()
                 : listingRepo.findBySellerCompanyIdOrderByListingIdAsc(loginCompany.getCompanyId());
+
+        // 2) 리스팅에서 상품 정보 추출
+        List<SpecialtyProduct> productList = new ArrayList<>();
+        Map<Integer, Integer> minPriceMap = new HashMap<>();
+        
+        for (ProductListing listing : listings) {
+            if (listing.getProduct() != null) {
+                // ProductPriceOption에서 SpecialtyProduct로 접근
+                // ProductPriceOption의 productId로 SpecialtyProduct 조회
+                Integer productId = listing.getProduct().getProductId();
+                if (productId != null) {
+                    // ProductPriceOption의 productId로 SpecialtyProduct 조회
+                    SpecialtyProduct product = productRepo.findById(productId).orElse(null);
+                    if (product != null) {
+                        productList.add(product);
+                        
+                        // 최저가 설정
+                        if (listing.getPriceValue() != null) {
+                            minPriceMap.put(productId, listing.getPriceValue().intValue());
+                        }
+                    }
+                }
+            }
+        }
 
         model.addAttribute("products", productList);
         model.addAttribute("minPriceMap", minPriceMap);

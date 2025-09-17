@@ -43,10 +43,10 @@ public class ListingServiceImpl implements ListingService {
         listing.setStatus(ProductListing.Status.valueOf(form.getStatus() != null ? form.getStatus() : "ACTIVE"));
 
         // ★ option 관계 설정
-        if (form.getOptionId() != null) {
-            ProductPriceOption option = optionRepo.findById(form.getOptionId())
-                    .orElseThrow(() -> new IllegalArgumentException("옵션을 찾을 수 없습니다: " + form.getOptionId()));
-            listing.setOption(option);
+        if (form.getProductId() != null) {
+            ProductPriceOption option = optionRepo.findById(form.getProductId())
+                    .orElseThrow(() -> new IllegalArgumentException("옵션을 찾을 수 없습니다: " + form.getProductId()));
+            listing.setProduct(option);
         }
 
         // 선택 필드(있으면 세팅)
@@ -100,7 +100,7 @@ public class ListingServiceImpl implements ListingService {
 
         // ★ listing에는 option 관계만 저장
         if (picked != null) {
-            listing.setOption(picked);
+            listing.setProduct(picked);
             // price_value가 NOT NULL 제약이면 옵션 가격을 써주자
             if (listing.getPriceValue() == null && picked.getPrice() != null) {
                 listing.setPriceValue(BigDecimal.valueOf(picked.getPrice()));

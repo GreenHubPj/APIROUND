@@ -9,7 +9,7 @@ import java.math.BigDecimal;
 public class ListingDto {
     private Integer listingId;   // 수정시 사용 (hidden)
     private Integer sellerId;    // 회사(판매자) id
-    private Integer optionId;
+    private Integer productId;
     private String  title;
     private String  description;
     private String  unitCode;
