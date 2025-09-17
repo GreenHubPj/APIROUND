@@ -24,10 +24,10 @@ import java.util.List;
 @RequiredArgsConstructor
 public class HomeController {
 
-    private final SeasonalService seasonalService;
-
     @Autowired
     private RecipeService recipeService;
+
+    private final SeasonalService seasonalService;
 
     @GetMapping("/")
     public String home(Model model) {
@@ -88,13 +88,6 @@ public class HomeController {
 
     @GetMapping("/event")
     public String event() { return "event"; }
-
-    @GetMapping("/profile-edit")
-    public String profileEdit() { return "profile-edit"; }
-
-    // 🚫 /profile-edit-company는 CompanyProfileController가 담당
-    // @GetMapping("/profile-edit-company")
-    // public String profileEditCompany() { return "profile-edit-company"; }
 
     @GetMapping("/refund")
     public String refund() { return "refund"; }
