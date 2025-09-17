@@ -66,23 +66,25 @@ public class ListingServiceImpl implements ListingService {
 
     /** specialty_product 저장 직후 자동 리스팅 생성 */
     @Override
-    public Integer createListingFromSpecialty(Integer productId, Integer sellerCompanyId, String title, String description) {
+    public Integer createListingFromSpecialty(Integer productId, Integer sellerCompanyId, String title, String description, String finalThumbnailUrl, String harvestSeason) {
         log.info("ListingServiceImpl.createListingFromSpecialty 시작 - productId: {}, sellerCompanyId: {}, title: {}", 
                 productId, sellerCompanyId, title);
         Company seller = companyRepo.findById(sellerCompanyId)
                 .orElseThrow(() -> new IllegalArgumentException("판매자(회사)가 존재하지 않습니다: " + sellerCompanyId));
 
-        // ▼ 옵션 하나 고르기: sortOrder가 있으면 우선, 없으면 optionId 기준 / 가장 저렴한 옵션으로 대체 가능
+        // ▼ 옵션 하나 고르기: productId로 해당 상품의 옵션들을 찾아서 첫 번째 옵션 선택
         log.info("옵션 선택 시작 - productId: {}", productId);
-        ProductPriceOption picked = optionRepo
-                .findFirstByProductIdAndIsActiveTrueOrderBySortOrderAscOptionIdAsc(productId)
-                .orElseGet(() -> optionRepo
-                        .findFirstByProductIdAndIsActiveTrueOrderByPriceAscOptionIdAsc(productId)
-                        .orElseGet(() -> optionRepo
-                                .findFirstByProductIdAndIsActiveTrueOrderByOptionIdAsc(productId)
-                                .orElse(null)
-                        )
-                );
+        // 먼저 해당 상품의 모든 옵션을 가져와서 첫 번째 옵션 선택
+        var options = optionRepo.findByProductIdOrderBySortOrderAscOptionIdAsc(productId);
+        ProductPriceOption picked = null;
+        
+        if (!options.isEmpty()) {
+            // 활성화된 옵션 중에서 첫 번째 선택
+            picked = options.stream()
+                    .filter(opt -> opt.getIsActive() != null && opt.getIsActive())
+                    .findFirst()
+                    .orElse(options.get(0)); // 활성화된 옵션이 없으면 첫 번째 옵션
+        }
         
         if (picked != null) {
             log.info("선택된 옵션 - optionId: {}, price: {}", picked.getOptionId(), picked.getPrice());
@@ -97,6 +99,8 @@ public class ListingServiceImpl implements ListingService {
         listing.setTitle(title);
         listing.setDescription(description);
         listing.setStatus(ProductListing.Status.ACTIVE);
+        listing.setThumbnailUrl(finalThumbnailUrl);
+        listing.setHarvestSeason(harvestSeason);
 
         // ★ listing에는 option 관계만 저장
         if (picked != null) {

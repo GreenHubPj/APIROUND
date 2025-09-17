@@ -419,6 +419,59 @@
     transform: translateY(-2px);
 }
 
+/* 액션 버튼 */
+.btn-edit, .btn-delete {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin: 0 2px;
+}
+
+.btn-edit {
+    background: #3498db;
+    color: white;
+}
+
+.btn-edit:hover {
+    background: #2980b9;
+    transform: translateY(-1px);
+}
+
+.btn-delete {
+    background: #e74c3c;
+    color: white;
+}
+
+.btn-delete:hover {
+    background: #c0392b;
+    transform: translateY(-1px);
+}
+
+.action-buttons {
+    display: flex;
+    gap: 5px;
+    justify-content: center;
+}
+
+.status-select {
+    padding: 4px 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    background: white;
+    cursor: pointer;
+}
+
+.status-select:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+}
+
 /* 상품 목록 섹션 */
 .item-list-section {
     background: white;
@@ -965,6 +1018,11 @@
 }
 
 .status-badge.inactive {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.status-badge.stopped {
     background: #f8d7da;
     color: #721c24;
 }
@@ -1107,6 +1165,29 @@
 .btn-remove-image:hover {
     background: #c82333;
     transform: scale(1.1);
+}
+
+/* 메시지 애니메이션 */
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOutRight {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
 }
 
 /* 반응형 디자인 */

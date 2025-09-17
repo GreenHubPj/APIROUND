@@ -1,8 +1,18 @@
 // src/main/java/com/apiround/greenhub/entity/item/SpecialtyProduct.java
 package com.apiround.greenhub.entity.item;
 
-import jakarta.persistence.*;
-import lombok.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Lob;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table(name = "specialty_product")
@@ -24,7 +34,8 @@ public class SpecialtyProduct {
     @Column(name = "description", columnDefinition = "TEXT", nullable = false)
     private String description;
 
-    @Column(name = "thumbnail_url", length = 2000)
+    @Lob
+    @Column(name = "thumbnail_url", columnDefinition = "TEXT")
     private String thumbnailUrl;
 
     @Column(name = "region_text", length = 120, nullable = false)
