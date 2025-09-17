@@ -1,92 +1,19 @@
 // 메인 페이지 JavaScript
 
- // 제철왔어용 기본 이미지 넣기
- // === 이미지 폴백 공통 스니펫 (그대로 복붙) ===
- (function () {
-   // 페이지 어디선가 바꾸고 싶으면 이 값만 수정
-   const PLACEHOLDER = '/images/따봉 트럭.png';
-
-   function arm(img) {
-     if (!img || img.dataset.fallbackArmed === '1') return;
-     img.dataset.fallbackArmed = '1';
-
-     // 깨졌을 때(404 등)
-     img.onerror = () => {
-       img.onerror = null;
-       img.src = PLACEHOLDER;
-     };
-
-     // 초기 src가 비었거나 "null" 같은 문자열이면 즉시 대체
-     const raw = (img.getAttribute('src') || '').trim();
-     if (!raw || raw.toLowerCase() === 'null' || raw === '#') {
-       img.src = PLACEHOLDER;
-     }
-   }
-
-   function armAll(root = document) {
-     root.querySelectorAll(
-       '.product-image img, img.related-product-image, img.thumbnail, #mainImage'
-     ).forEach(arm);
-   }
-
-   document.addEventListener('DOMContentLoaded', () => {
-     // 초기 렌더된 IMG 모두 무장
-     armAll();
-
-     // 이후 동적으로 추가되는 IMG도 자동 무장
-     const mo = new MutationObserver(muts => {
-       muts.forEach(m => {
-         m.addedNodes.forEach(n => {
-           if (n.nodeType !== 1) return;
-           if (n.tagName === 'IMG') arm(n);
-           else armAll(n);
-         });
-       });
-     });
-     mo.observe(document.body, { childList: true, subtree: true });
-   });
-
-   // 필요하면 외부에서 수동 호출도 가능
-   window.__armImageFallback = arm;
-   window.__armAllImageFallbacks = armAll;
- })();
-
-    // 동적으로 추가되는 이미지까지 커버하고 싶으면 MutationObserver 사용 (옵션)
-    const mo = new MutationObserver(muts => {
-      muts.forEach(m => {
-        m.addedNodes.forEach(n => {
-          if (n.nodeType === 1) {
-            // 새로 추가된 노드나 그 하위의 IMG들
-            const newImgs = n.matches?.('img') ? [n] : n.querySelectorAll?.('img') || [];
-            newImgs.forEach(img => {
-              img.onerror = () => {
-                img.onerror = null;
-                img.src = placeholder;
-              };
-              const raw = (img.getAttribute('src') || '').trim();
-              if (!raw || raw.toLowerCase() === 'null') {
-                img.src = placeholder;
-              }
-            });
-          }
-        });
-      });
-    });
-    mo.observe(document.body, { childList: true, subtree: true });
-  });
-
 document.addEventListener('DOMContentLoaded', function() {
     // 검색 기능
     const searchInput = document.querySelector('.search-input');
     const searchBtn = document.querySelector('.search-btn');
-    
+
     if (searchBtn) {
         searchBtn.addEventListener('click', function() {
             const searchTerm = searchInput.value.trim();
-
+            if (searchTerm) {
+                alert(`"${searchTerm}" 검색 기능은 준비 중입니다.`);
+            }
         });
     }
-    
+
     // 엔터키로 검색
     if (searchInput) {
         searchInput.addEventListener('keypress', function(e) {
@@ -95,7 +22,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
-    
+
     // 헤더 관련 기능은 header.js에서 처리
 
     // 카테고리 아이템 클릭
@@ -239,7 +166,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     document.getElementById('menu-name').innerText = randomItem.name;
                     document.getElementById('menu-region').innerText = randomItem.region;
                     document.getElementById('menu-description').innerText = randomItem.description;
-                    
+
                     // 재료 태그 생성
                     const ingredientsContainer = document.getElementById('menu-ingredients');
                     ingredientsContainer.innerHTML = '';
@@ -249,7 +176,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         tag.textContent = ingredient;
                         ingredientsContainer.appendChild(tag);
                     });
-                    
+
                     showStep(3); // 결과 표시
                 }, 2000);
             };
@@ -272,5 +199,3 @@ document.addEventListener('DOMContentLoaded', function() {
 // 페이지 로딩 시 페이드인 효과
 document.body.style.opacity = '0';
 document.body.style.transition = 'opacity 0.5s ease-in-out';
-
-
