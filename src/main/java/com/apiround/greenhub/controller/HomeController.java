@@ -1,17 +1,14 @@
 package com.apiround.greenhub.controller;
 
+import com.apiround.greenhub.entity.Recipe;
 import com.apiround.greenhub.entity.item.Region;
+import com.apiround.greenhub.service.RecipeService;
 import com.apiround.greenhub.service.item.SeasonalService;
 import lombok.RequiredArgsConstructor;
-import com.apiround.greenhub.entity.Recipe;
-import com.apiround.greenhub.service.RecipeService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-
-import com.apiround.greenhub.service.item.RegionService;
 
 import java.util.List;
 
@@ -19,26 +16,27 @@ import java.util.List;
 @RequiredArgsConstructor
 public class HomeController {
 
-    @Autowired
-    private RecipeService recipeService;
-
+    private final RecipeService recipeService;
     private final SeasonalService seasonalService;
 
+    /** 메인 페이지 */
     @GetMapping("/")
     public String home(Model model) {
-        List<Region> seasonal = seasonalService.getRandomSeasonalForMain(8); // ✅ 인스턴스 호출
+        // 계절(제철) 상품 8개
+        List<Region> seasonal = seasonalService.getRandomSeasonalForMain(8);
         model.addAttribute("seasonalProducts", seasonal);
-        return "main";
+
+        // 메인 노출용 랜덤 레시피
         List<Recipe> randomRecipes = recipeService.getRandomRecipesForMain();
         model.addAttribute("randomRecipes", randomRecipes);
+
         return "main";
     }
 
+    /** /main → 메인으로 통합 */
     @GetMapping("/main")
-    public String main(Model model) {
-        List<Recipe> randomRecipes = recipeService.getRandomRecipesForMain();
-        model.addAttribute("randomRecipes", randomRecipes);
-        return "main";
+    public String main() {
+        return "redirect:/";
     }
 
     @GetMapping("/seasonal")
@@ -54,10 +52,6 @@ public class HomeController {
 
     @GetMapping("/find-password")
     public String findPassword() { return "find-password"; }
-
-    // ✅ /mypage-company는 CompanyMypageController가 담당
-    // @GetMapping("/mypage-company")
-    // public String mypageCompany() { return "mypage_company"; }
 
     @GetMapping("/myrecipe")
     public String myrecipe() { return "myrecipe"; }
@@ -89,13 +83,6 @@ public class HomeController {
 
     @GetMapping("/event")
     public String event() { return "event"; }
-
-    //@GetMapping("/profile-edit")
-    //public String profileEdit() { return "profile-edit"; }
-
-    // 🚫 /profile-edit-company는 CompanyProfileController가 담당
-    // @GetMapping("/profile-edit-company")
-    // public String profileEditCompany() { return "profile-edit-company"; }
 
     @GetMapping("/refund")
     public String refund() { return "refund"; }

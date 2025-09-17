@@ -65,7 +65,7 @@ public class CompanyStatsJdbcRepository {
               AND EXISTS (
                 SELECT 1
                 FROM product_price_option ppo
-                JOIN product_listing pl ON pl.option_id = ppo.option_id
+                JOIN product_listing pl ON pl.product_id = ppo.product_id
                 WHERE ppo.product_id = pr.product_id
                   AND pl.seller_id = ?
               )
