@@ -8,9 +8,6 @@
     <link rel="stylesheet" href="/css/item-management.css">
     <link rel="stylesheet" href="/css/footer.css">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
-
-    <!-- 로그인 회사 ID를 메타로도 내려주면 JS가 백업으로 읽어감 -->
-    <meta name="login-company-id" th:content="${loginCompany?.companyId}">
 </head>
 <body>
 <!-- 헤더 -->
@@ -23,77 +20,128 @@
         <button type="button" class="btn-add-product" id="addProductBtn">+ 상품 추가</button>
     </div>
 
-    <!-- 상품 등록/수정 폼 (product_listing 저장) -->
+    <!-- 상품 등록/수정 폼 -->
     <div class="item-form-section" id="itemFormSection" style="display:none;">
         <div class="form-header">
             <h2 id="formTitle">새 상품 등록</h2>
             <button type="button" class="btn-cancel" id="cancelBtn" style="display:none;">취소</button>
         </div>
 
-        <!-- 백엔드 매핑: POST /item-management -->
         <form class="item-form" id="itemForm" method="post" th:action="@{/item-management}">
+            <!-- (선택) CSRF -->
             <input type="hidden" name="_csrf" th:value="${_csrf?.token}">
+            <!-- 수정 시 사용 -->
+            <input type="hidden" name="productId" id="productId" th:value="${product?.productId}"/>
 
-            <!-- ✅ 로그인한 판매자: 서버에서 넣어줌 (필수) -->
-            <input type="hidden" name="sellerId" id="sellerId" th:value="${loginCompany?.companyId}"/>
-            <!-- 로그인 회사 정보를 메타 태그로 전달 -->
-            <meta name="login-company-id" th:content="${loginCompany?.companyId}">
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label" for="productName">상품명 *</label>
+                    <input type="text" id="productName" name="productName"
+                           class="form-input" placeholder="상품명을 입력해주세요" required>
+                </div>
 
-            <!-- ✅ price_value: 입력받지 않음. 제출 직전 옵션 최저가로 JS가 채움 -->
-            <input type="hidden" name="priceValue" id="priceValue"/>
-
-            <!-- (선택) 대표 옵션을 따로 지정하려면 인덱스 저장 (기본 0 = 첫 옵션) -->
-            <input type="hidden" name="primaryOptionIndex" id="primaryOptionIndex" value="0"/>
-
-            <!-- specialty_product 핵심 컬럼 -->
-            <div class="form-group">
-                <label class="form-label">상품명 *</label>
-                <input type="text" class="form-input" name="productName" id="productName" placeholder="상품명" required>
+                <div class="form-group">
+                    <label class="form-label" for="category">카테고리 *</label>
+                    <!-- 엔티티: productType -->
+                    <select id="category" name="productType" class="form-select" required>
+                        <option value="">카테고리 선택</option>
+                        <option value="농산물">농산물</option>
+                        <option value="수산물">수산물</option>
+                        <option value="축산물">축산물</option>
+                        <option value="가공식품">가공식품</option>
+                    </select>
+                </div>
             </div>
 
-            <div class="form-group">
-                <label class="form-label">상품 타입 *</label>
-                <select class="form-select" name="productType" id="productType" required>
-                    <option value="">선택하세요</option>
-                    <option value="농산물">농산물</option>
-                    <option value="수산물">수산물</option>
-                    <option value="축산물">축산물</option>
-                    <option value="가공식품">가공식품</option>
-                </select>
-            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label" for="region">지역 *</label>
+                    <!-- 엔티티: regionText -->
+                    <select id="region" name="regionText" class="form-select" required>
+                        <option value="">지역 선택</option>
+                        <option value="서울">서울특별시</option>
+                        <option value="부산">부산광역시</option>
+                        <option value="대구">대구광역시</option>
+                        <option value="인천">인천광역시</option>
+                        <option value="광주">광주광역시</option>
+                        <option value="대전">대전광역시</option>
+                        <option value="울산">울산광역시</option>
+                        <option value="세종">세종특별자치시</option>
+                        <option value="경기">경기도</option>
+                        <option value="강원">강원도</option>
+                        <option value="충북">충청북도</option>
+                        <option value="충남">충청남도</option>
+                        <option value="전북">전라북도</option>
+                        <option value="전남">전라남도</option>
+                        <option value="경북">경상북도</option>
+                        <option value="경남">경상남도</option>
+                        <option value="제주">제주특별자치도</option>
+                    </select>
+                </div>
 
-            <div class="form-group">
-                <label class="form-label">지역 *</label>
-                <input type="text" class="form-input" name="regionText" id="regionText" placeholder="예: 제주도, 경상북도 문경" required>
-            </div>
+                <!-- 가격 옵션 -->
+                <div class="form-group">
+                    <label class="form-label">가격 옵션 *</label>
 
-            <div class="form-group">
-                <label class="form-label">상품 설명 *</label>
-                <textarea class="form-textarea" name="description" id="description" rows="4" placeholder="상품 설명" required></textarea>
-            </div>
-
-            <!-- 이미지 업로드 섹션 -->
-            <div class="form-group">
-                <label class="form-label">상품 이미지</label>
-                <div class="image-upload-section">
-                    <div class="image-preview-container" id="imagePreviewContainer">
-                        <div class="image-preview" id="imagePreview">
-                            <div class="image-placeholder">
-                                <span class="upload-icon">📷</span>
-                                <div>이미지를 업로드하세요</div>
-                                <small>JPG, PNG, GIF 파일만 가능합니다</small>
+                    <div class="price-options-container" id="priceOptionsContainer">
+                        <!-- 기본 1개 블록 -->
+                        <div class="price-option-item">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">옵션 라벨</label>
+                                    <input type="text" class="form-input"
+                                           name="optionLabel"
+                                           placeholder="예: 기본, 소, 대 (선택)">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">수량</label>
+                                    <input type="number" class="form-input price-quantity"
+                                           name="quantity" placeholder="예: 1" min="1" required>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">단위</label>
+                                    <select class="form-select price-unit" name="unit" required>
+                                        <option value="">단위 선택</option>
+                                        <option value="kg">kg</option>
+                                        <option value="g">g</option>
+                                        <option value="개">개</option>
+                                        <option value="박스">박스</option>
+                                        <option value="봉">봉</option>
+                                        <option value="포기">포기</option>
+                                        <option value="단">단</option>
+                                        <option value="팩">팩</option>
+                                        <option value="병">병</option>
+                                        <option value="캔">캔</option>
+                                        <option value="마리">마리</option>
+                                        <option value="포">포</option>
+                                        <option value="근">근</option>
+                                        <option value="되">되</option>
+                                        <option value="말">말</option>
+                                        <option value="상자">상자</option>
+                                        <option value="통">통</option>
+                                        <option value="봉지">봉지</option>
+                                        <option value="세트">세트</option>
+                                        <option value="묶음">묶음</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">가격 (원)</label>
+                                    <input type="number" class="form-input price-amount"
+                                           name="price" placeholder="예: 16000" min="0" required>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">액션</label>
+                                    <button type="button" class="btn-remove-price" onclick="removePriceOption(this)">삭제</button>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <div class="upload-buttons">
-                        <input type="file" id="imageUpload" accept="image/*" style="display: none;" multiple>
-                        <button type="button" class="btn-upload" id="selectImageBtn">이미지 선택</button>
-                        <button type="button" class="btn-remove-all" id="removeAllImagesBtn" style="display: none;">모든 이미지 삭제</button>
-                    </div>
+
+                    <button type="button" class="btn-add-price" id="addPriceOption">가격 옵션 추가</button>
                 </div>
-                <input type="hidden" name="thumbnailUrl" id="thumbnailUrl">
             </div>
 
+            <!-- 제철기간: 컨트롤러에서 @RequestParam List<Integer> months 로 받을 때 -->
             <div class="form-group">
                 <label class="form-label">제철기간 *</label>
                 <div class="season-checkboxes">
@@ -118,12 +166,23 @@
                 </div>
             </div>
 
-            <!-- ✅ 가격 옵션 (product_price_option으로 저장) -->
+            <!-- 설명 / 썸네일 / 외부참조 -->
             <div class="form-group">
-                <label class="form-label">가격 옵션 *</label>
-                <div class="price-options-container" id="priceOptionsContainer"><!-- JS가 첫 행 생성 --></div>
-                <button type="button" class="btn-add-price" id="addPriceOption">가격 옵션 추가</button>
-                <p class="help-text">최소 1개 옵션을 입력하세요. 제출 시 옵션 최저가가 price_value로 자동 반영됩니다.</p>
+                <label class="form-label" for="description">상품 설명 *</label>
+                <textarea id="description" name="description" class="form-textarea"
+                          placeholder="상품에 대한 자세한 설명을 입력해주세요" rows="4" required></textarea>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">대표 이미지 URL</label>
+                <!-- 엔티티: thumbnailUrl -->
+                <input type="text" class="form-input" name="thumbnailUrl" placeholder="https://example.com/image.jpg">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">외부 참조(선택)</label>
+                <!-- 엔티티: externalRef -->
+                <input type="text" class="form-input" name="externalRef" placeholder="예: 판매처 코드 / 외부 ID">
             </div>
 
             <div class="form-actions">
@@ -133,20 +192,21 @@
         </form>
     </div>
 
-    <!-- 등록된 상품 목록 -->
+    <!-- 상품 목록 -->
     <div class="item-list-section">
         <div class="list-header">
             <h2>등록된 상품 목록</h2>
             <div class="list-controls">
                 <div class="search-box">
-                    <input type="text" id="searchInput" placeholder="제목으로 검색...">
+                    <input type="text" id="searchInput" placeholder="상품명으로 검색...">
                     <button type="button" id="searchBtn">검색</button>
                 </div>
-                <select id="filterStatus" class="filter-select">
-                    <option value="">전체 상태</option>
-                    <option value="ACTIVE">ACTIVE</option>
-                    <option value="PAUSED">PAUSED</option>
-                    <option value="SOLDOUT">SOLDOUT</option>
+                <select id="filterCategory" class="filter-select">
+                    <option value="">전체 카테고리</option>
+                    <option value="농산물">농산물</option>
+                    <option value="수산물">수산물</option>
+                    <option value="축산물">축산물</option>
+                    <option value="가공식품">가공식품</option>
                 </select>
             </div>
         </div>
@@ -155,42 +215,59 @@
             <table class="item-table">
                 <thead>
                 <tr>
-                    <th class="id-col">ID</th>
-                    <th class="title-col">제목</th>
-                    <th class="status-col">상태</th>
-                    <th class="price-col">대표가(원)</th>
-                    <th class="date-col">등록일</th>
+                    <th class="checkbox-col"><input type="checkbox" id="selectAll" class="checkbox"></th>
+                    <th class="id-col sortable" data-column="id">ID</th>
+                    <th class="name-col sortable" data-column="name">상품명</th>
+                    <th class="category-col sortable" data-column="category">카테고리</th>
+                    <th class="region-col sortable" data-column="region">지역</th>
+                    <th class="season-col">제철기간</th>
+                    <th class="status-col sortable" data-column="status">상태</th>
                     <th class="action-col">액션</th>
                 </tr>
                 </thead>
                 <tbody id="itemTableBody">
-                <tr th:if="${#lists.isEmpty(listings)}">
-                    <td colspan="6" style="text-align:center;color:#777;">등록된 상품이 없습니다.</td>
-                </tr>
-
-                <tr th:each="l : ${listings}">
-                    <td class="id-col" th:text="${l.listingId}">1</td>
-                    <td class="title-col" th:text="${l.title}">제목</td>
-                    <td class="status-col" th:text="${l.status}">ACTIVE</td>
-                    <td class="price-col"
-                        th:text="${l.priceValue} != null ? #numbers.formatDecimal(l.priceValue, 0, 'COMMA', 0, 'POINT') : '-'">0</td>
-                    <td class="date-col"
-                        th:text="${#temporals.format(l.createdAt, 'yyyy-MM-dd HH:mm')}">2025-01-01 12:00</td>
+                <tr th:each="product : ${products}">
+                    <td class="checkbox-col">
+                        <input type="checkbox" class="checkbox" th:value="${product.productId}">
+                    </td>
+                    <td class="id-col" th:text="${product.productId}"></td>
+                    <td class="name-col">
+                        <div class="product-name">
+                            <img th:src="${product.thumbnailUrl}"
+                                 th:alt="${product.productName}"
+                                 class="product-thumbnail"
+                                 onerror="this.src='/images/placeholder.png'">
+                            <span th:text="${product.productName}"></span>
+                        </div>
+                    </td>
+                    <td class="category-col">
+                        <span class="category-tag" th:text="${product.productType}"></span>
+                    </td>
+                    <td class="region-col" th:text="${product.regionText}"></td>
+                    <td class="season-col" th:text="${product.harvestSeason}"></td>
+                    <td class="status-col">
+                        <span class="status-badge active">활성</span>
+                    </td>
                     <td class="action-col">
-
-                        <button type="button" class="btn-edit" th:onclick="'editListing(' + ${l.listingId} + ')'">수정</button>
-                        <button type="button" class="btn-delete" th:onclick="'deleteListing(' + ${l.listingId} + ')'">삭제</button>
+                        <button type="button" class="btn-edit"
+                                th:onclick="'editProduct(' + ${product.productId} + ')'">수정</button>
+                        <button type="button" class="btn-delete"
+                                th:onclick="'deleteProduct(' + ${product.productId} + ')'">삭제</button>
                     </td>
                 </tr>
                 </tbody>
             </table>
         </div>
 
-        <div class="pagination" id="pagination"></div>
+        <!-- 페이지네이션 -->
+        <div class="pagination" id="pagination">
+            <!-- 페이지네이션이 여기에 동적으로 생성됩니다 -->
+        </div>
     </div>
+</div>
 
 <!-- 푸터 -->
-<div th:replace="~{common/footer :: footer}"></div>
+<div th:replace="common/footer :: footer"></div>
 
 <script src="/js/item-management.js"></script>
 </body>

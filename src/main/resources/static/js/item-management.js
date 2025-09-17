@@ -12,7 +12,7 @@ function initializeItemManagement() {
   ensureSellerIdHidden(); // 로그인 판매자 hidden 값 보정
   setupImageUpload(); // 이미지 업로드 설정
   console.log('상품관리 페이지 초기화 (product_listing 전송)');
-  
+
   // 기본 이미지 URL 설정
   document.getElementById('thumbnailUrl').value = '/images/농산물.png';
 }
@@ -52,14 +52,14 @@ function setupFormHandlers() {
   form.addEventListener('submit', handleFormSubmitSimple);
   resetBtn.addEventListener('click', resetForm);
   cancelBtn.addEventListener('click', cancelEdit);
-  
+
   // 이미지 업로드 핸들러
   setupImageUpload();
 }
 
 function handleFormSubmitSimple(e) {
   console.log('간단한 폼 제출 시작');
-  
+
   // 최소한의 검증만 수행
   const productName = document.getElementById('productName')?.value?.trim();
   const productType = document.getElementById('productType')?.value;
@@ -104,7 +104,7 @@ async function handleFormSubmit(e) {
 
   console.log('폼 제출 시작');
   console.log('폼 요소:', form);
-  
+
   if (!validateListingForm()) {
     console.log('폼 검증 실패');
     return;
@@ -124,19 +124,19 @@ async function handleFormSubmit(e) {
 
   const action = form.getAttribute('action') || '/item-management';
   console.log('제출 URL:', action);
-  
+
   try {
     const fd = new FormData(form);
     console.log('FormData 생성됨');
-    
+
     // FormData 내용 확인
     for (let [key, value] of fd.entries()) {
       console.log(key, ':', value);
     }
-    
+
     const res = await fetch(action, { method: 'POST', body: fd });
     console.log('서버 응답 상태:', res.status);
-    
+
     if (!res.ok) {
       const txt = await res.text().catch(()=>'');
       console.error('서버 오류:', txt);
@@ -361,7 +361,7 @@ function editListing(listingId) {
 
 async function deleteListing(listingId) {
   if (!confirm('정말로 이 상품을 삭제하시겠습니까?')) return;
-  
+
   try {
     const response = await fetch(`/api/listings/${listingId}`, {
       method: 'DELETE',
@@ -369,7 +369,7 @@ async function deleteListing(listingId) {
         'X-CSRF-TOKEN': getCsrfToken()
       }
     });
-    
+
     if (response.ok) {
       showMessage('상품이 삭제되었습니다.', 'success');
       setTimeout(() => window.location.reload(), 600);
@@ -406,7 +406,7 @@ function setupImageUpload() {
   if (!selectBtn || !fileInput || !removeAllBtn || !previewContainer) return;
 
   selectBtn.addEventListener('click', () => fileInput.click());
-  
+
   fileInput.addEventListener('change', handleImageSelection);
   removeAllBtn.addEventListener('click', resetImageUpload);
 }
@@ -436,7 +436,7 @@ function handleImageSelection(event) {
 function displayImages(files) {
   const previewContainer = document.getElementById('imagePreviewContainer');
   const removeAllBtn = document.getElementById('removeAllImagesBtn');
-  
+
   // 기존 미리보기 제거
   previewContainer.innerHTML = '';
 
@@ -471,7 +471,7 @@ function displayImages(files) {
 function removeImage(button) {
   const imageItem = button.closest('.image-item');
   imageItem.remove();
-  
+
   // 모든 이미지가 제거되면 초기 상태로
   const previewContainer = document.getElementById('imagePreviewContainer');
   if (previewContainer.children.length === 0) {
@@ -489,7 +489,7 @@ function resetImageUpload() {
   const previewContainer = document.getElementById('imagePreviewContainer');
   const removeAllBtn = document.getElementById('removeAllImagesBtn');
   const fileInput = document.getElementById('imageUpload');
-  
+
   previewContainer.innerHTML = `
     <div class="image-preview" id="imagePreview">
       <div class="image-placeholder">
@@ -499,7 +499,7 @@ function resetImageUpload() {
       </div>
     </div>
   `;
-  
+
   removeAllBtn.style.display = 'none';
   fileInput.value = '';
   document.getElementById('thumbnailUrl').value = '/images/농산물.png'; // 기본 이미지 URL
