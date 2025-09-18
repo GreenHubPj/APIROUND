@@ -163,7 +163,8 @@ public class OrderServiceImpl implements OrderService {
     public List<OrderSummaryDto> findMyOrders(Integer userId) {
         if (userId == null) throw new IllegalStateException("로그인이 필요합니다.");
 
-        var orders = orderRepository.findByUserIdAndIsDeletedFalseOrderByCreatedAtDesc(userId);
+        // var orders = orderRepository.findByUserIdAndIsDeletedFalseOrderByCreatedAtDesc(userId);
+        var orders = orderRepository.findActiveByUser(userId); // ✅ 여기로 변경
         if (orders.isEmpty()) return List.of();
 
         // order_item 한 번에 로딩 (리포지토리 커스텀 메서드 필요 없음)

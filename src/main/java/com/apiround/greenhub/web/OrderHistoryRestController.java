@@ -19,7 +19,7 @@ public class OrderHistoryRestController {
     private final OrderService orderService;
 
     /** 현재 로그인 사용자의 주문 목록(JSON) */
-    @GetMapping({"/mine", "/my"}) // ← JS가 /my를 호출해도 동작하도록 별칭 추가
+    @GetMapping("/my") // ❗ 딱 하나만!
     public ResponseEntity<?> myOrders(HttpSession session) {
         Integer userId = (Integer) session.getAttribute("loginUserId");
         if (userId == null) {
