@@ -102,35 +102,35 @@
                     <div class="step-label">주문접수</div>
                 </div>
                 <div class="flow-arrow" th:classappend="${orderStatus.orderReceived > 0} ? 'solid' : 'dotted'">→</div>
-                
+
                 <!-- 결제완료 -->
                 <div class="flow-step" th:classappend="${orderStatus.paymentCompleted > 0} ? 'completed' : 'pending'">
                     <div class="step-box" th:text="${orderStatus.paymentCompleted}">0</div>
                     <div class="step-label">결제완료</div>
                 </div>
                 <div class="flow-arrow" th:classappend="${orderStatus.paymentCompleted > 0} ? 'solid' : 'dotted'">→</div>
-                
+
                 <!-- 상품준비중 -->
                 <div class="flow-step" th:classappend="${orderStatus.preparingProduct > 0} ? 'completed' : 'pending'">
                     <div class="step-box" th:text="${orderStatus.preparingProduct}">0</div>
                     <div class="step-label">상품준비중</div>
                 </div>
                 <div class="flow-arrow" th:classappend="${orderStatus.preparingProduct > 0} ? 'solid' : 'dotted'">→</div>
-                
+
                 <!-- 배송중 -->
                 <div class="flow-step" th:classappend="${orderStatus.shipping > 0} ? 'completed' : 'pending'">
                     <div class="step-box" th:text="${orderStatus.shipping}">0</div>
                     <div class="step-label">배송중</div>
                 </div>
                 <div class="flow-arrow" th:classappend="${orderStatus.shipping > 0} ? 'solid' : 'dotted'">→</div>
-                
+
                 <!-- 배송완료 -->
                 <div class="flow-step" th:classappend="${orderStatus.deliveryCompleted > 0} ? 'completed' : 'pending'">
                     <div class="step-box" th:text="${orderStatus.deliveryCompleted}">0</div>
                     <div class="step-label">배송완료</div>
                 </div>
             </div>
-            
+
             <!-- 주문 내역이 없는 경우 -->
             <div class="no-orders" th:if="${orderStatus == null || (orderStatus.orderReceived == 0 && orderStatus.paymentCompleted == 0 && orderStatus.preparingProduct == 0 && orderStatus.shipping == 0 && orderStatus.deliveryCompleted == 0)}">
                 <p>아직 주문 내역이 없습니다. 상품을 구매해보세요!</p>
