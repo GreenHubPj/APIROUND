@@ -98,7 +98,7 @@ public class HomeController {
         model.addAttribute("userId", userId);
         return "myrecipe";
     }
-
+    
     /** 레시피 재료 목록을 문자열 배열로 반환 */
     private List<String> getRecipeIngredients(Integer recipeId) {
         try {
