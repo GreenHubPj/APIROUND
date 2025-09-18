@@ -27,7 +27,7 @@
             <button type="button" class="btn-cancel" id="cancelBtn" style="display:none;">취소</button>
         </div>
 
-        <form class="item-form" id="itemForm" method="post" th:action="@{/item-management}">
+        <form class="item-form" id="itemForm" method="post" enctype="multipart/form-data" th:action="@{/item-management}">
             <!-- (선택) CSRF -->
             <input type="hidden" name="_csrf" th:value="${_csrf?.token}">
             <!-- 수정 시 사용 -->
@@ -174,9 +174,21 @@
             </div>
 
             <div class="form-group">
-                <label class="form-label">대표 이미지 URL</label>
+                <label class="form-label">대표 이미지</label>
                 <!-- 엔티티: thumbnailUrl -->
-                <input type="text" class="form-input" name="thumbnailUrl" placeholder="https://example.com/image.jpg">
+                <div class="image-upload-container">
+                    <input type="file" id="imageFile" name="imageFile" accept="image/*" class="image-file-input" style="display: none;">
+                    <div class="image-upload-area" id="imageUploadArea">
+                        <div class="upload-icon">📷</div>
+                        <div class="upload-text">이미지를 선택하거나 드래그하세요</div>
+                        <div class="upload-hint">JPG, PNG, GIF 파일만 업로드 가능</div>
+                    </div>
+                    <div class="image-preview" id="imagePreview" style="display: none;">
+                        <img id="previewImg" src="" alt="미리보기">
+                        <button type="button" class="btn-remove-image" id="removeImageBtn">×</button>
+                    </div>
+                    <input type="hidden" id="thumbnailUrl" name="thumbnailUrl" value="">
+                </div>
             </div>
 
             <div class="form-group">
@@ -226,33 +238,37 @@
                 </tr>
                 </thead>
                 <tbody id="itemTableBody">
-                <tr th:each="product : ${products}">
+                <tr th:each="listing : ${listings}">
                     <td class="checkbox-col">
-                        <input type="checkbox" class="checkbox" th:value="${product.productId}">
+                        <input type="checkbox" class="checkbox" th:value="${listing.listingId}">
                     </td>
-                    <td class="id-col" th:text="${product.productId}"></td>
+                    <td class="id-col" th:text="${listing.listingId}"></td>
                     <td class="name-col">
                         <div class="product-name">
-                            <img th:src="${product.thumbnailUrl}"
-                                 th:alt="${product.productName}"
+                            <img th:src="${listing.thumbnailUrl ?: '/images/따봉 트럭.png'}"
+                                 th:alt="${listing.title}"
                                  class="product-thumbnail"
-                                 onerror="this.src='/images/placeholder.png'">
-                            <span th:text="${product.productName}"></span>
+                                 onerror="this.src='/images/따봉 트럭.png'">
+                            <span th:text="${listing.title}"></span>
                         </div>
                     </td>
                     <td class="category-col">
-                        <span class="category-tag" th:text="${product.productType}"></span>
+                        <span class="category-tag" th:text="${productMap[listing.listingId]?.productType ?: 'N/A'}"></span>
                     </td>
-                    <td class="region-col" th:text="${product.regionText}"></td>
-                    <td class="season-col" th:text="${product.harvestSeason}"></td>
+                    <td class="region-col" th:text="${productMap[listing.listingId]?.regionText ?: 'N/A'}"></td>
+                    <td class="season-col" th:text="${productMap[listing.listingId]?.harvestSeason ?: 'N/A'}"></td>
                     <td class="status-col">
-                        <span class="status-badge active">활성</span>
+                        <select class="status-select" th:data-listing-id="${listing.listingId}">
+                            <option value="ACTIVE" th:selected="${listing.status.name() == 'ACTIVE'}">활성</option>
+                            <option value="INACTIVE" th:selected="${listing.status.name() == 'INACTIVE'}">비활성</option>
+                            <option value="STOPPED" th:selected="${listing.status.name() == 'STOPPED'}">중지</option>
+                        </select>
                     </td>
                     <td class="action-col">
                         <button type="button" class="btn-edit"
-                                th:onclick="'editProduct(' + ${product.productId} + ')'">수정</button>
+                                th:onclick="'editListing(' + ${listing.listingId} + ')'">수정</button>
                         <button type="button" class="btn-delete"
-                                th:onclick="'deleteProduct(' + ${product.productId} + ')'">삭제</button>
+                                th:onclick="'deleteListing(' + ${listing.listingId} + ')'">삭제</button>
                     </td>
                 </tr>
                 </tbody>

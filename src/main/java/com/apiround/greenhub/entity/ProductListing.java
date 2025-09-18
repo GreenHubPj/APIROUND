@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 import com.apiround.greenhub.entity.item.ProductPriceOption;
+import com.apiround.greenhub.entity.item.SpecialtyProduct;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -56,7 +57,7 @@ public class ProductListing {
     private BigDecimal stockQty;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false)
+    @Column(name = "status", nullable = false, length = 20)
     private Status status;
 
     @Column(name = "created_at")
@@ -66,8 +67,17 @@ public class ProductListing {
     private LocalDateTime updatedAt;
 
     public enum Status {
-        ACTIVE, PAUSED, SOLDOUT
+        ACTIVE, INACTIVE, STOPPED
     }
+
+    @Column(name = "thumbnail_url")
+    private String thumbnailUrl;
+
+    @Column(name = "is_deleted", nullable = false, columnDefinition = "CHAR(1) DEFAULT 'N'")
+    private String isDeleted = "N";
+
+    @Column(name = "harvest_season", length = 50)
+    private String harvestSeason;
 
     @PrePersist
     public void prePersist() {
@@ -85,5 +95,13 @@ public class ProductListing {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id", nullable = false)
     private ProductPriceOption product;
+    
+    // SpecialtyProduct에 직접 접근하기 위한 메서드
+    // ProductPriceOption의 productId를 통해 SpecialtyProduct를 조회해야 함
+    public SpecialtyProduct getSpecialtyProduct() {
+        // 이 메서드는 서비스 레이어에서 구현해야 함
+        // 여기서는 null을 반환하고, 서비스에서 별도로 조회
+        return null;
+    }
 
 }

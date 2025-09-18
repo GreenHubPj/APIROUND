@@ -47,20 +47,20 @@ public class EmailNotiController {
     ) {
         try {
             CompletableFuture<Integer> result = emailNotiService.sendBulkNotification(subject, message);
-            
+
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
             response.put("message", "일괄 메일 발송이 시작되었습니다.");
             response.put("status", "processing");
-            
+
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             log.error("일괄 메일 발송 실패: {}", e.getMessage());
-            
+
             Map<String, Object> response = new HashMap<>();
             response.put("success", false);
             response.put("message", "일괄 메일 발송 실패: " + e.getMessage());
-            
+
             return ResponseEntity.badRequest().body(response);
         }
     }
@@ -72,7 +72,7 @@ public class EmailNotiController {
     public ResponseEntity<Map<String, Object>> getSmsConsentUsers() {
         try {
             List<User> users = emailNotiService.getSmsConsentUsers();
-            
+
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
             response.put("count", users.size());
@@ -84,15 +84,15 @@ public class EmailNotiController {
                 userInfo.put("smsConsent", user.getSmsConsent());
                 return userInfo;
             }).toList());
-            
+
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             log.error("사용자 목록 조회 실패: {}", e.getMessage());
-            
+
             Map<String, Object> response = new HashMap<>();
             response.put("success", false);
             response.put("message", "사용자 목록 조회 실패: " + e.getMessage());
-            
+
             return ResponseEntity.badRequest().body(response);
         }
     }
