@@ -54,4 +54,10 @@ public class RecipeService {
         return recipeRepo.findRandomPublishedRecipes(5);
     }
 
+    /** 오늘 뭐먹지 추천용 랜덤 레시피 1개 */
+    public Recipe getRandomRecipeForRecommendation() {
+        List<Recipe> recipes = recipeRepo.findRandomPublishedRecipes(1);
+        return recipes.isEmpty() ? null : recipes.get(0);
+    }
+
 }
