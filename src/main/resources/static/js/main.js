@@ -221,40 +221,54 @@ document.addEventListener('DOMContentLoaded', function() {
                 modal.classList.add('hidden');
             };
 
-            // 랜덤 추천 데이터
-            const recommendations = [
-                { name: "제주 흑돼지 양념구이", region: "제주특별자치도 특산품", ingredients: ["제주흑돼지", "깻잎", "마늘", "소금"], description: "제주의 청정 자연에서 키운 흑돼지의 고소하고 담백한 맛을 즐겨보세요." },
-                { name: "전라도 김치찌개", region: "전라도 특산품", ingredients: ["김치", "돼지고기", "두부", "대파"], description: "전라도의 깊은 맛 김치로 끓인 시원하고 얼큰한 찌개입니다." },
-                { name: "경기도 된장찌개", region: "경기도 특산품", ingredients: ["된장", "두부", "호박", "양파"], description: "경기도의 전통 된장으로 끓인 구수하고 진한 찌개입니다." },
-                { name: "서울 불고기", region: "서울 특산품", ingredients: ["소고기", "양파", "당근", "버섯"], description: "서울의 대표적인 고기 요리로 달콤하고 부드러운 맛이 일품입니다." },
-                { name: "전라도 비빔밥", region: "전라도 특산품", ingredients: ["밥", "나물", "고추장", "계란"], description: "전라도의 다양한 나물과 고추장으로 만든 건강한 한 끼 식사입니다." },
-                { name: "부산 해물파전", region: "부산 특산품", ingredients: ["전복", "새우", "파", "밀가루"], description: "부산의 신선한 해산물로 만든 바삭하고 고소한 파전입니다." },
-                { name: "경상도 닭볶음탕", region: "경상도 특산품", ingredients: ["닭고기", "감자", "당근", "양파"], description: "경상도의 매콤달콤한 양념으로 끓인 든든한 닭볶음탕입니다." },
-                { name: "충청도 순두부찌개", region: "충청도 특산품", ingredients: ["순두부", "해물", "김치", "대파"], description: "충청도의 부드러운 순두부로 끓인 얼큰하고 시원한 찌개입니다." }
-            ];
+            // DB에서 랜덤 추천 데이터 가져오기
 
-            const getRecommendation = () => {
+            const getRecommendation = async () => {
                 showStep(2); // 로딩 단계
 
-                // 2초 후 랜덤 추천 결과 표시
-                setTimeout(() => {
-                    const randomItem = recommendations[Math.floor(Math.random() * recommendations.length)];
-                    document.getElementById('menu-name').innerText = randomItem.name;
-                    document.getElementById('menu-region').innerText = randomItem.region;
-                    document.getElementById('menu-description').innerText = randomItem.description;
+                try {
+                    // DB API에서 랜덤 레시피 가져오기
+                    const response = await fetch('/api/random-recipe');
+                    const data = await response.json();
+                    
+                    if (data.error) {
+                        alert(data.error);
+                        closeModal();
+                        return;
+                    }
 
-                    // 재료 태그 생성
-                    const ingredientsContainer = document.getElementById('menu-ingredients');
-                    ingredientsContainer.innerHTML = '';
-                    randomItem.ingredients.forEach(ingredient => {
-                        const tag = document.createElement('span');
-                        tag.className = 'ingredient-tag';
-                        tag.textContent = ingredient;
-                        ingredientsContainer.appendChild(tag);
-                    });
+                    // 2초 후 결과 표시 (로딩 효과)
+                    setTimeout(() => {
+                        document.getElementById('menu-name').innerText = data.name;
+                        document.getElementById('menu-region').innerText = data.region;
+                        document.getElementById('menu-description').innerText = data.description;
 
-                    showStep(3); // 결과 표시
-                }, 2000);
+                        // 재료 태그 생성
+                        const ingredientsContainer = document.getElementById('menu-ingredients');
+                        ingredientsContainer.innerHTML = '';
+                        data.ingredients.forEach(ingredient => {
+                            const tag = document.createElement('span');
+                            tag.className = 'ingredient-tag';
+                            tag.textContent = ingredient;
+                            ingredientsContainer.appendChild(tag);
+                        });
+
+                        // 레시피 보기 버튼에 링크 추가
+                        const recipeBtn = document.querySelector('.recipe-btn');
+                        if (recipeBtn && data.recipeId) {
+                            recipeBtn.onclick = () => {
+                                window.location.href = `/recipe/detail?id=${data.recipeId}`;
+                            };
+                        }
+
+                        showStep(3); // 결과 표시
+                    }, 2000);
+                    
+                } catch (error) {
+                    console.error('레시피 추천 API 오류:', error);
+                    alert('레시피 추천 중 오류가 발생했습니다.');
+                    closeModal();
+                }
             };
 
             // 이벤트 바인딩

@@ -25,7 +25,7 @@ public class CompanyAuthController {
     public String companyLoginForm(@RequestParam(value = "redirectURL", required = false) String redirectURL,
                                    Model model) {
         model.addAttribute("redirectURL", redirectURL);
-        return "company-login";
+        return "login";
     }
 
     /** 업체 로그인 처리 (화면 폼) */
