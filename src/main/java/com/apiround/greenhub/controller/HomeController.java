@@ -1,28 +1,21 @@
 package com.apiround.greenhub.controller;
 
 import com.apiround.greenhub.entity.Recipe;
-import com.apiround.greenhub.service.RecipeService;
-import jakarta.servlet.http.HttpSession;
-import org.springframework.beans.factory.annotation.Autowired;
-import com.apiround.greenhub.entity.Recipe;
 import com.apiround.greenhub.entity.item.Region;
 import com.apiround.greenhub.service.RecipeService;
 import com.apiround.greenhub.service.item.SeasonalService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.http.ResponseEntity;
+
+import jakarta.servlet.http.HttpSession;
+import java.util.List;
 import java.util.Map;
-
-import java.util.List;
-
-import com.apiround.greenhub.service.item.RegionService;
-
-import java.util.List;
 
 @Controller
 @RequiredArgsConstructor
@@ -43,14 +36,13 @@ public class HomeController {
                 return ResponseEntity.ok().body(Map.of("error", "추천할 레시피가 없습니다."));
             }
 
-            // 응답 데이터 구성
             Map<String, Object> response = Map.of(
-                "name", recipe.getTitle() != null ? recipe.getTitle() : "맛있는 요리",
-                "region", "전국 지역 특산품", // 기본값 또는 추후 지역 정보 연동
-                "ingredients", getRecipeIngredients(recipe.getRecipeId().intValue()),
-                "description", recipe.getSummary() != null ? recipe.getSummary() : "특별한 레시피입니다.",
-                "recipeId", recipe.getRecipeId(),
-                "imageUrl", recipe.getHeroImageUrl()
+                    "name", recipe.getTitle() != null ? recipe.getTitle() : "맛있는 요리",
+                    "region", "전국 지역 특산품",
+                    "ingredients", getRecipeIngredients(recipe.getRecipeId().intValue()),
+                    "description", recipe.getSummary() != null ? recipe.getSummary() : "특별한 레시피입니다.",
+                    "recipeId", recipe.getRecipeId(),
+                    "imageUrl", recipe.getHeroImageUrl()
             );
 
             return ResponseEntity.ok(response);
@@ -61,7 +53,7 @@ public class HomeController {
 
     @GetMapping("/")
     public String home(Model model) {
-        List<Region> seasonal = seasonalService.getRandomSeasonalForMain(8); // ✅ 인스턴스 호출
+        List<Region> seasonal = seasonalService.getRandomSeasonalForMain(8);
         model.addAttribute("seasonalProducts", seasonal);
 
         List<Recipe> randomRecipes = recipeService.getRandomRecipesForMain();
@@ -77,7 +69,6 @@ public class HomeController {
 
     @GetMapping("/seasonal")
     public String seasonal() {
-        // SeasonalController로 리다이렉트
         return "redirect:/specialties/monthly";
     }
 
@@ -89,10 +80,6 @@ public class HomeController {
 
     @GetMapping("/find-password")
     public String findPassword() { return "find-password"; }
-
-    // ✅ /mypage-company는 CompanyMypageController가 담당
-    // @GetMapping("/mypage-company")
-    // public String mypageCompany() { return "mypage_company"; }
 
     @GetMapping("/myrecipe")
     public String myrecipe(HttpSession session, Model model) {
@@ -110,7 +97,7 @@ public class HomeController {
             return recipeService.getIngredients(recipeId)
                     .stream()
                     .map(ingredient -> ingredient.getNameText())
-                    .limit(4) // 최대 4개만
+                    .limit(4)
                     .toList();
         } catch (Exception e) {
             return List.of("신선한 재료");
@@ -120,8 +107,8 @@ public class HomeController {
     @GetMapping("/newrecipe")
     public String newrecipe() { return "newrecipe"; }
 
-    @GetMapping("/orderhistory")
-    public String orderhistory() { return "orderhistory"; }
+    //@GetMapping("/orderhistory")
+    //public String orderhistory() { return "orderhistory"; }
 
     @GetMapping("/myrecipe-detail")
     public String myrecipeDetail(@RequestParam(required = false) String id,
@@ -145,18 +132,10 @@ public class HomeController {
     @GetMapping("/event")
     public String event() { return "event"; }
 
-    //@GetMapping("/profile-edit")
-    //public String profileEdit() { return "profile-edit"; }
-
-    // 🚫 /profile-edit-company는 CompanyProfileController가 담당
-    // @GetMapping("/profile-edit-company")
-    // public String profileEditCompany() { return "profile-edit-company"; }
-
     @GetMapping("/refund")
     public String refund() { return "refund"; }
 
-    @GetMapping("/buying")
-    public String buying() { return "buying"; }
+    // ⛔ /buying 매핑은 BuyingController가 담당합니다. (중복 방지)
 
     @GetMapping("/reviewlist")
     public String reviewlist() { return "reviewlist"; }

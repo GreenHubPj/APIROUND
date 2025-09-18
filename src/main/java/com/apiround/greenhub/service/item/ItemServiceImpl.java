@@ -5,8 +5,11 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,14 +45,22 @@ public class ItemServiceImpl implements ItemService {
             List<String> units,
             List<Integer> prices
     ) {
-        log.info("ItemServiceImpl.saveProductWithOptions 시작 - productName: {}, productType: {}, regionText: {}", 
+        log.info("ItemServiceImpl.saveProductWithOptions 시작 - productName: {}, productType: {}, regionText: {}",
                 productName, productType, regionText);
-        log.info("옵션 데이터 - optionLabels: {}, quantities: {}, units: {}, prices: {}", 
+        log.info("옵션 데이터 - optionLabels: {}, quantities: {}, units: {}, prices: {}",
                 optionLabels, quantities, units, prices);
-        // 1) 상품 저장/수정
-        SpecialtyProduct p = (productId != null)
-                ? productRepo.findById(productId).orElseGet(SpecialtyProduct::new)
-                : new SpecialtyProduct();
+
+        // 1) 상품 엔티티 준비
+        SpecialtyProduct p;
+        boolean creating = (productId == null);
+        if (creating) {
+            // 같은 (상품명, 지역) 존재 시 그걸 사용 (유니크 충돌 방지)
+            p = productRepo.findByProductNameAndRegionText(productName, regionText)
+                    .orElseGet(SpecialtyProduct::new);
+        } else {
+            p = productRepo.findById(productId)
+                    .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 상품입니다. productId=" + productId));
+        }
 
         p.setProductName(productName);
         p.setProductType(productType);
@@ -57,86 +68,101 @@ public class ItemServiceImpl implements ItemService {
         p.setDescription(description);
         p.setThumbnailUrl(thumbnailUrl);
         p.setExternalRef(externalRef);
+
         String harvestSeason = joinMonths(months);
         if (harvestSeason == null || harvestSeason.isEmpty()) {
-            harvestSeason = "1,2,3,4,5,6,7,8,9,10,11,12"; // 기본값: 연중
+            harvestSeason = "1,2,3,4,5,6,7,8,9,10,11,12"; // 기본값(연중)
         }
         p.setHarvestSeason(harvestSeason);
-        // NOTE: specialty_product 테이블에 created_at / updated_at 컬럼이 없으므로 세팅하지 않음
 
-        log.info("상품 저장 시작 - productName: {}", p.getProductName());
-        log.info("저장할 상품 데이터: {}", p);
-        
-        SpecialtyProduct saved = productRepo.save(p);
-        log.info("상품 저장 완료 - productId: {}", saved.getProductId());
-        
-        if (saved.getProductId() == null) {
-            throw new RuntimeException("상품 저장 실패: productId가 null입니다.");
+        // 2) 저장 (중복 유니크 키 충돌 시 메시지 그대로 컨트롤러에서 처리)
+        SpecialtyProduct saved;
+        try {
+            log.info("상품 저장 시작 - productName: {}", p.getProductName());
+            saved = productRepo.save(p);
+        } catch (DataIntegrityViolationException e) {
+            log.error("상품 저장 중 유니크 충돌 (name={}, region={})", productName, regionText, e);
+            throw e;
         }
+        if (saved.getProductId() == null) throw new IllegalStateException("상품 저장 실패: productId가 null입니다.");
+        log.info("상품 저장 완료 - productId: {}", saved.getProductId());
 
-        // 2) 옵션 갱신 (상품 수정 시에만 기존 옵션을 비활성화)
-        if (productId != null) {
-            // 상품 수정인 경우: 기존 옵션을 비활성화
-            log.info("기존 옵션 비활성화 시작 - productId: {}", saved.getProductId());
-            var existingOptions = optionRepo.findByProductIdOrderBySortOrderAscOptionIdAsc(saved.getProductId());
-            for (var option : existingOptions) {
-                option.setIsActive(false);
-                option.setUpdatedAt(LocalDateTime.now());
-                optionRepo.save(option);
+        // 3) 옵션 갱신
+        upsertOptions(saved.getProductId(), optionLabels, quantities, units, prices, creating);
+
+        return saved.getProductId();
+    }
+
+    private void upsertOptions(
+            Integer productId,
+            List<String> optionLabels,
+            List<BigDecimal> quantities,
+            List<String> units,
+            List<Integer> prices,
+            boolean creating
+    ) {
+        // null-가드
+        optionLabels = (optionLabels != null) ? optionLabels : Collections.emptyList();
+        quantities   = (quantities   != null) ? quantities   : Collections.emptyList();
+        units        = (units        != null) ? units        : Collections.emptyList();
+        prices       = (prices       != null) ? prices       : Collections.emptyList();
+
+        // 수정 시 기존 옵션 비활성화
+        if (!creating) {
+            var existing = optionRepo.findByProductIdOrderBySortOrderAscOptionIdAsc(productId);
+            for (var o : existing) {
+                o.setIsActive(false);
+                o.setUpdatedAt(LocalDateTime.now());
+                optionRepo.save(o);
             }
-            log.info("기존 옵션 비활성화 완료");
+            log.info("기존 옵션 비활성화 완료 - productId={}", productId);
         } else {
-            // 상품 추가인 경우: 기존 옵션 비활성화 생략
             log.info("상품 추가 모드 - 기존 옵션 비활성화 생략");
         }
 
-        if (quantities != null && units != null && prices != null) {
-            int n = Math.min(quantities.size(), Math.min(units.size(), prices.size()));
-            log.info("옵션 저장 시작 - 총 {} 개 옵션", n);
-            for (int i = 0; i < n; i++) {
-                var qty   = quantities.get(i);                 // BigDecimal (nullable)
-                var unit  = (units.get(i) == null) ? null : units.get(i).trim();
-                var price = prices.get(i);                     // Integer (nullable)
+        int n = Math.min(quantities.size(), Math.min(units.size(), prices.size()));
+        log.info("옵션 저장 시작 - 총 {} 개 옵션", n);
 
-                // 서버측 보정/검증: 3개 모두 유효할 때만 저장
-                if (qty == null || qty.compareTo(BigDecimal.ZERO) <= 0) {
-                    log.warn("옵션 {} 건너뜀 - 수량이 유효하지 않음: {}", i, qty);
-                    continue;
-                }
-                if (unit == null || unit.isEmpty()) {
-                    log.warn("옵션 {} 건너뜀 - 단위가 유효하지 않음: {}", i, unit);
-                    continue;
-                }
-                if (price == null || price < 0) {
-                    log.warn("옵션 {} 건너뜀 - 가격이 유효하지 않음: {}", i, price);
-                    continue;
-                }
+        Set<String> duplicateGuard = new HashSet<>(); // (label, qty, unit) 중복 방지
+        for (int i = 0; i < n; i++) {
+            BigDecimal qty = quantities.get(i);
+            String unit    = (units.get(i) == null) ? null : units.get(i).trim();
+            Integer price  = prices.get(i);
+            String label   = (i < optionLabels.size()) ? optionLabels.get(i) : null;
 
-                log.info("옵션 {} 저장 시작 - qty: {}, unit: {}, price: {}", i, qty, unit, price);
-                ProductPriceOption opt = ProductPriceOption.builder()
-                        .productId(saved.getProductId())
-                        .optionLabel((optionLabels != null && i < optionLabels.size())
-                                ? optionLabels.get(i) : null)
-                        .quantity(qty)
-                        .unit(unit)
-                        .price(price)
-                        .sortOrder(i)
-                        .isActive(Boolean.TRUE)  // 명시적으로 Boolean.TRUE 설정
-                        .createdAt(LocalDateTime.now())
-                        .updatedAt(LocalDateTime.now())
-                        .build();
-                
-                log.info("저장할 옵션 데이터: {}", opt);
-                ProductPriceOption savedOpt = optionRepo.save(opt);
-                log.info("옵션 {} 저장 완료 - optionId: {}", i, savedOpt.getOptionId());
-                
-                if (savedOpt.getOptionId() == null) {
-                    throw new RuntimeException("옵션 저장 실패: optionId가 null입니다.");
-                }
+            if (qty == null || qty.compareTo(BigDecimal.ZERO) <= 0) { log.warn("옵션 {} 건너뜀 - 수량 {}", i, qty); continue; }
+            if (unit == null || unit.isEmpty()) { log.warn("옵션 {} 건너뜀 - 단위 {}", i, unit); continue; }
+            if (price == null || price < 0) { log.warn("옵션 {} 건너뜀 - 가격 {}", i, price); continue; }
+
+            String key = (label == null ? "null" : label) + "|" +
+                    qty.stripTrailingZeros().toPlainString() + "|" +
+                    unit;
+            if (!duplicateGuard.add(key)) {
+                log.warn("옵션 {} 건너뜀 - 동일 (label, qty, unit) 중복 {}", i, key);
+                continue;
+            }
+
+            ProductPriceOption opt = ProductPriceOption.builder()
+                    .productId(productId)
+                    .optionLabel(label)
+                    .quantity(qty)
+                    .unit(unit)
+                    .price(price)
+                    .sortOrder(i)
+                    .isActive(Boolean.TRUE)
+                    .createdAt(LocalDateTime.now())
+                    .updatedAt(LocalDateTime.now())
+                    .build();
+
+            try {
+                optionRepo.save(opt);
+                log.info("옵션 {} 저장 완료", i);
+            } catch (DataIntegrityViolationException e) {
+                // uq_product_option (productId, optionLabel, quantity, unit) 중복
+                log.error("옵션 저장 중 유니크 충돌 - i={}, key={}", i, key, e);
+                throw e;
             }
         }
-
-        return saved.getProductId();
     }
 
     @Override
@@ -149,7 +175,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public void deleteProduct(Integer productId) {
-        optionRepo.deleteByProductId(productId); // 안전하게 먼저 삭제
+        optionRepo.deleteByProductId(productId); // 옵션 먼저 삭제
         productRepo.deleteById(productId);
     }
 

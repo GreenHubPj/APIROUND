@@ -55,21 +55,21 @@ public class AuthController {
         return "signup";
     }
 
-    /** 로그인 화면(유일한 /login 매핑) */
+    /** 로그인 화면 */
     @GetMapping("/login")
     public String loginForm(@RequestParam(value = "redirectURL", required = false) String redirectURL,
-                            @RequestParam(value = "redirect", required = false) String redirect, // ← 추가: 두 파라미터 모두 지원
+                            @RequestParam(value = "redirect", required = false) String redirect,
                             Model model) {
         String to = (redirectURL != null && !redirectURL.isBlank()) ? redirectURL
                 : (redirect != null && !redirect.isBlank()) ? redirect
                 : null;
         if (to != null) {
-            model.addAttribute("redirectURL", to); // 뷰에서는 redirectURL 하나만 사용
+            model.addAttribute("redirectURL", to);
         }
         return "login";
     }
 
-    /** 실수로 GET /auth/login 들어올 때 → /login 으로 우회 */
+    /** 실수로 GET /auth/login 들어오면 /login으로 유도 */
     @GetMapping("/auth/login")
     public String redirectAuthLoginGet(@RequestParam(value = "redirectURL", required = false) String redirectURL,
                                        @RequestParam(value = "redirect", required = false) String redirect) {
@@ -80,7 +80,7 @@ public class AuthController {
     }
 
     // ─────────────────────────────────────────────────────────────
-    // 이메일 인증 (개인/판매 공용)
+    // 이메일 인증
     // ─────────────────────────────────────────────────────────────
     @PostMapping("/auth/email/send")
     @ResponseBody
@@ -106,7 +106,6 @@ public class AuthController {
     // ─────────────────────────────────────────────────────────────
     // 비밀번호 재설정
     // ─────────────────────────────────────────────────────────────
-
     @PostMapping("/auth/password/request-reset")
     @ResponseBody
     public ResponseEntity<?> requestReset(@RequestBody Map<String, String> req) {
@@ -257,7 +256,7 @@ public class AuthController {
         Company c = new Company();
         c.setCompanyName(companyName.trim());
         c.setLoginId(loginId.trim());
-        c.setPassword(password);
+        c.setPassword(PasswordUtil.encode(password));
         c.setBusinessRegistrationNumber(businessRegistrationNumber.trim().replaceAll("\\s", ""));
         c.setEmail(email.trim());
         c.setManagerName(managerName.trim());
@@ -280,17 +279,16 @@ public class AuthController {
         return "redirect:/login";
     }
 
-    // ───────── 통합 로그인
+    // ───────── 통합 로그인(화면 폼 POST)
     @PostMapping("/auth/login")
     public String doLogin(@RequestParam String loginId,
                           @RequestParam String password,
                           @RequestParam(value = "accountType", defaultValue = "PERSONAL") String accountType,
                           @RequestParam(value = "redirectURL", required = false) String redirectURL,
-                          @RequestParam(value = "redirect", required = false) String redirect, // ← 추가
+                          @RequestParam(value = "redirect", required = false) String redirect,
                           HttpSession session,
                           RedirectAttributes ra) {
 
-        // 두 파라미터 중 하나라도 값이 있으면 그것으로
         String to = (redirectURL != null && !redirectURL.isBlank()) ? redirectURL
                 : (redirect != null && !redirect.isBlank()) ? redirect
                 : null;
@@ -302,10 +300,17 @@ public class AuthController {
                 if (!PasswordUtil.matches(password, c.getPassword()))
                     throw new IllegalArgumentException("BAD_PW");
 
+                // ✅ 업체 세션 세팅
                 session.setAttribute("company", c);
-                session.removeAttribute("user");
                 session.setAttribute("loginCompanyId", c.getCompanyId());
                 session.setAttribute("loginCompanyName", c.getCompanyName());
+
+                // 개인 키 제거
+                session.removeAttribute("user");
+                session.removeAttribute("LOGIN_USER");
+                session.removeAttribute("loginUserId");
+                session.removeAttribute("loginuserid");
+                session.removeAttribute("loginUserName");
 
                 return "redirect:" + (to != null ? to : "/mypage-company");
             } else {
@@ -314,11 +319,17 @@ public class AuthController {
                 if (!PasswordUtil.matches(password, u.getPassword()))
                     throw new IllegalArgumentException("BAD_PW");
 
+                // ✅ 개인 세션 세팅
                 session.setAttribute("user", u);
-                session.removeAttribute("company");
-                session.setAttribute("LOGIN_USER", u);
+                session.setAttribute("LOGIN_USER", u); // (하위 호환)
                 session.setAttribute("loginUserId", u.getUserId());
+                session.setAttribute("loginuserid", u.getUserId()); // (하위 호환)
                 session.setAttribute("loginUserName", u.getName());
+
+                // 업체 키 제거
+                session.removeAttribute("company");
+                session.removeAttribute("loginCompanyId");
+                session.removeAttribute("loginCompanyName");
 
                 return "redirect:" + (to != null ? to : "/mypage");
             }
