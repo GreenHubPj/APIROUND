@@ -65,13 +65,30 @@ public class ItemServiceImpl implements ItemService {
         // NOTE: specialty_product 테이블에 created_at / updated_at 컬럼이 없으므로 세팅하지 않음
 
         log.info("상품 저장 시작 - productName: {}", p.getProductName());
+        log.info("저장할 상품 데이터: {}", p);
+        
         SpecialtyProduct saved = productRepo.save(p);
         log.info("상품 저장 완료 - productId: {}", saved.getProductId());
+        
+        if (saved.getProductId() == null) {
+            throw new RuntimeException("상품 저장 실패: productId가 null입니다.");
+        }
 
-        // 2) 옵션 갱신 (간단 전략: 일괄 삭제 후 재삽입)
-        log.info("기존 옵션 삭제 시작 - productId: {}", saved.getProductId());
-        optionRepo.deleteByProductId(saved.getProductId());
-        log.info("기존 옵션 삭제 완료");
+        // 2) 옵션 갱신 (상품 수정 시에만 기존 옵션을 비활성화)
+        if (productId != null) {
+            // 상품 수정인 경우: 기존 옵션을 비활성화
+            log.info("기존 옵션 비활성화 시작 - productId: {}", saved.getProductId());
+            var existingOptions = optionRepo.findByProductIdOrderBySortOrderAscOptionIdAsc(saved.getProductId());
+            for (var option : existingOptions) {
+                option.setIsActive(false);
+                option.setUpdatedAt(LocalDateTime.now());
+                optionRepo.save(option);
+            }
+            log.info("기존 옵션 비활성화 완료");
+        } else {
+            // 상품 추가인 경우: 기존 옵션 비활성화 생략
+            log.info("상품 추가 모드 - 기존 옵션 비활성화 생략");
+        }
 
         if (quantities != null && units != null && prices != null) {
             int n = Math.min(quantities.size(), Math.min(units.size(), prices.size()));
@@ -108,8 +125,14 @@ public class ItemServiceImpl implements ItemService {
                         .createdAt(LocalDateTime.now())
                         .updatedAt(LocalDateTime.now())
                         .build();
+                
+                log.info("저장할 옵션 데이터: {}", opt);
                 ProductPriceOption savedOpt = optionRepo.save(opt);
                 log.info("옵션 {} 저장 완료 - optionId: {}", i, savedOpt.getOptionId());
+                
+                if (savedOpt.getOptionId() == null) {
+                    throw new RuntimeException("옵션 저장 실패: optionId가 null입니다.");
+                }
             }
         }
 

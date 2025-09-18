@@ -156,6 +156,27 @@ body {
     padding-bottom: 20px;
 }
 
+/* 상품 상태 배지 */
+.product-status {
+    margin: 10px 0;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.status-badge.stopped {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
 .product-header-top {
     margin-bottom: 15px;
 }

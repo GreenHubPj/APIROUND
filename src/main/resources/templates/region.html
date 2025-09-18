@@ -74,9 +74,12 @@
                         th:attr="data-region=${product.regionText},
                         data-product-id=${product.productId},
                         data-category=${product.productType}"
-                        th:onclick="|location.href='@{/region-detail(id=${product.productId}, region=${product.regionText})}'|">
+                        th:onclick="|location.href='@{/region-detail(id=${product.productId}, region=${product.regionText})}'|"
+                        style="cursor: pointer;">
                      <div class="product-image">
-                         <img th:src="${product.thumbnailUrl}" th:alt="${product.productName}">
+                         <img th:src="${product.thumbnailUrl ?: '/images/따봉 트럭.png'}" 
+                              th:alt="${product.productName}"
+                              onerror="this.src='/images/따봉 트럭.png'">
                          <p class="product-place" th:text="${product.regionText}"></p>
                      </div>
 
@@ -94,9 +97,9 @@
 
                      <div class="company-info">
                          <h4>업체 문의</h4>
-                         <p>053-555-444</p>
-                         <p>monkyeon@naver.com</p>
-                         <p>문경이좋아</p>
+                         <p th:text="${product.companyPhone ?: '053-555-444'}">053-555-444</p>
+                         <p th:text="${product.companyEmail ?: 'monkyeon@naver.com'}">monkyeon@naver.com</p>
+                         <p th:text="${product.companyName ?: '문경이좋아'}">문경이좋아</p>
                      </div>
                  </div>
 

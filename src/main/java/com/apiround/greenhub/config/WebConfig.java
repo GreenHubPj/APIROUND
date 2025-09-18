@@ -195,6 +195,8 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addResourceHandler("/images/**").addResourceLocations("classpath:/static/images/");
         registry.addResourceHandler("/uploads/**").addResourceLocations("file:/var/greenhub/uploads/");
         registry.addResourceHandler("/upload-dir/**").addResourceLocations("file:upload-dir/");
+        registry.addResourceHandler("/uploads/**")
+                .addResourceLocations("file:" + System.getProperty("user.home") + "/greenhub-uploads/");
     }
 
     @Override

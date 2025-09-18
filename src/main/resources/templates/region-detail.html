@@ -98,6 +98,10 @@
                 <div class="product-info">
                     <div class="product-header">
                         <h1 class="product-title" id="productTitle" th:text="${product.productName}">상품명</h1>
+                        <!-- 상품 상태 표시 -->
+                        <div class="product-status" th:if="${productStatus == 'STOPPED'}">
+                            <span class="status-badge stopped">SOLDOUT</span>
+                        </div>
                         <div class="product-tags" id="productTags">
                             <span class="product-tag" th:text="${product.productType}">카테고리</span>
                             <span class="product-tag" th:text="${product.regionText}">지역</span>

@@ -1,10 +1,23 @@
 package com.apiround.greenhub.entity.item;
 
-import jakarta.persistence.*;
-import lombok.*;
-
 import java.util.ArrayList;
 import java.util.List;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table(name = "specialty_product")
@@ -40,7 +53,21 @@ public class Region {
     @Column(name = "external_ref", length = 50)
     private String externalRef;
 
-    @OneToMany(fetch = FetchType.LAZY)
+    @Column(name = "is_deleted", length = 1)
+    private String isDeleted;
+
+    @OneToMany(fetch = FetchType.EAGER)
     @JoinColumn(name = "product_id")
+    @Builder.Default
     private List<ProductPriceOption> priceOptions = new ArrayList<>();
+
+    // 업체 정보 (ProductListing을 통해 연결)
+    @Transient
+    private String companyName;
+    
+    @Transient
+    private String companyEmail;
+    
+    @Transient
+    private String companyPhone;
 }
