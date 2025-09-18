@@ -10,68 +10,70 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <!-- 헤더 include -->
-    <div th:replace="common/header :: header"></div>
+<!-- 헤더 include -->
+<div th:replace="common/header :: header"></div>
 
-    <!-- 메인 콘텐츠 -->
-    <main class="main-content">
-        <!-- 페이지 타이틀 -->
-        <div class="page-title-section">
-            <h1 class="page-title">주문 내역</h1>
-            <p class="page-subtitle">지금까지 주문하신 내역을 확인하실 수 있습니다</p>
-        </div>
+<!-- 로그인 사용자 id를 전역 변수로 주입 -->
+<script th:inline="javascript">
+    window.__USER_ID__ = /*[[${session.loginUserId}]]*/ null;
+</script>
 
-        <!-- 필터 및 검색 -->
-        <div class="filter-section">
-            <div class="filter-controls">
-                <select class="filter-select" id="statusFilter">
-                    <option value="all">전체 주문</option>
-                    <option value="completed">배송완료</option>
-                    <option value="shipping">배송중</option>
-                    <option value="preparing">준비중</option>
-                    <option value="cancelled">취소됨</option>
-                </select>
-                <select class="filter-select" id="periodFilter">
-                    <option value="all">전체 기간</option>
-                    <option value="1month">최근 1개월</option>
-                    <option value="3months">최근 3개월</option>
-                    <option value="6months">최근 6개월</option>
-                    <option value="1year">최근 1년</option>
-                </select>
-                <div class="search-box">
-                    <input type="text" class="search-input" id="searchInput" placeholder="상품명으로 검색...">
-                    <button class="search-btn" id="searchBtn">
-                        <img src="/images/돋보기 아이콘.png" alt="검색" class="search-icon">
-                    </button>
-                </div>
+<!-- 메인 콘텐츠 -->
+<main class="main-content">
+    <!-- 페이지 타이틀 -->
+    <div class="page-title-section">
+        <h1 class="page-title">주문 내역</h1>
+        <p class="page-subtitle">지금까지 주문하신 내역을 확인하실 수 있습니다</p>
+    </div>
+
+    <!-- 필터 및 검색 -->
+    <div class="filter-section">
+        <div class="filter-controls">
+            <select class="filter-select" id="statusFilter">
+                <option value="all">전체 주문</option>
+                <option value="completed">배송완료</option>
+                <option value="shipping">배송중</option>
+                <option value="preparing">준비중</option>
+                <option value="cancelled">취소됨</option>
+            </select>
+            <select class="filter-select" id="periodFilter">
+                <option value="all">전체 기간</option>
+                <option value="1month">최근 1개월</option>
+                <option value="3months">최근 3개월</option>
+                <option value="6months">최근 6개월</option>
+                <option value="1year">최근 1년</option>
+            </select>
+            <div class="search-box">
+                <input type="text" class="search-input" id="searchInput" placeholder="상품명으로 검색...">
+                <button class="search-btn" id="searchBtn">
+                    <img src="/images/돋보기 아이콘.png" alt="검색" class="search-icon">
+                </button>
             </div>
         </div>
+    </div>
 
-        <!-- 주문 내역 리스트 -->
-        <div class="orders-container">
-            <div class="orders-list" id="ordersList">
-                <!-- 주문 내역 카드들이 여기에 동적으로 생성됩니다 -->
-            </div>
-        </div>
+    <!-- 주문 내역 리스트 -->
+    <div class="orders-container">
+        <div class="orders-list" id="ordersList"></div>
+    </div>
 
-        <!-- 페이지네이션 -->
-        <div class="pagination-container" id="paginationContainer">
-            <!-- 페이지네이션이 여기에 동적으로 생성됩니다 -->
-        </div>
+    <!-- 페이지네이션 -->
+    <div class="pagination-container" id="paginationContainer"></div>
 
-        <!-- 빈 상태 메시지 -->
-        <div class="empty-state" id="emptyState" style="display: none;">
-            <div class="empty-icon">📦</div>
-            <h2>주문 내역이 없습니다</h2>
-            <p>아직 주문하신 상품이 없습니다.<br>GreenHub에서 신선한 농산물을 주문해보세요!</p>
-            <button class="shop-btn" onclick="window.location.href='/'">쇼핑하러 가기</button>
-        </div>
-    </main>
+    <!-- 빈 상태 메시지 -->
+    <div class="empty-state" id="emptyState" style="display: none;">
+        <div class="empty-icon">📦</div>
+        <h2>주문 내역이 없습니다</h2>
+        <p>아직 주문하신 상품이 없습니다.<br>GreenHub에서 신선한 농산물을 주문해보세요!</p>
+        <button class="shop-btn" onclick="window.location.href='/'">쇼핑하러 가기</button>
+    </div>
+</main>
 
-    <!-- 푸터 include -->
-    <div th:replace="common/footer :: footer"></div>
+<!-- 푸터 include -->
+<div th:replace="common/footer :: footer"></div>
 
-    <script src="/js/shoppinglist.js"></script>
-    <script src="/js/orderhistory.js"></script>
+<!-- (선택) shoppinglist 유틸이 필요하면 유지 -->
+<script src="/js/shoppinglist.js"></script>
+<script src="/js/orderhistory.js"></script>
 </body>
 </html>

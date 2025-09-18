@@ -172,7 +172,9 @@
 
                         <div class="purchase-buttons">
                             <button class="btn-cart" id="addToCartBtn">🛒 장바구니 담기</button>
-                            <button class="btn-buy" id="buyNowBtn">💳 구매하기</button>
+                            <!-- ✅ 상품 ID를 data-attribute로 전달 -->
+                            <button class="btn-buy" id="buyNowBtn"
+                                    th:attr="data-product-id=${product.productId}">💳 구매하기</button>
                         </div>
                     </div>
                 </div>
