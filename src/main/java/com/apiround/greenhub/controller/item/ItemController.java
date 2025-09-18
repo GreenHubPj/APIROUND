@@ -179,9 +179,9 @@ public class ItemController {
                     harvestSeason
             );
 
-            log.info("상품 저장 성공 - productId: {}, listingId: {}", savedProductId, listingId);
+            log.info("상품 저장 성공 - listingId: {}", listingId);
             ra.addFlashAttribute("msg", "상품이 저장되었습니다.");
-            return "redirect:/item-management#id=" + savedProductId;
+            return "redirect:/item-management#listing=" + listingId;
 
         } catch (org.springframework.dao.DataIntegrityViolationException e) {
             log.error("중복 상품명/지역 오류 발생", e);
