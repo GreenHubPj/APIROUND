@@ -1,11 +1,22 @@
 // src/main/java/com/apiround/greenhub/entity/item/ProductPriceOption.java
 package com.apiround.greenhub.entity.item;
 
-import jakarta.persistence.*;
-import lombok.*;
-
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table(name = "product_price_option")
@@ -43,4 +54,9 @@ public class ProductPriceOption {
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    // ProductListing과의 관계 매핑 (product_id = product_id)
+    @ManyToOne
+    @JoinColumn(name = "product_id", referencedColumnName = "product_id", insertable = false, updatable = false)
+    private com.apiround.greenhub.entity.ProductListing productListing;
 }

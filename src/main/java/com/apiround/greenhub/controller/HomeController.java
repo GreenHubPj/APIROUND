@@ -1,21 +1,28 @@
 package com.apiround.greenhub.controller;
 
 import com.apiround.greenhub.entity.Recipe;
+import com.apiround.greenhub.service.RecipeService;
+import jakarta.servlet.http.HttpSession;
+import org.springframework.beans.factory.annotation.Autowired;
+import com.apiround.greenhub.entity.Recipe;
 import com.apiround.greenhub.entity.item.Region;
 import com.apiround.greenhub.service.RecipeService;
 import com.apiround.greenhub.service.item.SeasonalService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
-
-import jakarta.servlet.http.HttpSession;
-import java.util.List;
+import org.springframework.http.ResponseEntity;
 import java.util.Map;
+
+import java.util.List;
+
+import com.apiround.greenhub.service.item.RegionService;
+
+import java.util.List;
 
 @Controller
 @RequiredArgsConstructor
@@ -34,7 +41,7 @@ public class HomeController {
             System.out.println("랜덤 레시피 API 호출됨");
             Recipe recipe = recipeService.getRandomRecipeForRecommendation();
             System.out.println("레시피 조회 결과: " + (recipe != null ? recipe.getTitle() : "null"));
-
+            
             if (recipe == null) {
                 System.out.println("레시피가 null입니다. 기본 데이터 반환");
                 // 기본 레시피 데이터 반환
@@ -52,7 +59,7 @@ public class HomeController {
             // 응답 데이터 구성
             List<String> ingredients = getRecipeIngredients(recipe.getRecipeId());
             System.out.println("재료 목록: " + ingredients);
-
+            
             Map<String, Object> response = Map.of(
                     "name", recipe.getTitle() != null ? recipe.getTitle() : "맛있는 요리",
                     "region", "전국 지역 특산품",

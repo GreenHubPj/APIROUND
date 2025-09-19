@@ -556,33 +556,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // 반응형 처리
         filterProducts();
     });
-    
-    // 상품 ID와 타입에 따른 일관된 가격 생성 (region-detail.js와 동일한 로직)
-    function generateConsistentPrices(productId, productType) {
-        const basePrices = {
-            '농산물': { min: 5000, max: 15000 },
-            '축산물': { min: 15000, max: 35000 },
-            '수산물': { min: 10000, max: 25000 },
-            '가공식품': { min: 3000, max: 12000 }
-        };
-        
-        const priceRange = basePrices[productType] || { min: 5000, max: 20000 };
-        
-        // 상품 ID를 시드로 사용하여 일관된 가격 생성
-        const seed = productId * 12345; // 간단한 시드 생성
-        const random = (seed * 9301 + 49297) % 233280; // 선형 합동 생성기
-        const normalizedRandom = random / 233280;
-        
-        const price1 = Math.floor(normalizedRandom * (priceRange.max - priceRange.min + 1)) + priceRange.min;
-        const price2 = Math.floor(price1 * 1.8); // 1.8배
-        const price3 = Math.floor(price1 * 2.5); // 2.5배
-        
-        return [
-            { quantity: 1, unit: 'kg', price: price1 },
-            { quantity: 2, unit: 'kg', price: price2 },
-            { quantity: 3, unit: 'kg', price: price3 }
-        ];
-    }
+
 function renderProductPrices() {
   productCards.forEach(card => {
     const priceContainer = card.querySelector('.product-prices');

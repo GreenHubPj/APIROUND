@@ -11,39 +11,32 @@ import com.apiround.greenhub.entity.item.ProductPriceOption;
 
 public interface ProductPriceOptionRepository extends JpaRepository<ProductPriceOption, Integer> {
 
-    // 특정 상품의 모든 옵션 삭제
     void deleteByProductId(Integer productId);
 
-    // 특정 상품의 옵션 전체 조회 (sortOrder → optionId 순으로 정렬)
     List<ProductPriceOption> findByProductIdOrderBySortOrderAscOptionIdAsc(Integer productId);
 
-    // 활성화된 옵션 중 최소 가격
     @Query("SELECT MIN(o.price) FROM ProductPriceOption o WHERE o.productId = :productId AND o.isActive = true")
     Integer findMinActivePriceByProductId(Integer productId);
 
-    // sortOrder가 있는 경우 → 가장 앞선 옵션 1개 조회
-    Optional<ProductPriceOption> findFirstByProductIdAndIsActiveTrueOrderBySortOrderAscOptionIdAsc(Integer productId);
 
-    // sortOrder가 없는 경우 대비 → optionId 기준으로만 정렬
-    Optional<ProductPriceOption> findFirstByProductIdAndIsActiveTrueOrderByOptionIdAsc(Integer productId);
+    // ✅ sortOrder 우선 → optionId 보조 정렬, 단일건
+    Optional<ProductPriceOption>
+    findTop1ByProductIdAndIsActiveTrueOrderBySortOrderAscOptionIdAsc(Integer productId);
 
-    // 가장 싼 옵션 하나(price 오름차순, tie → optionId)
-    @Query("SELECT o FROM ProductPriceOption o " +
-            "WHERE o.productId = :productId AND o.isActive = true " +
-            "ORDER BY o.price ASC, o.optionId ASC")
-    Optional<ProductPriceOption> findFirstByProductIdAndIsActiveTrueOrderByPriceAscOptionIdAsc(Integer productId);
+    // ✅ sortOrder가 없을 때(혹은 null)용: optionId로만 정렬, 단일건
+    Optional<ProductPriceOption>
+    findTop1ByProductIdAndIsActiveTrueOrderByOptionIdAsc(Integer productId);
 
-    // JPQL 명시적 버전: sortOrder NULL → 큰 값 처리, 그 다음 optionId
-    @Query("""
-        SELECT o
-        FROM ProductPriceOption o
-        WHERE o.productId = :productId AND o.isActive = true
-        ORDER BY 
-          CASE WHEN o.sortOrder IS NULL THEN 999999 ELSE o.sortOrder END ASC,
-          o.optionId ASC
-        """)
-    Optional<ProductPriceOption> pickFirstActiveOption(Integer productId);
+    // ✅ 최저가 1건 (price → optionId), 단일건
+    Optional<ProductPriceOption>
+    findTop1ByProductIdAndIsActiveTrueOrderByPriceAscOptionIdAsc(Integer productId);
 
-    // ✅ 추가: 옵션 라벨(예: "2kg", "100g")로 옵션 1건 찾기 (대소문자 무시)
-    ProductPriceOption findFirstByProductIdAndOptionLabelIgnoreCase(Integer productId, String optionLabel);
+    // (선택) 최저가 리스트가 필요할 때
+    List<ProductPriceOption>
+    findByProductIdAndIsActiveTrueOrderByPriceAscOptionIdAsc(Integer productId);
+
+    ProductPriceOption findFirstByProductIdAndOptionLabelIgnoreCase(Integer productId, String trim);
+
+    // (디버깅용으로 쓰던 메서드라면 유지 가능) product_id가 null인 옵션 조회
+    List<ProductPriceOption> findByProductIdIsNull();
 }

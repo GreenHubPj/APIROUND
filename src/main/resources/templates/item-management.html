@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>상품관리 - GreenHub</title>
+
+    <!-- ✅ 로그인 회사 ID를 메타로도 내려줌 (JS fallback) -->
+    <meta name="login-company-id" th:content="${loginCompany?.companyId}" />
+
     <link rel="stylesheet" href="/css/header.css">
     <link rel="stylesheet" href="/css/item-management.css">
     <link rel="stylesheet" href="/css/footer.css">
@@ -28,21 +32,23 @@
         </div>
 
         <form class="item-form" id="itemForm" method="post" enctype="multipart/form-data" th:action="@{/item-management}">
-            <!-- (선택) CSRF -->
-            <input type="hidden" name="_csrf" th:value="${_csrf?.token}">
-            <!-- 수정 시 사용 -->
+            <!-- CSRF -->
+            <input type="hidden" name="_csrf" th:value="${_csrf?.token}"/>
+
+            <!-- 수정 시 사용 (여기서는 listingId를 넣어줌) -->
             <input type="hidden" name="productId" id="productId" th:value="${product?.productId}"/>
+
+            <!-- ✅ 반드시 추가: 로그인 판매자 ID를 폼에 실어보냄 (JS에서 없어도 서버는 세션으로 처리 가능) -->
+            <input type="hidden" id="sellerId" name="sellerId" th:value="${loginCompany?.companyId}"/>
 
             <div class="form-row">
                 <div class="form-group">
                     <label class="form-label" for="productName">상품명 *</label>
-                    <input type="text" id="productName" name="productName"
-                           class="form-input" placeholder="상품명을 입력해주세요" required>
+                    <input type="text" id="productName" name="productName" class="form-input" placeholder="상품명을 입력해주세요" required>
                 </div>
 
                 <div class="form-group">
                     <label class="form-label" for="category">카테고리 *</label>
-                    <!-- 엔티티: productType -->
                     <select id="category" name="productType" class="form-select" required>
                         <option value="">카테고리 선택</option>
                         <option value="농산물">농산물</option>
@@ -56,7 +62,6 @@
             <div class="form-row">
                 <div class="form-group">
                     <label class="form-label" for="region">지역 *</label>
-                    <!-- 엔티티: regionText -->
                     <select id="region" name="regionText" class="form-select" required>
                         <option value="">지역 선택</option>
                         <option value="서울">서울특별시</option>
@@ -84,19 +89,16 @@
                     <label class="form-label">가격 옵션 *</label>
 
                     <div class="price-options-container" id="priceOptionsContainer">
-                        <!-- 기본 1개 블록 -->
+                        <!-- 기본 1개 블록 (name/class 절대 변경 X) -->
                         <div class="price-option-item">
                             <div class="form-row">
                                 <div class="form-group">
                                     <label class="form-label">옵션 라벨</label>
-                                    <input type="text" class="form-input"
-                                           name="optionLabel"
-                                           placeholder="예: 기본, 소, 대 (선택)">
+                                    <input type="text" class="form-input" name="optionLabel" placeholder="예: 기본, 소, 대 (선택)">
                                 </div>
                                 <div class="form-group">
                                     <label class="form-label">수량</label>
-                                    <input type="number" class="form-input price-quantity"
-                                           name="quantity" placeholder="예: 1" min="1" required>
+                                    <input type="number" class="form-input price-quantity" name="quantity" placeholder="예: 1" min="1" required>
                                 </div>
                                 <div class="form-group">
                                     <label class="form-label">단위</label>
@@ -126,8 +128,7 @@
                                 </div>
                                 <div class="form-group">
                                     <label class="form-label">가격 (원)</label>
-                                    <input type="number" class="form-input price-amount"
-                                           name="price" placeholder="예: 16000" min="0" required>
+                                    <input type="number" class="form-input price-amount" name="price" placeholder="예: 16000" min="0" required>
                                 </div>
                                 <div class="form-group">
                                     <label class="form-label">액션</label>
@@ -141,7 +142,7 @@
                 </div>
             </div>
 
-            <!-- 제철기간: 컨트롤러에서 @RequestParam List<Integer> months 로 받을 때 -->
+            <!-- 제철기간 -->
             <div class="form-group">
                 <label class="form-label">제철기간 *</label>
                 <div class="season-checkboxes">
@@ -169,13 +170,11 @@
             <!-- 설명 / 썸네일 / 외부참조 -->
             <div class="form-group">
                 <label class="form-label" for="description">상품 설명 *</label>
-                <textarea id="description" name="description" class="form-textarea"
-                          placeholder="상품에 대한 자세한 설명을 입력해주세요" rows="4" required></textarea>
+                <textarea id="description" name="description" class="form-textarea" placeholder="상품에 대한 자세한 설명을 입력해주세요" rows="4" required></textarea>
             </div>
 
             <div class="form-group">
                 <label class="form-label">대표 이미지</label>
-                <!-- 엔티티: thumbnailUrl -->
                 <div class="image-upload-container">
                     <input type="file" id="imageFile" name="imageFile" accept="image/*" class="image-file-input" style="display: none;">
                     <div class="image-upload-area" id="imageUploadArea">
@@ -194,7 +193,6 @@
 
             <div class="form-group">
                 <label class="form-label">외부 참조(선택)</label>
-                <!-- 엔티티: externalRef -->
                 <input type="text" class="form-input" name="externalRef" placeholder="예: 판매처 코드 / 외부 ID">
             </div>
 
@@ -240,9 +238,7 @@
                 </thead>
                 <tbody id="itemTableBody">
                 <tr th:each="listing : ${listings}">
-                    <td class="checkbox-col">
-                        <input type="checkbox" class="checkbox" th:value="${listing.listingId}">
-                    </td>
+                    <td class="checkbox-col"><input type="checkbox" class="checkbox" th:value="${listing.listingId}"></td>
                     <td class="id-col" th:text="${listing.listingId}"></td>
                     <td class="name-col">
                         <div class="product-name">
@@ -254,32 +250,26 @@
                         </div>
                     </td>
                     <td class="category-col">
-                        <span class="category-tag" th:text="${productMap[listing.listingId]?.productType ?: 'N/A'}"></span>
+                        <span class="category-tag" th:text="${listing.productType ?: 'N/A'}"></span>
                     </td>
-                    <td class="region-col" th:text="${productMap[listing.listingId]?.regionText ?: 'N/A'}"></td>
-                    <td class="season-col" th:text="${productMap[listing.listingId]?.harvestSeason ?: 'N/A'}"></td>
+                    <td class="region-col" th:text="${listing.regionText ?: 'N/A'}"></td>
+                    <td class="season-col" th:text="${listing.harvestSeason ?: 'N/A'}"></td>
                     <td class="status-col">
                         <select class="status-select" th:data-listing-id="${listing.listingId}">
-                            <option value="ACTIVE" th:selected="${listing.status.name() == 'ACTIVE'}">활성</option>
+                            <option value="ACTIVE"   th:selected="${listing.status.name() == 'ACTIVE'}">활성</option>
                             <option value="INACTIVE" th:selected="${listing.status.name() == 'INACTIVE'}">비활성</option>
-                            <option value="STOPPED" th:selected="${listing.status.name() == 'STOPPED'}">중지</option>
                         </select>
                     </td>
                     <td class="action-col">
-                        <button type="button" class="btn-edit"
-                                th:onclick="'editListing(' + ${listing.listingId} + ')'">수정</button>
-                        <button type="button" class="btn-delete"
-                                th:onclick="'deleteListing(' + ${listing.listingId} + ')'">삭제</button>
+                        <button type="button" class="btn-edit"   th:onclick="'editListing(' + ${listing.listingId} + ')'">수정</button>
+                        <button type="button" class="btn-delete" th:onclick="'deleteListing(' + ${listing.listingId} + ')'">삭제</button>
                     </td>
                 </tr>
                 </tbody>
             </table>
         </div>
 
-        <!-- 페이지네이션 -->
-        <div class="pagination" id="pagination">
-            <!-- 페이지네이션이 여기에 동적으로 생성됩니다 -->
-        </div>
+        <div class="pagination" id="pagination"></div>
     </div>
 </div>
 
