@@ -564,36 +564,16 @@ function renderProductPrices() {
     
     priceContainer.innerHTML = '';
     
-    // 실제 가격 옵션 데이터를 서버에서 가져와서 표시
+    // 기본 가격 표시 (API 호출 없이)
     if (productId) {
-      fetch(`/api/listings/${productId}`)
-        .then(response => response.json())
-        .then(data => {
-          if (data.success && data.options && data.options.length > 0) {
-            // 가격 옵션이 있는 경우 - 최대 3개까지 표시
-            const activeOptions = data.options.filter(option => option.isActive !== false);
-            const displayOptions = activeOptions.slice(0, 3); // 최대 3개만 표시
-            
-            // 가격 옵션들을 최대 3개까지 표시
-            let priceHtml = '';
-            displayOptions.forEach(option => {
-              priceHtml += `
-                <div class="price-option">
-                  <span class="price-option-info">${option.quantity}${option.unit}</span>
-                  <span class="price-option-amount">${option.price.toLocaleString()}원</span>
-                </div>
-              `;
-            });
-            priceContainer.innerHTML = priceHtml;
-          } else {
-            // 가격 옵션이 없는 경우
-            priceContainer.innerHTML = '<p class="no-price">업체에 문의해주세요</p>';
-          }
-        })
-        .catch(error => {
-          console.error('가격 정보 로드 실패:', error);
-          priceContainer.innerHTML = '<p class="no-price">업체에 문의해주세요</p>';
-        });
+      // 기본 가격 정보 표시
+      let priceHtml = `
+        <div class="price-item">
+          <span class="price-label">기본 가격</span>
+          <span class="price-value">문의</span>
+        </div>
+      `;
+      priceContainer.innerHTML = priceHtml;
     } else {
       priceContainer.innerHTML = '<p class="no-price">업체에 문의해주세요</p>';
     }

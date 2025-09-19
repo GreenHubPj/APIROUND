@@ -56,18 +56,18 @@ public interface RegionRepository extends JpaRepository<Region, Integer> {
     """)
     List<Region> findActiveProductsOrderByProductIdDesc();
 
-    // 중지 상태인 상품만 조회 (ProductListing 조인, 미삭제만)
+    // ❗️상태명 정리: STOPPED 제거 → INACTIVE 로 변경
     @Query("""
         SELECT r
           FROM Region r
           JOIN ProductListing pl
             ON r.productId = pl.productId
-         WHERE pl.status = 'STOPPED'
+         WHERE pl.status = 'INACTIVE'
            AND pl.isDeleted <> 'Y'
            AND (r.isDeleted IS NULL OR r.isDeleted <> 'Y')
          ORDER BY r.productId DESC
     """)
-    List<Region> findStoppedProductsOrderByProductIdDesc();
+    List<Region> findInactiveProductsOrderByProductIdDesc();
 
     // region 페이지 표출용 (specialty_product만)
     @Query("""
@@ -81,6 +81,7 @@ public interface RegionRepository extends JpaRepository<Region, Integer> {
     @Query("SELECT r FROM Region r ORDER BY r.productId DESC")
     List<Region> findAllProductsForTest();
 
+
     // 상품 상태 조회 (ProductListing에서 조회)
     @Query("""
         SELECT pl.status
@@ -89,38 +90,45 @@ public interface RegionRepository extends JpaRepository<Region, Integer> {
            AND pl.isDeleted <> 'Y'
     """)
     String findProductStatusById(@Param("productId") Integer productId);
-    // ※ enum으로 받고 싶으면 반환타입을 String -> com.apiround.greenhub.entity.ProductListing.Status 로 바꾸세요.
+    // ※ enum으로 받고 싶으면 반환타입을 String -> com.apiround.greenhub.entity.ProductListing.Status 로 변경
 
-    // 삭제되지 않은 특정 상품 조회 (ProductListing과 조인)
-    @Query("""
-        SELECT r
-          FROM Region r
-          JOIN ProductListing pl
-            ON r.productId = pl.productId
-         WHERE r.productId = :productId
-           AND pl.isDeleted <> 'Y'
-           AND (r.isDeleted IS NULL OR r.isDeleted <> 'Y')
-    """)
-    Region findByIdAndNotDeleted(@Param("productId") Integer productId);
+    /* ------------------------------------------------------------------
+     * 🔧 JPQL로 변경하여 Region 엔티티 직접 반환
+     * ------------------------------------------------------------------ */
 
-    // 타입별 조회 (내림차순)
-    @Query("""
-        SELECT r FROM Region r
-         WHERE r.productType = :productType
-         ORDER BY r.productId DESC
-    """)
-    List<Region> findByProductTypeOrderByProductIdDesc(@Param("productType") String productType);
+    @Query(value = """
+        SELECT product_id,
+               product_name AS title,
+               product_type,
+               region_text,
+               harvest_season,
+               is_deleted,
+               '' AS status
+        FROM specialty_product
+        WHERE (:productType IS NULL OR product_type = :productType)
+        ORDER BY product_id DESC
+        """, nativeQuery = true)
+    List<Object[]> findByProductTypeOrderByProductIdDesc(@Param("productType") String productType);
+
+    /* ------------------------------------------------------------------ */
 
     // 같은 지역의 다른 상품 랜덤 조회 (native) — 엔티티가 specialty_product(=Region)와 매핑되어 있어야 함
     @Query(value = """
-            SELECT *
-              FROM specialty_product
-             WHERE region_text = :regionText
-               AND product_id <> :excludeId
-             ORDER BY RAND()
-             LIMIT :limit
-            """, nativeQuery = true)
-    List<Region> findRandomByRegionText(@Param("regionText") String regionText,
-                                        @Param("excludeId") Integer excludeId,
-                                        @Param("limit") int limit);
+        SELECT product_id,
+               product_name AS title,
+               product_type,
+               region_text,
+               harvest_season,
+               is_deleted,
+               '' AS status
+        FROM specialty_product
+        WHERE region_text = :regionText
+          AND product_id <> :excludeId
+        ORDER BY RAND()
+        LIMIT :limit
+        """, nativeQuery = true)
+    List<Object[]> findRandomByRegionText(
+            @Param("regionText") String regionText,
+            @Param("excludeId") Integer excludeId,
+            @Param("limit") int limit);
 }
