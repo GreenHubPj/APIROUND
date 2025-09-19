@@ -51,29 +51,6 @@
    window.__armAllImageFallbacks = armAll;
  })();
 
-    // 동적으로 추가되는 이미지까지 커버하고 싶으면 MutationObserver 사용 (옵션)
-    const mo = new MutationObserver(muts => {
-      muts.forEach(m => {
-        m.addedNodes.forEach(n => {
-          if (n.nodeType === 1) {
-            // 새로 추가된 노드나 그 하위의 IMG들
-            const newImgs = n.matches?.('img') ? [n] : n.querySelectorAll?.('img') || [];
-            newImgs.forEach(img => {
-              img.onerror = () => {
-                img.onerror = null;
-                img.src = placeholder;
-              };
-              const raw = (img.getAttribute('src') || '').trim();
-              if (!raw || raw.toLowerCase() === 'null') {
-                img.src = placeholder;
-              }
-            });
-          }
-        });
-      });
-    });
-    mo.observe(document.body, { childList: true, subtree: true });
-  });
 
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -221,7 +198,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 modal.classList.add('hidden');
             };
 
-            // DB에서 랜덤 추천 데이터 가져오기
+             // DB에서 랜덤 추천 데이터 가져오기
 
             const getRecommendation = async () => {
                 showStep(2); // 로딩 단계
@@ -230,7 +207,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     // DB API에서 랜덤 레시피 가져오기
                     const response = await fetch('/api/random-recipe');
                     const data = await response.json();
-                    
+
+                    console.log('API 응답:', data); // 디버깅용
+
                     if (data.error) {
                         alert(data.error);
                         closeModal();
@@ -239,37 +218,64 @@ document.addEventListener('DOMContentLoaded', function() {
 
                     // 2초 후 결과 표시 (로딩 효과)
                     setTimeout(() => {
-                        document.getElementById('menu-name').innerText = data.name;
-                        document.getElementById('menu-region').innerText = data.region;
-                        document.getElementById('menu-description').innerText = data.description;
-
-                        // 재료 태그 생성
+                        // 요리법 DB에서 가져온 실제 데이터 표시
+                        const menuName = document.getElementById('menu-name');
+                        const menuRegion = document.getElementById('menu-region');
+                        const menuDescription = document.getElementById('menu-description');
                         const ingredientsContainer = document.getElementById('menu-ingredients');
-                        ingredientsContainer.innerHTML = '';
-                        data.ingredients.forEach(ingredient => {
-                            const tag = document.createElement('span');
-                            tag.className = 'ingredient-tag';
-                            tag.textContent = ingredient;
-                            ingredientsContainer.appendChild(tag);
-                        });
 
-                        // 레시피 보기 버튼에 링크 추가
+                        // 실제 레시피 데이터 표시
+                        if (menuName) menuName.innerText = data.name || '맛있는 요리';
+                        if (menuRegion) menuRegion.innerText = data.region || '전국 지역 특산품';
+                        if (menuDescription) menuDescription.innerText = data.description || '특별한 레시피입니다.';
+
+                        // 실제 재료 데이터 표시
+                        if (ingredientsContainer) {
+                            ingredientsContainer.innerHTML = '';
+                            if (data.ingredients && Array.isArray(data.ingredients) && data.ingredients.length > 0) {
+                                // DB에서 가져온 실제 재료 표시
+                                data.ingredients.forEach(ingredient => {
+                                    const tag = document.createElement('span');
+                                    tag.className = 'ingredient-tag';
+                                    tag.textContent = ingredient;
+                                    ingredientsContainer.appendChild(tag);
+                                });
+                            } else {
+                                // 재료 데이터가 없을 경우 기본 재료 표시
+                                const defaultIngredients = ['신선한 재료', '맛있는 양념', '특별한 소스'];
+                                defaultIngredients.forEach(ingredient => {
+                                    const tag = document.createElement('span');
+                                    tag.className = 'ingredient-tag';
+                                    tag.textContent = ingredient;
+                                    ingredientsContainer.appendChild(tag);
+                                });
+                            }
+                        }
+
+                        // 레시피 보기 버튼에 실제 레시피 ID 링크 추가
                         const recipeBtn = document.querySelector('.recipe-btn');
-                        if (recipeBtn && data.recipeId) {
+                        if (recipeBtn) {
                             recipeBtn.onclick = () => {
-                                window.location.href = `/recipe/detail?id=${data.recipeId}`;
+                                if (data.recipeId) {
+                                    // 실제 레시피 상세 페이지로 이동
+                                    window.location.href = `/recipe/detail?id=${data.recipeId}`;
+                                } else {
+                                    // 레시피 ID가 없으면 레시피 목록으로 이동
+                                    window.location.href = '/recipe';
+                                }
                             };
                         }
 
                         showStep(3); // 결과 표시
                     }, 2000);
-                    
+
                 } catch (error) {
                     console.error('레시피 추천 API 오류:', error);
                     alert('레시피 추천 중 오류가 발생했습니다.');
                     closeModal();
                 }
             };
+
 
             // 이벤트 바인딩
             recommendBtn.addEventListener('click', () => showStep(1));
