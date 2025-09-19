@@ -1,5 +1,14 @@
 package com.apiround.greenhub.controller;
 
+import com.apiround.greenhub.entity.Company;
+import com.apiround.greenhub.entity.User;
+import com.apiround.greenhub.repository.CompanyRepository;
+import com.apiround.greenhub.repository.UserRepository;
+import com.apiround.greenhub.service.CompanySignupService;
+import com.apiround.greenhub.service.EmailCodeService;
+import com.apiround.greenhub.service.PasswordResetService;
+import com.apiround.greenhub.util.PasswordUtil;
+import jakarta.servlet.http.HttpSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -9,19 +18,11 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import com.apiround.greenhub.entity.Company;
-import com.apiround.greenhub.entity.User;
-import com.apiround.greenhub.repository.CompanyRepository;
-import com.apiround.greenhub.repository.UserRepository;
-import com.apiround.greenhub.service.CompanySignupService;
-import com.apiround.greenhub.service.EmailCodeService;
-import com.apiround.greenhub.service.PasswordResetService;
-import com.apiround.greenhub.util.PasswordUtil;
-
-import jakarta.servlet.http.HttpSession;
-
 import java.util.Map;
 import java.util.Optional;
+
+import static org.springframework.http.MediaType.APPLICATION_FORM_URLENCODED_VALUE;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @Controller
 public class AuthController {
@@ -55,21 +56,21 @@ public class AuthController {
         return "signup";
     }
 
-    /** 로그인 화면(유일한 /login 매핑) */
+    /** 로그인 화면 */
     @GetMapping("/login")
     public String loginForm(@RequestParam(value = "redirectURL", required = false) String redirectURL,
-                            @RequestParam(value = "redirect", required = false) String redirect, // ← 추가: 두 파라미터 모두 지원
+                            @RequestParam(value = "redirect", required = false) String redirect,
                             Model model) {
         String to = (redirectURL != null && !redirectURL.isBlank()) ? redirectURL
                 : (redirect != null && !redirect.isBlank()) ? redirect
                 : null;
         if (to != null) {
-            model.addAttribute("redirectURL", to); // 뷰에서는 redirectURL 하나만 사용
+            model.addAttribute("redirectURL", to);
         }
         return "login";
     }
 
-    /** 실수로 GET /auth/login 들어올 때 → /login 으로 우회 */
+    /** 실수로 GET /auth/login 들어오면 /login으로 유도 */
     @GetMapping("/auth/login")
     public String redirectAuthLoginGet(@RequestParam(value = "redirectURL", required = false) String redirectURL,
                                        @RequestParam(value = "redirect", required = false) String redirect) {
@@ -80,58 +81,114 @@ public class AuthController {
     }
 
     // ─────────────────────────────────────────────────────────────
-    // 이메일 인증 (개인/판매 공용)
+    // 이메일 인증 (JSON + FORM 오버로드)
     // ─────────────────────────────────────────────────────────────
-    @PostMapping("/auth/email/send")
+
+    // 인증메일 전송 - JSON
+    @PostMapping(value = "/auth/email/send", consumes = APPLICATION_JSON_VALUE)
     @ResponseBody
-    public String sendEmailCode(@RequestBody(required = false) Map<String, String> body,
-                                @RequestParam(required = false) String email) {
-        String target = email != null ? email : (body == null ? null : body.get("email"));
-        if (target == null || target.isBlank()) return "BAD_REQUEST";
-        emailCodeService.sendCode(target.trim());
+    public String sendEmailCodeJson(@RequestBody Map<String, String> body) {
+        String target = opt(body.get("email"));
+        if (target == null) return "BAD_REQUEST";
+        emailCodeService.sendCode(target);
         return "OK";
     }
 
-    @PostMapping("/auth/email/verify")
+    // 인증메일 전송 - FORM
+    @PostMapping(value = "/auth/email/send", consumes = APPLICATION_FORM_URLENCODED_VALUE)
     @ResponseBody
-    public boolean verifyEmailCode(@RequestBody(required = false) Map<String, String> body,
-                                   @RequestParam(required = false) String email,
-                                   @RequestParam(required = false) String code) {
-        String e = email != null ? email : (body == null ? null : body.get("email"));
-        String c = code  != null ? code  : (body == null ? null : body.get("code"));
+    public String sendEmailCodeForm(@RequestParam Map<String, String> form) {
+        String target = opt(form.get("email"));
+        if (target == null) return "BAD_REQUEST";
+        emailCodeService.sendCode(target);
+        return "OK";
+    }
+
+    // 인증코드 검증 - JSON
+    @PostMapping(value = "/auth/email/verify", consumes = APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public boolean verifyEmailCodeJson(@RequestBody Map<String, String> body) {
+        String e = opt(body.get("email"));
+        String c = opt(body.get("code"));
         if (e == null || c == null) return false;
-        return emailCodeService.verifyCode(e.trim(), c.trim());
+        return emailCodeService.verifyCode(e, c);
+    }
+
+    // 인증코드 검증 - FORM
+    @PostMapping(value = "/auth/email/verify", consumes = APPLICATION_FORM_URLENCODED_VALUE)
+    @ResponseBody
+    public boolean verifyEmailCodeForm(@RequestParam Map<String, String> form) {
+        String e = opt(form.get("email"));
+        String c = opt(form.get("code"));
+        if (e == null || c == null) return false;
+        return emailCodeService.verifyCode(e, c);
     }
 
     // ─────────────────────────────────────────────────────────────
-    // 비밀번호 재설정
+    // 비밀번호 재설정 (JSON + FORM 오버로드)
     // ─────────────────────────────────────────────────────────────
 
-    @PostMapping("/auth/password/request-reset")
+    // 요청 토큰 발급 - JSON
+    @PostMapping(value = "/auth/password/request-reset", consumes = APPLICATION_JSON_VALUE)
     @ResponseBody
-    public ResponseEntity<?> requestReset(@RequestBody Map<String, String> req) {
-        String type = req.getOrDefault("type", "PERSONAL").trim();
+    public ResponseEntity<?> requestResetJson(@RequestBody Map<String, String> req) {
+        return handleRequestReset(req);
+    }
+
+    // 요청 토큰 발급 - FORM
+    @PostMapping(value = "/auth/password/request-reset", consumes = APPLICATION_FORM_URLENCODED_VALUE)
+    @ResponseBody
+    public ResponseEntity<?> requestResetForm(@RequestParam Map<String, String> req) {
+        return handleRequestReset(req);
+    }
+
+    // 실제 비밀번호 변경 - JSON
+    @PostMapping(value = "/auth/password/reset", consumes = APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public ResponseEntity<?> resetPasswordJson(@RequestBody Map<String, String> req) {
+        return handleResetPassword(req);
+    }
+
+    // 실제 비밀번호 변경 - FORM
+    @PostMapping(value = "/auth/password/reset", consumes = APPLICATION_FORM_URLENCODED_VALUE)
+    @ResponseBody
+    public ResponseEntity<?> resetPasswordForm(@RequestParam Map<String, String> req) {
+        return handleResetPassword(req);
+    }
+
+    // 공통 로직: request-reset
+    private ResponseEntity<?> handleRequestReset(Map<String, String> req) {
+        String type  = opt(req.getOrDefault("type", "PERSONAL"));
         String email = opt(req.get("email"));
         String code  = opt(req.get("code"));
-        if (email == null || code == null) return ResponseEntity.badRequest().body(Map.of("message","이메일 인증 정보가 없습니다."));
+        if (email == null || code == null) {
+            return ResponseEntity.badRequest().body(Map.of("message", "이메일 인증 정보가 없습니다."));
+        }
 
         boolean ok = emailCodeService.verifyCode(email, code) || emailCodeService.isVerified(email);
-        if (!ok) return ResponseEntity.status(400).body(Map.of("message","이메일 인증 실패"));
+        if (!ok) {
+            return ResponseEntity.status(400).body(Map.of("message", "이메일 인증 실패"));
+        }
 
         if ("PERSONAL".equalsIgnoreCase(type)) {
             String loginId = opt(req.get("loginId"));
             String name    = opt(req.get("name"));
-            if (loginId == null || name == null) return ResponseEntity.badRequest().body(Map.of("message","필수값 누락"));
+            if (loginId == null || name == null) {
+                return ResponseEntity.badRequest().body(Map.of("message","필수값 누락"));
+            }
 
             Optional<User> u = userRepository.findByLoginIdAndNameAndEmail(loginId, name, email);
-            if (u.isEmpty()) return ResponseEntity.status(404).body(Map.of("message","일치하는 회원이 없습니다."));
+            if (u.isEmpty()) {
+                return ResponseEntity.status(404).body(Map.of("message","일치하는 회원이 없습니다."));
+            }
             String token = passwordResetService.issueForUser(u.get().getUserId());
             return ResponseEntity.ok(Map.of("token", token));
+
         } else {
-            String loginId       = opt(req.get("loginId"));
-            String companyName   = opt(req.get("companyName"));
-            String businessNo    = opt(req.get("businessNumber"));
-            String contactName   = opt(req.get("contactName"));
+            String loginId     = opt(req.get("loginId"));
+            String companyName = opt(req.get("companyName"));
+            String businessNo  = opt(req.get("businessNumber"));
+            String contactName = opt(req.get("contactName"));
             if (loginId == null || companyName == null || businessNo == null || contactName == null) {
                 return ResponseEntity.badRequest().body(Map.of("message","필수값 누락"));
             }
@@ -139,21 +196,26 @@ public class AuthController {
             Optional<Company> c = companyRepository
                     .findByLoginIdAndCompanyNameAndBusinessRegistrationNumberAndManagerNameAndEmail(
                             loginId, companyName, businessNo, contactName, email);
-            if (c.isEmpty()) return ResponseEntity.status(404).body(Map.of("message","일치하는 판매회원이 없습니다."));
+            if (c.isEmpty()) {
+                return ResponseEntity.status(404).body(Map.of("message","일치하는 판매회원이 없습니다."));
+            }
             String token = passwordResetService.issueForCompany(c.get().getCompanyId());
             return ResponseEntity.ok(Map.of("token", token));
         }
     }
 
-    @PostMapping("/auth/password/reset")
-    @ResponseBody
-    public ResponseEntity<?> resetPassword(@RequestBody Map<String, String> req) {
+    // 공통 로직: reset
+    private ResponseEntity<?> handleResetPassword(Map<String, String> req) {
         String token = opt(req.get("token"));
         String newPw = opt(req.get("newPassword"));
-        if (token == null || newPw == null) return ResponseEntity.badRequest().body(Map.of("message","필수값 누락"));
+        if (token == null || newPw == null) {
+            return ResponseEntity.badRequest().body(Map.of("message","필수값 누락"));
+        }
 
         var ticket = passwordResetService.consume(token);
-        if (ticket == null) return ResponseEntity.status(400).body(Map.of("message","유효하지 않은 토큰"));
+        if (ticket == null) {
+            return ResponseEntity.status(400).body(Map.of("message","유효하지 않은 토큰"));
+        }
 
         if (ticket.type == PasswordResetService.AccountType.PERSONAL) {
             Optional<User> u = userRepository.findById(ticket.userId);
@@ -257,7 +319,7 @@ public class AuthController {
         Company c = new Company();
         c.setCompanyName(companyName.trim());
         c.setLoginId(loginId.trim());
-        c.setPassword(password);
+        c.setPassword(PasswordUtil.encode(password));
         c.setBusinessRegistrationNumber(businessRegistrationNumber.trim().replaceAll("\\s", ""));
         c.setEmail(email.trim());
         c.setManagerName(managerName.trim());
@@ -280,17 +342,16 @@ public class AuthController {
         return "redirect:/login";
     }
 
-    // ───────── 통합 로그인
+    // ───────── 통합 로그인(화면 폼 POST)
     @PostMapping("/auth/login")
     public String doLogin(@RequestParam String loginId,
                           @RequestParam String password,
                           @RequestParam(value = "accountType", defaultValue = "PERSONAL") String accountType,
                           @RequestParam(value = "redirectURL", required = false) String redirectURL,
-                          @RequestParam(value = "redirect", required = false) String redirect, // ← 추가
+                          @RequestParam(value = "redirect", required = false) String redirect,
                           HttpSession session,
                           RedirectAttributes ra) {
 
-        // 두 파라미터 중 하나라도 값이 있으면 그것으로
         String to = (redirectURL != null && !redirectURL.isBlank()) ? redirectURL
                 : (redirect != null && !redirect.isBlank()) ? redirect
                 : null;
@@ -302,10 +363,17 @@ public class AuthController {
                 if (!PasswordUtil.matches(password, c.getPassword()))
                     throw new IllegalArgumentException("BAD_PW");
 
+                // ✅ 업체 세션 세팅
                 session.setAttribute("company", c);
-                session.removeAttribute("user");
                 session.setAttribute("loginCompanyId", c.getCompanyId());
                 session.setAttribute("loginCompanyName", c.getCompanyName());
+
+                // 개인 키 제거
+                session.removeAttribute("user");
+                session.removeAttribute("LOGIN_USER");
+                session.removeAttribute("loginUserId");
+                session.removeAttribute("loginuserid");
+                session.removeAttribute("loginUserName");
 
                 return "redirect:" + (to != null ? to : "/mypage-company");
             } else {
@@ -314,11 +382,17 @@ public class AuthController {
                 if (!PasswordUtil.matches(password, u.getPassword()))
                     throw new IllegalArgumentException("BAD_PW");
 
+                // ✅ 개인 세션 세팅
                 session.setAttribute("user", u);
-                session.removeAttribute("company");
-                session.setAttribute("LOGIN_USER", u);
+                session.setAttribute("LOGIN_USER", u); // (하위 호환)
                 session.setAttribute("loginUserId", u.getUserId());
+                session.setAttribute("loginuserid", u.getUserId()); // (하위 호환)
                 session.setAttribute("loginUserName", u.getName());
+
+                // 업체 키 제거
+                session.removeAttribute("company");
+                session.removeAttribute("loginCompanyId");
+                session.removeAttribute("loginCompanyName");
 
                 return "redirect:" + (to != null ? to : "/mypage");
             }
@@ -348,6 +422,7 @@ public class AuthController {
         return "redirect:" + to;
     }
 
+    // ───────── 유틸
     private boolean isBlank(String s) { return s == null || s.isBlank(); }
     private String opt(String s) { return (s == null || s.isBlank()) ? null : s.trim(); }
 }

@@ -1,79 +1,136 @@
 <!DOCTYPE html>
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>주문 내역 - GreenHub</title>
-    <link rel="stylesheet" href="/css/header.css">
-    <link rel="stylesheet" href="/css/orderhistory.css">
-    <link rel="stylesheet" href="/css/footer.css">
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
-</head>
+<!-- 공통 <head> (사이트 기본 메타/폰트/공용 CSS 포함) -->
+<th:block th:replace="~{common/head :: siteHead('주문 내역 - GreenHub')}"></th:block>
+
+<!-- 페이지 전용 CSS/JS -->
+<link rel="stylesheet" th:href="@{/css/orderhistory.css}" />
+<script defer th:src="@{/js/orderhistory.js}"></script>
+
 <body>
-<!-- 헤더 include -->
-<div th:replace="common/header :: header"></div>
+<!-- 공통 헤더 -->
+<div th:replace="~{common/header :: header}"></div>
 
-<!-- 로그인 사용자 id를 전역 변수로 주입 -->
-<script th:inline="javascript">
-    window.__USER_ID__ = /*[[${session.loginUserId}]]*/ null;
-</script>
-
-<!-- 메인 콘텐츠 -->
 <main class="main-content">
-    <!-- 페이지 타이틀 -->
-    <div class="page-title-section">
+    <!-- 타이틀 -->
+    <section class="page-title-section">
         <h1 class="page-title">주문 내역</h1>
-        <p class="page-subtitle">지금까지 주문하신 내역을 확인하실 수 있습니다</p>
-    </div>
+        <p class="page-subtitle">최근 주문을 확인하세요</p>
+    </section>
 
-    <!-- 필터 및 검색 -->
-    <div class="filter-section">
+    <!-- 필터/검색 -->
+    <section class="filter-section">
         <div class="filter-controls">
-            <select class="filter-select" id="statusFilter">
-                <option value="all">전체 주문</option>
-                <option value="completed">배송완료</option>
-                <option value="shipping">배송중</option>
+            <!-- 상태 필터 -->
+            <select id="statusFilter" class="filter-select" aria-label="주문 상태 필터">
+                <option value="all" selected>전체 상태</option>
                 <option value="preparing">준비중</option>
+                <option value="shipping">배송중</option>
+                <option value="completed">배송완료</option>
                 <option value="cancelled">취소됨</option>
             </select>
-            <select class="filter-select" id="periodFilter">
-                <option value="all">전체 기간</option>
+
+            <!-- 기간 필터 -->
+            <select id="periodFilter" class="filter-select" aria-label="조회 기간 필터">
+                <option value="all" selected>전체 기간</option>
                 <option value="1month">최근 1개월</option>
                 <option value="3months">최근 3개월</option>
                 <option value="6months">최근 6개월</option>
                 <option value="1year">최근 1년</option>
             </select>
-            <div class="search-box">
-                <input type="text" class="search-input" id="searchInput" placeholder="상품명으로 검색...">
-                <button class="search-btn" id="searchBtn">
-                    <img src="/images/돋보기 아이콘.png" alt="검색" class="search-icon">
+
+            <!-- 검색 박스 -->
+            <div class="search-box" role="search">
+                <input id="searchInput" type="text" class="search-input" placeholder="상품명으로 검색" aria-label="상품명 검색" />
+                <button id="searchBtn" type="button" class="search-btn" aria-label="검색">
+                    <!-- 아이콘: 인라인 SVG (외부 이미지 의존 안 함) -->
+                    <svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79L20 21.5 21.5 20l-6-6zM9.5 14C7.02 14 5 11.98 5 9.5S7.02 5 9.5 5 14 7.02 14 9.5 11.98 14 9.5 14z"/>
+                    </svg>
                 </button>
             </div>
         </div>
-    </div>
+    </section>
 
-    <!-- 주문 내역 리스트 -->
-    <div class="orders-container">
-        <div class="orders-list" id="ordersList"></div>
-    </div>
+    <!-- 주문 리스트 / 빈상태 / 페이지네이션 -->
+    <section class="orders-container">
+        <!-- JS가 카드들을 렌더링 -->
+        <div id="ordersList" class="orders-list"></div>
 
-    <!-- 페이지네이션 -->
-    <div class="pagination-container" id="paginationContainer"></div>
+        <!-- 빈 상태 -->
+        <div id="emptyState" class="empty-state" style="display:none;">
+            <div class="empty-icon" aria-hidden="true">🛒</div>
+            <h2>주문 내역이 없습니다</h2>
+            <p>지금 지역 특산품을 만나보세요!</p>
+            <a class="shop-btn" th:href="@{/}">쇼핑하러 가기</a>
+        </div>
 
-    <!-- 빈 상태 메시지 -->
-    <div class="empty-state" id="emptyState" style="display: none;">
-        <div class="empty-icon">📦</div>
-        <h2>주문 내역이 없습니다</h2>
-        <p>아직 주문하신 상품이 없습니다.<br>GreenHub에서 신선한 농산물을 주문해보세요!</p>
-        <button class="shop-btn" onclick="window.location.href='/'">쇼핑하러 가기</button>
-    </div>
+        <!-- 페이지네이션 -->
+        <div id="paginationContainer" class="pagination-container" style="display:none;"></div>
+
+        <!-- No-JS 대응(선택): JS 미사용 시 간단히 서버 사이드 렌더 -->
+        <noscript>
+            <div th:if="${#lists.isEmpty(orders)}" class="empty-state" style="margin-top:2rem;">
+                <div class="empty-icon" aria-hidden="true">🛒</div>
+                <h2>주문 내역이 없습니다</h2>
+                <p>로그인하시고 주문 후 확인해보세요.</p>
+                <a class="shop-btn" th:href="@{/}">메인으로</a>
+            </div>
+            <div th:if="${!#lists.isEmpty(orders)}" class="orders-list" style="margin-top:1rem;">
+                <div th:each="o : ${orders}" class="order-card" style="padding:1rem;">
+                    <div class="order-header" style="display:flex;justify-content:space-between;align-items:center;">
+                        <div>
+                            <div class="order-number">주문번호:
+                                <span th:text="${o.id}">ORD-YYYYMMDD</span>
+                            </div>
+                            <div class="order-date">주문일:
+                                <span th:text="${#temporals.format(o.date, 'yyyy-MM-dd HH:mm')}">2025-01-01</span>
+                            </div>
+                        </div>
+                        <div class="order-status" th:text="${o.status}">preparing</div>
+                    </div>
+                    <div class="order-body">
+                        <div class="order-items" th:if="${!#lists.isEmpty(o.items)}">
+                            <div class="order-item" th:each="it : ${o.items}">
+                                <img class="item-image" th:src="${it.image != null ? it.image : '/images/농산물.png'}" alt="" />
+                                <div class="item-info">
+                                    <div class="item-name" th:text="${it.name}">상품명</div>
+                                    <div class="item-details">
+                                        <span th:if="${it.optionText != null}" th:text="'옵션: ' + ${it.optionText} + ' / '">옵션: 100g / </span>
+                                        <span th:text="'수량: ' + ${it.quantity} + (${it.unit} != null ? ${it.unit} : '개')">수량: 1개</span>
+                                    </div>
+                                </div>
+                                <div class="item-price" th:text="${#numbers.formatInteger(it.price, 3, 'COMMA')} + '원'">9,900원</div>
+                            </div>
+                        </div>
+                        <div class="order-summary">
+                            <div class="summary-info">
+                                <div class="summary-label">상품금액</div>
+                                <div class="summary-value" th:text="${#numbers.formatInteger(o.totalAmount, 3, 'COMMA')} + '원'">0원</div>
+                            </div>
+                            <div class="summary-info">
+                                <div class="summary-label">배송비</div>
+                                <div class="summary-value"
+                                     th:text="${o.shippingFee != null && o.shippingFee > 0 ? #numbers.formatInteger(o.shippingFee, 3, 'COMMA') + '원' : '무료'}">
+                                    무료
+                                </div>
+                            </div>
+                            <div class="summary-info">
+                                <div class="summary-label">총 결제금액</div>
+                                <div class="summary-value" th:text="${#numbers.formatInteger(o.finalAmount, 3, 'COMMA')} + '원'">0원</div>
+                            </div>
+                            <div class="order-actions">
+                                <a class="action-btn btn-primary" th:href="@{'/orderdetails'(id=${o.id})}">주문상세</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </noscript>
+    </section>
 </main>
 
-<!-- 푸터 include -->
-<div th:replace="common/footer :: footer"></div>
-
-<!-- (선택) shoppinglist 유틸이 필요하면 유지 -->
-<script src="/js/shoppinglist.js"></script>
-<script src="/js/orderhistory.js"></script>
+<!-- 공통 푸터 -->
+<div th:replace="~{common/footer :: footer}"></div>
 </body>
 </html>

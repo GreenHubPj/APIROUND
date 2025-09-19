@@ -1,10 +1,10 @@
-<!-- 프래그먼트: 푸터 -->
-<footer class="footer" th:fragment="footer">
+<!-- templates/common/footer.html -->
+<footer class="footer" th:fragment="footer" xmlns:th="http://www.thymeleaf.org">
     <div class="container">
         <div class="footer-content">
             <div class="footer-section">
                 <div class="nav-brand">
-                    <img src="/images/로고 트럭.png" alt="로고" class="logo">
+                    <img th:src="@{/images/로고 트럭.png}" alt="로고" class="logo">
                     <span class="brand-text">GreenHub</span>
                 </div>
                 <p class="footer-description">지역마다 특산품을 전국 어디서나 쉽게 주문하세요</p>

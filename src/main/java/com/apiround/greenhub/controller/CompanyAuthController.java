@@ -42,9 +42,19 @@ public class CompanyAuthController {
             return "redirect:/company/login" + (redirectURL != null ? "?redirectURL=" + redirectURL : "");
         }
 
-        // 회사 세션 세팅, 개인 세션 제거
-        session.setAttribute("company", opt.get());
+        Company c = opt.get();
+
+        // ✅ 업체 세션 세팅
+        session.setAttribute("company", c);
+        session.setAttribute("loginCompanyId", c.getCompanyId());
+        session.setAttribute("loginCompanyName", c.getCompanyName());
+
+        // 개인 관련 키 정리 (주문 시 user_id 혼동 방지)
         session.removeAttribute("user");
+        session.removeAttribute("LOGIN_USER");
+        session.removeAttribute("loginUserId");
+        session.removeAttribute("loginuserid");
+        session.removeAttribute("loginUserName");
 
         if (redirectURL != null && !redirectURL.isBlank()) {
             return "redirect:" + redirectURL;
@@ -52,7 +62,7 @@ public class CompanyAuthController {
         return "redirect:/mypage-company";
     }
 
-    /** 업체 로그아웃 (GET 링크 지원) — 완전 종료를 원하면 invalidate() */
+    /** 업체 로그아웃 (GET) */
     @GetMapping("/company/logout")
     public String companyLogout(HttpSession session,
                                 @RequestParam(value = "redirectURL", required = false) String redirectURL) {

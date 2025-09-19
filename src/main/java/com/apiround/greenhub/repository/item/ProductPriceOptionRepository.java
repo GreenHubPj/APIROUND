@@ -43,4 +43,7 @@ public interface ProductPriceOptionRepository extends JpaRepository<ProductPrice
           o.optionId ASC
         """)
     Optional<ProductPriceOption> pickFirstActiveOption(Integer productId);
+
+    // ✅ 추가: 옵션 라벨(예: "2kg", "100g")로 옵션 1건 찾기 (대소문자 무시)
+    ProductPriceOption findFirstByProductIdAndOptionLabelIgnoreCase(Integer productId, String optionLabel);
 }

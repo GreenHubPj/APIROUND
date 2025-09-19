@@ -435,39 +435,56 @@ public class ItemController {
         }
     }
 
-    /** 상품 정보 조회 (수정용) */
+    /** 상품 정보 조회 (수정용) — 데이터 부재에도 안전하도록 변경 */
     @GetMapping("/api/listings/{id}")
     @ResponseBody
     public Map<String, Object> getListing(@PathVariable Integer id) {
         try {
-            ProductListing listing = listingRepo.findById(id)
-                    .orElseThrow(() -> new IllegalArgumentException("상품을 찾을 수 없습니다: " + id));
+            var listingOpt = listingRepo.findById(id);
+            if (listingOpt.isEmpty()) {
+                // 예외 던지지 말고 404 스타일 응답
+                return Map.of("success", false, "error", "NOT_FOUND", "message", "상품을 찾을 수 없습니다: " + id);
+            }
+            ProductListing listing = listingOpt.get();
 
-            // listing의 productId로 SpecialtyProduct 조회
+            // listing의 productId로 SpecialtyProduct 조회 (없어도 진행)
             SpecialtyProduct product = null;
             if (listing.getProductId() != null) {
                 product = productRepo.findById(listing.getProductId()).orElse(null);
             }
 
-            // 가격 옵션 정보도 함께 조회 (활성화된 것만)
+            // 가격 옵션 정보도 함께 조회 (활성화된 것만). product 엔티티가 없어도 product_id만 있으면 조회한다.
             List<Map<String, Object>> options = new ArrayList<>();
-            if (product != null) {
-                var priceOptions = optionRepo.findByProductIdOrderBySortOrderAscOptionIdAsc(product.getProductId());
+            Integer pidForOption = (listing.getProductId() != null) ? listing.getProductId() : null;
+            if (pidForOption != null) {
+                var priceOptions = optionRepo.findByProductIdOrderBySortOrderAscOptionIdAsc(pidForOption);
                 for (var option : priceOptions) {
-                    if (option.getIsActive() != null && option.getIsActive()) {
-                        Map<String, Object> optionData = new HashMap<>();
-                        optionData.put("optionLabel", option.getOptionLabel());
-                        optionData.put("quantity", option.getQuantity());
-                        optionData.put("unit", option.getUnit());
-                        optionData.put("price", option.getPrice());
-                        options.add(optionData);
-                    }
+                    if (option.getIsActive() == null || !option.getIsActive()) continue;
+                    Map<String, Object> optionData = new HashMap<>();
+                    optionData.put("optionLabel", option.getOptionLabel());
+                    optionData.put("quantity", option.getQuantity());
+                    optionData.put("unit", option.getUnit());
+                    optionData.put("price", option.getPrice());
+                    options.add(optionData);
                 }
             }
 
+            // product가 없어도 listing 정보로 최대한 채워서 내려준다.
+            Map<String, Object> listingBrief = Map.of(
+                    "listingId", listing.getListingId(),
+                    "productId", listing.getProductId(),
+                    "title", safe(listing.getTitle()),
+                    "thumbnailUrl", safe(listing.getThumbnailUrl()),
+                    "unitCode", safe(listing.getUnitCode()),
+                    "priceValue", listing.getPriceValue(),
+                    "status", listing.getStatus() != null ? listing.getStatus().name() : null,
+                    "harvestSeason", safe(listing.getHarvestSeason())
+            );
+
             return Map.of(
                     "success", true,
-                    "product", product,
+                    "product", product,     // 없을 수 있음
+                    "listing", listingBrief, // 프런트에서 대체 렌더 용
                     "options", options,
                     "harvestSeason", listing.getHarvestSeason() != null ? listing.getHarvestSeason() : ""
             );
@@ -515,5 +532,11 @@ public class ItemController {
         } catch (Exception e) {
             return Map.of("success", false, "error", e.getMessage());
         }
+    }
+
+    // ─────────────────────── helpers
+
+    private static String safe(String s) {
+        return (s == null || s.isBlank()) ? "" : s;
     }
 }

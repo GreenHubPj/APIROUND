@@ -134,8 +134,7 @@ public class HomeController {
     @GetMapping("/newrecipe")
     public String newrecipe() { return "newrecipe"; }
 
-    @GetMapping("/orderhistory")
-    public String orderhistory() { return "orderhistory"; }
+
 
     @GetMapping("/myrecipe-detail")
     public String myrecipeDetail(@RequestParam(required = false) String id,
