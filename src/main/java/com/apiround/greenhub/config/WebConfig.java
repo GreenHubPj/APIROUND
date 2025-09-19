@@ -23,6 +23,7 @@ public class WebConfig implements WebMvcConfigurer {
     private static final String[] PROTECTED_PATHS = {
             "/mypage/**",
             "/order/**",
+            "/orders/**",          // ← 추가: 구매하기 API 보호
             "/cart/**",
             "/profile/**",
             "/profile-edit",
@@ -82,10 +83,15 @@ public class WebConfig implements WebMvcConfigurer {
             Object company = (session != null) ? session.getAttribute("company") : null;
             if (user != null || company != null) return true;
 
+            // 미로그인
             if (isApiRequest(request)) {
+                // ✅ JSON 응답에 로그인 화면으로 돌아갈 redirectUrl 함께 제공 (프론트에서 그대로 location.href)
+                String query = request.getQueryString();
+                String target = request.getRequestURI() + (query != null ? "?" + query : "");
+                String loginUrl = "/login?redirectURL=" + URLEncoder.encode(target, StandardCharsets.UTF_8);
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-                response.getWriter().write("{\"success\":false,\"message\":\"AUTH_REQUIRED\"}");
+                response.getWriter().write("{\"login\":false,\"redirectUrl\":\"" + loginUrl + "\"}");
                 return false;
             }
 
@@ -100,6 +106,7 @@ public class WebConfig implements WebMvcConfigurer {
         private boolean isApiRequest(HttpServletRequest req) {
             String uri = req.getRequestURI();
             if (uri.startsWith("/api/")) return true;
+            // Ajax/Fetch JSON 요청 구분
             String accept = req.getHeader("Accept");
             if (accept != null && accept.contains("application/json")) return true;
             String xhr = req.getHeader("X-Requested-With");
@@ -142,9 +149,14 @@ public class WebConfig implements WebMvcConfigurer {
             boolean authed = session != null && (session.getAttribute("user") != null || session.getAttribute("company") != null);
             if (authed) return true;
 
+            String query = request.getQueryString();
+            String target = request.getRequestURI() + (query != null ? "?" + query : "");
+            String loginUrl = "/login?redirectURL=" + URLEncoder.encode(target, StandardCharsets.UTF_8);
+
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-            response.getWriter().write("{\"success\":false,\"message\":\"AUTH_REQUIRED\"}");
+            // ✅ 여기서도 redirectUrl 포함
+            response.getWriter().write("{\"login\":false,\"redirectUrl\":\"" + loginUrl + "\"}");
             return false;
         }
 

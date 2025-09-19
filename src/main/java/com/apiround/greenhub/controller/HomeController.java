@@ -38,28 +38,15 @@ public class HomeController {
     @ResponseBody
     public ResponseEntity<?> getRandomRecipe() {
         try {
-            System.out.println("랜덤 레시피 API 호출됨");
             Recipe recipe = recipeService.getRandomRecipeForRecommendation();
-            System.out.println("레시피 조회 결과: " + (recipe != null ? recipe.getTitle() : "null"));
-            
             if (recipe == null) {
-                System.out.println("레시피가 null입니다. 기본 데이터 반환");
-                // 기본 레시피 데이터 반환
-                Map<String, Object> defaultResponse = Map.of(
-                    "name", "김치찌개",
-                    "region", "전국 지역 특산품",
-                    "ingredients", List.of("김치", "돼지고기", "두부", "대파"),
-                    "description", "맛있는 김치찌개입니다.",
-                    "recipeId", 1,
-                    "imageUrl", "/images/kimchi.jpg"
-                );
-                return ResponseEntity.ok(defaultResponse);
+                return ResponseEntity.ok().body(Map.of("error", "추천할 레시피가 없습니다."));
             }
 
             // 응답 데이터 구성
             List<String> ingredients = getRecipeIngredients(recipe.getRecipeId());
             System.out.println("재료 목록: " + ingredients);
-            
+
             Map<String, Object> response = Map.of(
                     "name", recipe.getTitle() != null ? recipe.getTitle() : "맛있는 요리",
                     "region", "전국 지역 특산품",
@@ -117,7 +104,7 @@ public class HomeController {
         model.addAttribute("userId", userId);
         return "myrecipe";
     }
-
+    
     /** 레시피 재료 목록을 문자열 배열로 반환 */
     private List<String> getRecipeIngredients(Integer recipeId) {
         try {
@@ -162,8 +149,7 @@ public class HomeController {
     @GetMapping("/refund")
     public String refund() { return "refund"; }
 
-    @GetMapping("/buying")
-    public String buying() { return "buying"; }
+    // ⛔ /buying 매핑은 BuyingController가 담당합니다. (중복 방지)
 
     @GetMapping("/reviewlist")
     public String reviewlist() { return "reviewlist"; }

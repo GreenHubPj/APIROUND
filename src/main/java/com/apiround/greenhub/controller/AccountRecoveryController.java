@@ -1,5 +1,15 @@
 package com.apiround.greenhub.controller;
 
+import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.apiround.greenhub.entity.Company;
 import com.apiround.greenhub.entity.User;
 import com.apiround.greenhub.repository.CompanyRepository;
@@ -7,13 +17,6 @@ import com.apiround.greenhub.repository.UserRepository;
 import com.apiround.greenhub.service.EmailCodeService;
 import com.apiround.greenhub.service.PasswordResetService;
 import com.apiround.greenhub.util.PasswordUtil;
-import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/account")
