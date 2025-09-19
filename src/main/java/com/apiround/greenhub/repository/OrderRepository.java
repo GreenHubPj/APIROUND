@@ -1,4 +1,3 @@
-// src/main/java/com/apiround/greenhub/repository/OrderRepository.java
 package com.apiround.greenhub.repository;
 
 import com.apiround.greenhub.entity.Order;
@@ -7,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface OrderRepository extends JpaRepository<Order, Integer> {
 
@@ -21,4 +21,10 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
          order by o.createdAt desc
     """)
     List<Order> findActiveByUser(@Param("userId") Integer userId);
+
+    // ✅ 주문 상세용 (orderNumber로 조회)
+    Optional<Order> findByOrderNumberAndUserIdAndIsDeletedFalse(String orderNumber, Integer userId);
+
+    // ✅ 주문 상세용 (orderId로 조회)
+    Optional<Order> findByOrderIdAndUserIdAndIsDeletedFalse(Integer orderId, Integer userId);
 }
