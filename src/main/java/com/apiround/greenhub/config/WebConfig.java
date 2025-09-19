@@ -47,6 +47,7 @@ public class WebConfig implements WebMvcConfigurer {
             "/auth/logout", "/logout", "/company/logout",
             "/api/public/**",
             "/api/account/**",
+            "/api/random-recipe",  // ✅ 랜덤 레시피 추천 API 공개
             "/error",
             // ✅ 상품 리뷰 뷰 페이지 공개
             "/products/**"
@@ -136,6 +137,11 @@ public class WebConfig implements WebMvcConfigurer {
 
             // 공개 GET API 화이트리스트: /api/products/{id}/reviews(, /summary)
             if ("GET".equalsIgnoreCase(method) && isPublicReviewGetApi(uri)) {
+                return true;
+            }
+
+            // ✅ 랜덤 레시피 추천 API 공개
+            if ("GET".equalsIgnoreCase(method) && "/api/random-recipe".equals(uri)) {
                 return true;
             }
 
