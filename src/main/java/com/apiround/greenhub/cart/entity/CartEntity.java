@@ -1,12 +1,14 @@
-package com.apiround.greenhub.cart;
+package com.apiround.greenhub.cart.entity;
 
 import com.apiround.greenhub.entity.User;
 import com.apiround.greenhub.entity.item.ProductPriceOption;
 import jakarta.persistence.*;
+import lombok.Data;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+@Data
 @Entity
 @Table(name ="cart", uniqueConstraints = {@UniqueConstraint(columnNames = {"user_id", "option_id"})})
 public class CartEntity {
@@ -22,7 +24,8 @@ public class CartEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name="option_id",nullable = false)
-    private ProductPriceOption priceOption;
+    private ProductPriceOption
+            priceOption;
 
     private BigDecimal quantity;
 
