@@ -1,83 +1,15 @@
 document.addEventListener('DOMContentLoaded', function() {
     console.log('GreenHub 주문 내역 페이지가 로드되었습니다.');
 
-    // 더미 주문 데이터
-    const orderData = [
-        {
-            id: 'ORD-2024-001',
-            date: '2024-01-15',
-            status: 'completed',
-            items: [
-                { name: '문경 사과', image: '/images/사과.jpg', quantity: 2, price: 30000, unit: 'kg' },
-                { name: '고흥 돼지고기', image: '/images/제철 돼지.jpg', quantity: 1, price: 25000, unit: 'kg' },
-                { name: '제주 귤', image: '/images/인기 귤.jpg', quantity: 3, price: 36000, unit: 'kg' }
-            ],
-            totalAmount: 91000,
-            shippingFee: 3000,
-            finalAmount: 94000
-        },
-        {
-            id: 'ORD-2024-002',
-            date: '2024-01-12',
-            status: 'shipping',
-            items: [
-                { name: '강원도 감자', image: '/images/인기 감자.jpg', quantity: 5, price: 40000, unit: 'kg' },
-                { name: '산청 표고버섯', image: '/images/인기 표고버섯.jpg', quantity: 2, price: 36000, unit: 'kg' }
-            ],
-            totalAmount: 76000,
-            shippingFee: 3000,
-            finalAmount: 79000
-        },
-        {
-            id: 'ORD-2024-003',
-            date: '2024-01-10',
-            status: 'preparing',
-            items: [
-                { name: '이천 쌀', image: '/images/쌀.jpg', quantity: 1, price: 35000, unit: '20kg' },
-                { name: '구좌 당근', image: '/images/제철 당근.jpg', quantity: 3, price: 27000, unit: 'kg' }
-            ],
-            totalAmount: 62000,
-            shippingFee: 3000,
-            finalAmount: 65000
-        },
-        {
-            id: 'ORD-2024-004',
-            date: '2024-01-08',
-            status: 'completed',
-            items: [
-                { name: '서해 새우', image: '/images/인기 새우.jpg', quantity: 1, price: 28000, unit: 'kg' },
-                { name: '의성 마늘', image: '/images/제철 마늘.jpg', quantity: 2, price: 30000, unit: 'kg' }
-            ],
-            totalAmount: 58000,
-            shippingFee: 3000,
-            finalAmount: 61000
-        },
-        {
-            id: 'ORD-2024-005',
-            date: '2024-01-05',
-            status: 'cancelled',
-            items: [
-                { name: '경산 복숭아', image: '/images/제철 천도복숭아.jpg', quantity: 4, price: 80000, unit: 'kg' }
-            ],
-            totalAmount: 80000,
-            shippingFee: 3000,
-            finalAmount: 83000
-        },
-        {
-            id: 'ORD-2024-006',
-            date: '2024-01-03',
-            status: 'completed',
-            items: [
-                { name: '문경 사과', image: '/images/사과.jpg', quantity: 3, price: 67500, unit: 'kg' },
-                { name: '고흥 돼지고기', image: '/images/제철 돼지.jpg', quantity: 2, price: 100000, unit: 'kg' },
-                { name: '제주 귤', image: '/images/인기 귤.jpg', quantity: 2, price: 16000, unit: 'kg' },
-                { name: '강원도 감자', image: '/images/인기 감자.jpg', quantity: 3, price: 14400, unit: 'kg' }
-            ],
-            totalAmount: 197900,
-            shippingFee: 0,
-            finalAmount: 197900
-        }
-    ];
+    // 로그인 사용자별 주문히스토리 키
+    const userId = (typeof window.__USER_ID__ !== 'undefined' && window.__USER_ID__ != null)
+        ? String(window.__USER_ID__)
+        : 'guest';
+    const HISTORY_KEY = `orderHistory:${userId}`;
+
+    // 사용자 주문 데이터 로드
+    let orderData = loadUserOrders();
+    console.log('loaded orders:', orderData);
 
     // DOM 요소들
     const ordersList = document.getElementById('ordersList');
@@ -101,32 +33,45 @@ document.addEventListener('DOMContentLoaded', function() {
         'cancelled': '취소됨'
     };
 
-    // 금액 포맷팅
+    // 유틸: 금액 포맷팅
     function formatPrice(price) {
-        return price.toLocaleString('ko-KR') + '원';
+        return (Number(price) || 0).toLocaleString('ko-KR') + '원';
     }
 
-    // 날짜 포맷팅
+    // 유틸: 날짜 포맷팅
     function formatDate(dateString) {
         const date = new Date(dateString);
-        return date.toLocaleDateString('ko-KR', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-        });
+        return date.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
     }
 
-    // 주문 카드 생성
+    // 사용자 주문 로드
+    function loadUserOrders() {
+        try {
+            const raw = localStorage.getItem(HISTORY_KEY);
+            if (!raw) return [];
+            const parsed = JSON.parse(raw);
+            if (!Array.isArray(parsed)) return [];
+            return parsed;
+        } catch (e) {
+            console.warn('order history parse fail:', e);
+            return [];
+        }
+    }
+
+    // 주문 카드 생성 (옵션 표시 추가)
     function createOrderCard(order) {
         const statusClass = `status-${order.status}`;
-        const statusLabel = statusLabels[order.status];
-        
-        const itemsHtml = order.items.map(item => `
+        const statusLabel = statusLabels[order.status] || order.status;
+
+        const itemsHtml = (order.items || []).map(item => `
             <div class="order-item">
-                <img src="${item.image}" alt="${item.name}" class="item-image">
+                <img src="${item.image || '/images/default-product.jpg'}" alt="${item.name}" class="item-image">
                 <div class="item-info">
                     <div class="item-name">${item.name}</div>
-                    <div class="item-details">수량: ${item.quantity}${item.unit}</div>
+                    <div class="item-details">
+                        ${item.optionText ? `옵션: ${item.optionText} / ` : ''}
+                        수량: ${item.quantity}${item.unit || '개'}
+                    </div>
                 </div>
                 <div class="item-price">${formatPrice(item.price)}</div>
             </div>
@@ -169,7 +114,7 @@ document.addEventListener('DOMContentLoaded', function() {
         `;
     }
 
-    // 주문 상태별 액션 버튼 생성
+    // 주문 상태별 액션 버튼
     function getOrderActions(status, orderId) {
         switch (status) {
             case 'completed':
@@ -198,46 +143,36 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // 필터링 함수
+    // 필터링
     function filterOrders() {
         let filtered = [...orderData];
 
-        // 상태 필터
+        // 상태
         const statusValue = statusFilter.value;
         if (statusValue !== 'all') {
             filtered = filtered.filter(order => order.status === statusValue);
         }
 
-        // 기간 필터
+        // 기간
         const periodValue = periodFilter.value;
         if (periodValue !== 'all') {
             const now = new Date();
             const filterDate = new Date();
-            
             switch (periodValue) {
-                case '1month':
-                    filterDate.setMonth(now.getMonth() - 1);
-                    break;
-                case '3months':
-                    filterDate.setMonth(now.getMonth() - 3);
-                    break;
-                case '6months':
-                    filterDate.setMonth(now.getMonth() - 6);
-                    break;
-                case '1year':
-                    filterDate.setFullYear(now.getFullYear() - 1);
-                    break;
+                case '1month':  filterDate.setMonth(now.getMonth() - 1); break;
+                case '3months': filterDate.setMonth(now.getMonth() - 3); break;
+                case '6months': filterDate.setMonth(now.getMonth() - 6); break;
+                case '1year':   filterDate.setFullYear(now.getFullYear() - 1); break;
             }
-            
             filtered = filtered.filter(order => new Date(order.date) >= filterDate);
         }
 
-        // 검색 필터
+        // 검색
         const searchValue = searchInput.value.toLowerCase().trim();
         if (searchValue) {
-            filtered = filtered.filter(order => 
-                order.items.some(item => 
-                    item.name.toLowerCase().includes(searchValue)
+            filtered = filtered.filter(order =>
+                (order.items || []).some(item =>
+                    String(item.name || '').toLowerCase().includes(searchValue)
                 )
             );
         }
@@ -271,7 +206,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // 페이지네이션 렌더링
     function renderPagination() {
         const totalPages = Math.ceil(filteredData.length / itemsPerPage);
-        
         if (totalPages <= 1) {
             paginationContainer.style.display = 'none';
             return;
@@ -293,7 +227,6 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
         `;
 
-        // 페이지네이션 이벤트 추가
         addPaginationEvents(totalPages);
     }
 
@@ -303,44 +236,27 @@ document.addEventListener('DOMContentLoaded', function() {
         const maxVisiblePages = 5;
         let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
         let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
-        
         if (endPage - startPage + 1 < maxVisiblePages) {
             startPage = Math.max(1, endPage - maxVisiblePages + 1);
         }
-        
         for (let i = startPage; i <= endPage; i++) {
             pageNumbers += `<button class="page-number ${i === currentPage ? 'active' : ''}" data-page="${i}">${i}</button>`;
         }
-        
         return pageNumbers;
     }
 
-    // 페이지네이션 이벤트 추가
+    // 페이지네이션 이벤트
     function addPaginationEvents(totalPages) {
         const prevBtn = document.getElementById('prevBtn');
         const nextBtn = document.getElementById('nextBtn');
         const pageNumbers = document.querySelectorAll('.page-number');
-        
-        if (prevBtn) {
-            prevBtn.addEventListener('click', () => {
-                if (currentPage > 1) {
-                    currentPage--;
-                    renderOrders();
-                    renderPagination();
-                }
-            });
-        }
-        
-        if (nextBtn) {
-            nextBtn.addEventListener('click', () => {
-                if (currentPage < totalPages) {
-                    currentPage++;
-                    renderOrders();
-                    renderPagination();
-                }
-            });
-        }
-        
+
+        if (prevBtn) prevBtn.addEventListener('click', () => {
+            if (currentPage > 1) { currentPage--; renderOrders(); renderPagination(); }
+        });
+        if (nextBtn) nextBtn.addEventListener('click', () => {
+            if (currentPage < totalPages) { currentPage++; renderOrders(); renderPagination(); }
+        });
         pageNumbers.forEach(btn => {
             btn.addEventListener('click', () => {
                 const page = parseInt(btn.getAttribute('data-page'));
@@ -351,31 +267,21 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // 액션 함수들
-    window.viewOrderDetails = function(status) {
-        // 현재 주문 카드에서 주문 ID 가져오기
-        const orderCard = event.target.closest('.order-card');
-        const orderNumber = orderCard.querySelector('.order-number').textContent;
-        const orderId = orderNumber.split(': ')[1]; // "주문번호: ORD-2024-001"에서 "ORD-2024-001" 추출
-        
-        // 주문 상세 페이지로 이동
+    // 액션 함수들(전역에 노출)
+    window.viewOrderDetails = function(orderId) {
         window.location.href = `/orderdetails?id=${orderId}`;
     };
 
-    // 장바구니 데이터 관리 함수들 (shoppinglist.js와 동일)
     function getCartItems() {
         const cartData = localStorage.getItem('shoppingCart');
         return cartData ? JSON.parse(cartData) : [];
     }
-
     function saveCartItems(items) {
         localStorage.setItem('shoppingCart', JSON.stringify(items));
     }
-
     function addToCart(product) {
         const cartItems = getCartItems();
         const existingItem = cartItems.find(item => item.id === product.id);
-        
         if (existingItem) {
             existingItem.quantity += product.quantity;
             existingItem.total = existingItem.quantity * existingItem.price;
@@ -390,42 +296,32 @@ document.addEventListener('DOMContentLoaded', function() {
                 image: product.image || '/images/default-product.jpg'
             });
         }
-        
         saveCartItems(cartItems);
         return cartItems;
     }
 
     window.reorder = function(orderId) {
         const order = orderData.find(o => o.id === orderId);
-        if (!order) {
-            alert('주문 정보를 찾을 수 없습니다.');
-            return;
-        }
+        if (!order) { alert('주문 정보를 찾을 수 없습니다.'); return; }
 
         if (confirm('이 주문과 동일한 상품을 장바구니에 추가하시겠습니까?')) {
             let addedCount = 0;
-            
-            // 주문의 모든 상품을 장바구니에 추가
-            order.items.forEach(item => {
+            (order.items || []).forEach(item => {
                 const product = {
                     id: item.id,
                     name: item.name,
-                    price: item.price,
-                    quantity: item.quantity,
-                    unit: item.unit,
-                    total: item.price * item.quantity,
+                    price: Math.round((item.price || 0) / (item.quantity || 1)), // 대략 단가
+                    quantity: item.quantity || 1,
+                    unit: item.unit || '개',
+                    total: item.price || 0,
                     image: item.image
                 };
-                
                 addToCart(product);
                 addedCount++;
             });
-            
             if (addedCount > 0) {
                 alert(`${addedCount}개 상품이 장바구니에 추가되었습니다.`);
-                if (confirm('장바구니로 이동하시겠습니까?')) {
-                    window.location.href = '/shoppinglist';
-                }
+                if (confirm('장바구니로 이동하시겠습니까?')) window.location.href = '/shoppinglist';
             } else {
                 alert('상품을 장바구니에 추가할 수 없습니다.');
             }
@@ -433,7 +329,6 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     window.writeReview = function(orderId) {
-        // 리뷰 페이지로 바로 이동
         window.location.href = '/review';
     };
 
@@ -447,24 +342,16 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
 
-
-    // 이벤트 리스너 추가
+    // 이벤트 리스너
     statusFilter.addEventListener('change', filterOrders);
     periodFilter.addEventListener('change', filterOrders);
     searchInput.addEventListener('input', filterOrders);
     searchBtn.addEventListener('click', filterOrders);
-
-    // 엔터키로 검색
-    searchInput.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            filterOrders();
-        }
-    });
+    searchInput.addEventListener('keypress', function(e) { if (e.key === 'Enter') filterOrders(); });
 
     // 초기 렌더링
-    renderOrders();
+    filterOrders();
     renderPagination();
 
-    // 페이지 로드 완료 메시지
     console.log('주문 내역 페이지 초기화 완료');
 });

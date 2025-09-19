@@ -2,6 +2,7 @@
 
 document.addEventListener('DOMContentLoaded', function() {
   console.log('GreenHub 구매 페이지가 로드되었습니다.');
+  console.log('currentOrder raw:', localStorage.getItem('currentOrder'));
 
   initializeBuyingPage();
   setupEventListeners();
@@ -9,11 +10,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // 페이지 초기화
 function initializeBuyingPage() {
-  const currentOrder = JSON.parse(localStorage.getItem('currentOrder'));
+  const currentOrder = safeGetCurrentOrder();
 
   if (!currentOrder || currentOrder.length === 0) {
     showMessage('주문할 상품이 없습니다.', 'error');
-    setTimeout(() => { window.location.href = '/'; }, 2000);
+    setTimeout(() => { window.location.href = '/'; }, 1500);
     return;
   }
 
@@ -21,42 +22,64 @@ function initializeBuyingPage() {
   calculateTotalAmount(currentOrder);
 }
 
+// localStorage에서 안전하게 읽기
+function safeGetCurrentOrder() {
+  try {
+    const raw = localStorage.getItem('currentOrder');
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return null;
+    return parsed;
+  } catch (e) {
+    console.warn('currentOrder 파싱 실패:', e);
+    return null;
+  }
+}
+
 // 주문 상품 정보 표시
 function displayOrderItems(orderItems) {
   const productItemContainer = document.getElementById('orderProductItem');
+  if (!productItemContainer) return;
 
   if (!orderItems || orderItems.length === 0) {
     productItemContainer.innerHTML = '<p>주문할 상품이 없습니다.</p>';
     return;
   }
 
-  const item = orderItems[0]; // 단일 상품
+  const item = orderItems[0]; // 단일 상품 기준
+
+  // 필드 보정
+  const name = item.name || '상품';
+  const category = item.category || '';
+  const region = item.region ? ` | ${item.region}` : '';
+  const qtyCount = typeof item.quantityCount === 'number' && item.quantityCount > 0 ? item.quantityCount : 1;
+  const optionText = item.optionText || item.quantity || '';
+  const unitPrice = (typeof item.unitPrice === 'number' && !isNaN(item.unitPrice))
+    ? item.unitPrice
+    : parsePrice(item.price);
+  const lineTotal = (typeof item.priceRaw === 'number' && !isNaN(item.priceRaw))
+    ? item.priceRaw
+    : (unitPrice * qtyCount);
 
   const imgSrc = item.image && item.image !== '' ? item.image : null;
   const productImage = imgSrc
-    ? `<img src="${imgSrc}" alt="${item.name}" class="product-thumbnail">`
+    ? `<img src="${imgSrc}" alt="${name}" class="product-thumbnail">`
     : `<div class="product-placeholder"><span class="product-icon">🛒</span></div>`;
-
-  // 수량 표시는 region-detail에서 quantityCount 넣어줌(없으면 1로)
-  const qtyCount = typeof item.quantityCount === 'number' ? item.quantityCount : 1;
-  const optionText = item.optionText || item.quantity || '';
-
-  // 가격 표시는 priceFormatted 우선, 없으면 price(문자열), 그것도 없으면 priceRaw 숫자 포맷
-  const priceDisplay = item.priceFormatted
-    ? item.priceFormatted
-    : (typeof item.price === 'string' && item.price ? item.price : formatPrice(Number(item.priceRaw) || 0));
 
   productItemContainer.innerHTML = `
     <div class="product-image">
       ${productImage}
     </div>
     <div class="product-details">
-      <div class="product-name">${item.name}</div>
-      <div class="product-category">${item.category || ''} ${item.region ? `| ${item.region}` : ''}</div>
+      <div class="product-name">${name}</div>
+      <div class="product-category">${category}${region}</div>
       <div class="product-desc">${optionText}${qtyCount > 1 ? ` × ${qtyCount}` : ''}</div>
       <div class="product-price">
         <span class="quantity">${qtyCount}개</span>
-        <span class="price">${priceDisplay}</span>
+        <span class="price">${formatPrice(lineTotal)}</span>
+      </div>
+      <div class="product-sub">
+        <span class="unit">단가: ${formatPrice(unitPrice)}</span>
       </div>
     </div>
   `;
@@ -68,13 +91,13 @@ function calculateTotalAmount(orderItems) {
 
   const item = orderItems[0];
 
-  // 우선순위: priceRaw(숫자) → price(문자열) → 0
-  let productPrice = 0;
-  if (typeof item.priceRaw === 'number' && !isNaN(item.priceRaw)) {
-    productPrice = item.priceRaw;
-  } else if (typeof item.price === 'string') {
-    productPrice = parsePrice(item.price);
-  }
+  const qtyCount = typeof item.quantityCount === 'number' && item.quantityCount > 0 ? item.quantityCount : 1;
+  const unitPrice = (typeof item.unitPrice === 'number' && !isNaN(item.unitPrice))
+    ? item.unitPrice
+    : parsePrice(item.price);
+  const productPrice = (typeof item.priceRaw === 'number' && !isNaN(item.priceRaw))
+    ? item.priceRaw
+    : (unitPrice * qtyCount);
 
   const deliveryFee = 3000; // 배송비 고정
   const totalAmount = productPrice + deliveryFee;
@@ -87,12 +110,12 @@ function calculateTotalAmount(orderItems) {
 
 // 가격 파싱 (문자열에서 숫자 추출)
 function parsePrice(priceString) {
-  return parseInt(String(priceString).replace(/[^0-9]/g, ''), 10) || 0;
+  return parseInt(String(priceString || '').replace(/[^0-9]/g, ''), 10) || 0;
 }
 
 // 가격 포맷팅
 function formatPrice(price) {
-  return (Number(price) || 0).toLocaleString() + '원';
+  return (Number(price) || 0).toLocaleString('ko-KR') + '원';
 }
 
 // 이벤트 리스너 설정
@@ -218,7 +241,7 @@ function validateForm() {
 
 // 주문 데이터 수집
 function collectOrderData() {
-  const currentOrder = JSON.parse(localStorage.getItem('currentOrder'));
+  const currentOrder = safeGetCurrentOrder();
 
   return {
     items: currentOrder,
@@ -249,29 +272,64 @@ function processOrderRequest(orderData) {
   setTimeout(() => {
     handleOrderSuccess(orderData);
     orderBtn.innerHTML = originalText;
-  }, 1200);
+  }, 1000);
 }
 
-// 주문 성공 처리
+// 주문 성공 처리 → 사용자별 주문히스토리에 저장 후 /orderhistory 이동
 function handleOrderSuccess(orderData) {
-  const orderNumber = 'ORD' + Date.now();
+  const orderNumber = 'ORD-' + new Date().toISOString().replace(/[-:TZ.]/g, '').slice(0,14);
+  const nowISO = new Date().toISOString();
 
-  const orderHistory = JSON.parse(localStorage.getItem('orderHistory')) || [];
-  orderHistory.unshift({
-    orderNumber: orderNumber,
-    ...orderData,
-    status: '주문완료',
-    orderDate: new Date().toLocaleDateString()
+  // currentOrder(아이템) → orderhistory 스키마로 변환
+  const items = (orderData.items || []).map(it => {
+    const qty = typeof it.quantityCount === 'number' && it.quantityCount > 0 ? it.quantityCount : 1;
+    const lineTotal = (typeof it.priceRaw === 'number' && !isNaN(it.priceRaw))
+      ? it.priceRaw
+      : (Number(it.unitPrice || 0) * qty);
+
+    return {
+      id: it.productId || it.id || null,       // 재주문 등에 사용
+      name: it.name || '상품',
+      image: it.image || '/images/default-product.jpg',
+      quantity: qty,                            // 숫자 (재주문 계산용)
+      unit: '개',                               // 표시용 기본 단위
+      optionText: it.optionText || '',          // 옵션(예: 2kg)
+      price: lineTotal                          // 라인 합계
+    };
   });
-  localStorage.setItem('orderHistory', JSON.stringify(orderHistory));
 
+  const totalAmount = items.reduce((sum, i) => sum + (Number(i.price) || 0), 0);
+  const shippingFee = 3000;
+  const finalAmount = totalAmount + shippingFee;
+
+  const newOrder = {
+    id: orderNumber,
+    date: nowISO,
+    status: 'preparing',   // 기본값: 준비중
+    items,
+    totalAmount,
+    shippingFee,
+    finalAmount
+  };
+
+  // 사용자별 key
+  const userId = (typeof window.__USER_ID__ !== 'undefined' && window.__USER_ID__ != null)
+    ? String(window.__USER_ID__)
+    : 'guest';
+  const key = `orderHistory:${userId}`;
+
+  const history = JSON.parse(localStorage.getItem(key) || '[]');
+  history.unshift(newOrder);
+  localStorage.setItem(key, JSON.stringify(history));
+
+  // 장바구니/현재 주문 비우기
   localStorage.removeItem('currentOrder');
 
-  showMessage('주문이 완료되었습니다!', 'success');
+  showMessage('주문이 완료되었습니다! 주문내역으로 이동합니다.', 'success');
 
   setTimeout(() => {
-    window.location.href = `/orderdetails?id=${orderNumber}`;
-  }, 1200);
+    window.location.href = `/orderhistory?from=checkout`;
+  }, 800);
 }
 
 // 카카오 우편번호 API 관련
