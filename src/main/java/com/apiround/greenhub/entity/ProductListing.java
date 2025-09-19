@@ -17,7 +17,6 @@ public class ProductListing {
     @Column(name = "listing_id")
     private Integer listingId;
 
-    // ✔️ 관계 말고 정수 컬럼로 사용 (컨트롤러/레포가 이렇게 쓰고 있음)
     @Column(name = "product_id", nullable = false)
     private Integer productId;
 
@@ -48,7 +47,6 @@ public class ProductListing {
     @Column(name = "stock_qty", precision = 12, scale = 2)
     private BigDecimal stockQty;
 
-    // ✔️ DB: enum('ACTIVE','PAUSED','SOLDOUT')
     public enum Status { ACTIVE, PAUSED, SOLDOUT }
 
     @Enumerated(EnumType.STRING)

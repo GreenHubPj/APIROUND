@@ -8,7 +8,51 @@ document.addEventListener('DOMContentLoaded', function() {
   setupEventListeners();
 });
 
-// 페이지 초기화
+// ===== 공통 유틸 =====
+function parsePrice(priceString) {
+  return parseInt(String(priceString || '').replace(/[^0-9]/g, ''), 10) || 0;
+}
+function formatPrice(price) {
+  return (Number(price) || 0).toLocaleString('ko-KR') + '원';
+}
+function showMessage(message, type) {
+  const existingMessage = document.querySelector('.buying-message');
+  if (existingMessage) existingMessage.remove();
+
+  const messageDiv = document.createElement('div');
+  messageDiv.className = `buying-message ${type}`;
+  messageDiv.textContent = message;
+
+  messageDiv.style.cssText = `
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    padding: 15px 25px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    transition: all 0.3s ease;
+  `;
+
+  switch (type) {
+    case 'success':
+      messageDiv.style.background = '#d4edda'; messageDiv.style.color = '#155724'; messageDiv.style.border = '1px solid #c3e6cb'; break;
+    case 'warning':
+      messageDiv.style.background = '#fff3cd'; messageDiv.style.color = '#856404'; messageDiv.style.border = '1px solid #ffeaa7'; break;
+    case 'error':
+      messageDiv.style.background = '#f8d7da'; messageDiv.style.color = '#721c24'; messageDiv.style.border = '1px solid #f5c6cb'; break;
+    default:
+      messageDiv.style.background = '#d1ecf1'; messageDiv.style.color = '#0c5460'; messageDiv.style.border = '1px solid #bee5eb'; break;
+  }
+
+  document.body.appendChild(messageDiv);
+  setTimeout(() => { if (messageDiv.parentNode) messageDiv.remove(); }, 3000);
+}
+
+// ===== 페이지 초기화 =====
 function initializeBuyingPage() {
   const currentOrder = safeGetCurrentOrder();
 
@@ -36,7 +80,7 @@ function safeGetCurrentOrder() {
   }
 }
 
-// 주문 상품 정보 표시
+// ===== 화면 표시 =====
 function displayOrderItems(orderItems) {
   const productItemContainer = document.getElementById('orderProductItem');
   if (!productItemContainer) return;
@@ -90,7 +134,6 @@ function calculateTotalAmount(orderItems) {
   if (!orderItems || orderItems.length === 0) return;
 
   const item = orderItems[0];
-
   const qtyCount = typeof item.quantityCount === 'number' && item.quantityCount > 0 ? item.quantityCount : 1;
   const unitPrice = (typeof item.unitPrice === 'number' && !isNaN(item.unitPrice))
     ? item.unitPrice
@@ -99,7 +142,7 @@ function calculateTotalAmount(orderItems) {
     ? item.priceRaw
     : (unitPrice * qtyCount);
 
-  const deliveryFee = 3000; // 배송비 고정
+  const deliveryFee = 3000;
   const totalAmount = productPrice + deliveryFee;
 
   document.getElementById('productAmount').textContent = formatPrice(productPrice);
@@ -108,23 +151,12 @@ function calculateTotalAmount(orderItems) {
   document.getElementById('orderAmount').textContent = formatPrice(totalAmount);
 }
 
-// 가격 파싱 (문자열에서 숫자 추출)
-function parsePrice(priceString) {
-  return parseInt(String(priceString || '').replace(/[^0-9]/g, ''), 10) || 0;
-}
-
-// 가격 포맷팅
-function formatPrice(price) {
-  return (Number(price) || 0).toLocaleString('ko-KR') + '원';
-}
-
-// 이벤트 리스너 설정
+// ===== 폼 검증/UI =====
 function setupEventListeners() {
   const form = document.querySelector('.buying-content');
   if (!form) return;
 
   const inputs = form.querySelectorAll('input[required], select[required]');
-
   inputs.forEach(input => {
     input.addEventListener('blur', validateField);
     input.addEventListener('input', clearFieldError);
@@ -136,7 +168,6 @@ function setupEventListeners() {
   updateOrderButton();
 }
 
-// 필드 유효성 검사
 function validateField(event) {
   const field = event.target;
   const value = String(field.value || '').trim();
@@ -159,7 +190,6 @@ function validateField(event) {
   return true;
 }
 
-// 필드 에러 표시
 function showFieldError(field, message) {
   field.style.borderColor = '#dc3545';
 
@@ -173,7 +203,6 @@ function showFieldError(field, message) {
   field.parentNode.appendChild(errorDiv);
 }
 
-// 필드 에러 제거
 function clearFieldError(event) {
   const field = event.target;
   field.style.borderColor = '#e1e8ed';
@@ -181,7 +210,6 @@ function clearFieldError(event) {
   if (errorDiv) errorDiv.remove();
 }
 
-// 주문 버튼 상태 업데이트
 function updateOrderButton() {
   const orderBtn = document.getElementById('orderBtn');
   if (!orderBtn) return;
@@ -209,18 +237,7 @@ function updateOrderButton() {
   }
 }
 
-// 주문 처리
-function processOrder() {
-  if (!validateForm()) {
-    showMessage('입력 정보를 확인해주세요.', 'warning');
-    return;
-  }
-
-  const orderData = collectOrderData();
-  processOrderRequest(orderData);
-}
-
-// 폼 유효성 검사
+// ===== 주문 처리 =====
 function validateForm() {
   const requiredFields = ['recipientName', 'recipientPhone', 'deliveryAddress'];
   let isValid = true;
@@ -239,110 +256,104 @@ function validateForm() {
   return isValid;
 }
 
-// 주문 데이터 수집
 function collectOrderData() {
-  const currentOrder = safeGetCurrentOrder();
+  const currentOrder = safeGetCurrentOrder() || [];
+
+  // payload(items)는 서버 DTO(CheckoutRequest.Item)에 맞춰 구성
+  const itemsPayload = currentOrder.map(it => {
+    const count = (typeof it.quantityCount === 'number' && it.quantityCount > 0) ? it.quantityCount : 1;
+    const unitPrice = (typeof it.unitPrice === 'number' && !isNaN(it.unitPrice))
+      ? it.unitPrice
+      : parsePrice(it.price);
+
+    return {
+      productId: it.productId || it.id || null,       // 숫자
+      listingId: it.listingId || null,                // 없으면 null
+      optionId: (typeof it.optionId === 'number') ? it.optionId : null, // **문자 넣지 마세요**
+      optionLabel: (it.optionText || it.quantity || '').trim() || null, // 예: "2kg"
+      count: count,                                   // 수량(숫자)
+      unitPrice: unitPrice,                           // 단가(숫자)
+      itemName: it.name || ''                         // 스냅샷 이름(선택)
+    };
+  });
 
   return {
-    items: currentOrder,
+    items: itemsPayload,
     recipient: {
       name: document.getElementById('recipientName').value,
       phone: document.getElementById('recipientPhone').value,
-      address: document.getElementById('deliveryAddress').value,
-      detailAddress: document.getElementById('detailAddress').value,
-      memo: document.getElementById('deliveryMemo').value
+      zipcode: document.getElementById('postcode').value || '',
+      address1: document.getElementById('deliveryAddress').value || '',
+      address2: document.getElementById('detailAddress').value || '',
+      memo: document.getElementById('deliveryMemo').value || ''
     },
     payment: {
       method: document.querySelector('input[name="paymentMethod"]:checked').value
-    },
-    totalAmount: parsePrice(document.getElementById('totalAmount').textContent),
-    orderDate: new Date().toISOString()
+    }
   };
 }
 
-// 주문 요청 처리(데모)
 function processOrderRequest(orderData) {
-  console.log('주문 데이터:', orderData);
+  console.log('주문 데이터(전송 전):', orderData);
 
   const orderBtn = document.getElementById('orderBtn');
   const originalText = orderBtn.innerHTML;
   orderBtn.innerHTML = '<span class="order-icon">⏳</span><span class="order-text">처리 중...</span>';
   orderBtn.disabled = true;
 
-  setTimeout(() => {
-    handleOrderSuccess(orderData);
-    orderBtn.innerHTML = originalText;
-  }, 1000);
+  fetch('/orders/checkout', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(orderData)
+  })
+    .then(async (res) => {
+      if (!res.ok) {
+        const text = await res.text().catch(() => '');
+        if (res.status === 401) {
+          // 미로그인: 로그인 페이지로 유도
+          showMessage('로그인이 필요합니다. 로그인 페이지로 이동합니다.', 'warning');
+          setTimeout(() => { window.location.href = '/login'; }, 800);
+          throw new Error('UNAUTHORIZED');
+        }
+        throw new Error(text || '주문 생성 실패');
+      }
+      return res.json();
+    })
+    .then(data => {
+      console.log('주문 생성 응답:', data);
+      localStorage.removeItem('currentOrder');
+      showMessage('주문이 완료되었습니다! 주문내역으로 이동합니다.', 'success');
+      setTimeout(() => {
+        window.location.href = (data && data.redirect) ? data.redirect : '/orderhistory';
+      }, 600);
+    })
+    .catch(err => {
+      console.error('Error:', err);
+      if (err.message !== 'UNAUTHORIZED') {
+        showMessage('주문 생성에 실패했습니다. 잠시 후 다시 시도해주세요.', 'error');
+      }
+    })
+    .finally(() => {
+      orderBtn.innerHTML = originalText;
+      orderBtn.disabled = false;
+    });
 }
 
-// 주문 성공 처리 → 사용자별 주문히스토리에 저장 후 /orderhistory 이동
-function handleOrderSuccess(orderData) {
-  const orderNumber = 'ORD-' + new Date().toISOString().replace(/[-:TZ.]/g, '').slice(0,14);
-  const nowISO = new Date().toISOString();
 
-  // currentOrder(아이템) → orderhistory 스키마로 변환
-  const items = (orderData.items || []).map(it => {
-    const qty = typeof it.quantityCount === 'number' && it.quantityCount > 0 ? it.quantityCount : 1;
-    const lineTotal = (typeof it.priceRaw === 'number' && !isNaN(it.priceRaw))
-      ? it.priceRaw
-      : (Number(it.unitPrice || 0) * qty);
-
-    return {
-      id: it.productId || it.id || null,       // 재주문 등에 사용
-      name: it.name || '상품',
-      image: it.image || '/images/default-product.jpg',
-      quantity: qty,                            // 숫자 (재주문 계산용)
-      unit: '개',                               // 표시용 기본 단위
-      optionText: it.optionText || '',          // 옵션(예: 2kg)
-      price: lineTotal                          // 라인 합계
-    };
-  });
-
-  const totalAmount = items.reduce((sum, i) => sum + (Number(i.price) || 0), 0);
-  const shippingFee = 3000;
-  const finalAmount = totalAmount + shippingFee;
-
-  const newOrder = {
-    id: orderNumber,
-    date: nowISO,
-    status: 'preparing',   // 기본값: 준비중
-    items,
-    totalAmount,
-    shippingFee,
-    finalAmount
-  };
-
-  // 사용자별 key
-  const userId = (typeof window.__USER_ID__ !== 'undefined' && window.__USER_ID__ != null)
-    ? String(window.__USER_ID__)
-    : 'guest';
-  const key = `orderHistory:${userId}`;
-
-  const history = JSON.parse(localStorage.getItem(key) || '[]');
-  history.unshift(newOrder);
-  localStorage.setItem(key, JSON.stringify(history));
-
-  // 장바구니/현재 주문 비우기
-  localStorage.removeItem('currentOrder');
-
-  showMessage('주문이 완료되었습니다! 주문내역으로 이동합니다.', 'success');
-
-  setTimeout(() => {
-    window.location.href = `/orderhistory?from=checkout`;
-  }, 800);
+// === 외부에서 호출되는 주문 처리 진입점 ===
+function processOrder() {
+  if (!validateForm()) {
+    showMessage('입력 정보를 확인해주세요.', 'warning');
+    return;
+  }
+  const orderData = collectOrderData();
+  processOrderRequest(orderData);
 }
 
 // 카카오 우편번호 API 관련
 let element_wrap;
-
-function searchAddress() {
-  sample3_execDaumPostcode();
-}
-
-function foldDaumPostcode() {
-  if (element_wrap) element_wrap.style.display = 'none';
-}
-
+function searchAddress() { sample3_execDaumPostcode(); }
+function foldDaumPostcode() { if (element_wrap) element_wrap.style.display = 'none'; }
 function sample3_execDaumPostcode() {
   element_wrap = document.getElementById('wrap');
   if (!element_wrap) return;
@@ -386,42 +397,4 @@ function sample3_execDaumPostcode() {
 function goBack() {
   if (window.history.length > 1) window.history.back();
   else window.location.href = '/';
-}
-
-// 메시지 표시 함수
-function showMessage(message, type) {
-  const existingMessage = document.querySelector('.buying-message');
-  if (existingMessage) existingMessage.remove();
-
-  const messageDiv = document.createElement('div');
-  messageDiv.className = `buying-message ${type}`;
-  messageDiv.textContent = message;
-
-  messageDiv.style.cssText = `
-    position: fixed;
-    top: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 1000;
-    padding: 15px 25px;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 600;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    transition: all 0.3s ease;
-  `;
-
-  switch (type) {
-    case 'success':
-      messageDiv.style.background = '#d4edda'; messageDiv.style.color = '#155724'; messageDiv.style.border = '1px solid #c3e6cb'; break;
-    case 'warning':
-      messageDiv.style.background = '#fff3cd'; messageDiv.style.color = '#856404'; messageDiv.style.border = '1px solid #ffeaa7'; break;
-    case 'error':
-      messageDiv.style.background = '#f8d7da'; messageDiv.style.color = '#721c24'; messageDiv.style.border = '1px solid #f5c6cb'; break;
-    case 'info':
-      messageDiv.style.background = '#d1ecf1'; messageDiv.style.color = '#0c5460'; messageDiv.style.border = '1px solid #bee5eb'; break;
-  }
-
-  document.body.appendChild(messageDiv);
-  setTimeout(() => { if (messageDiv.parentNode) messageDiv.remove(); }, 3000);
 }

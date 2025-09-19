@@ -1,13 +1,5 @@
-<!DOCTYPE html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8" />
-    <title>Header Fragment</title>
-    <link rel="stylesheet" th:href="@{/css/header.css}" />
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
-</head>
-<body>
-<header class="header" th:fragment="header">
+<!-- templates/common/header.html -->
+<header class="header" th:fragment="header" xmlns:th="http://www.thymeleaf.org">
     <div class="container">
         <!-- 브랜드 로고 -->
         <div class="nav-brand">
@@ -26,48 +18,34 @@
             <a th:href="@{/event}"    class="nav-link">이벤트</a>
         </nav>
 
-        <!-- 비로그인 상태 -->
-        <div class="nav-auth"
-             th:if="${currentUser == null and currentCompany == null}">
+        <!-- 비로그인 -->
+        <div class="nav-auth" th:if="${currentUser == null and currentCompany == null}">
             <a th:href="@{/login}"  class="btn-login">로그인</a>
             <a th:href="@{/signup}" class="btn-signup">회원가입</a>
         </div>
 
-        <!-- 업체 로그인 상태 -->
-        <div class="nav-auth"
-             th:if="${currentCompany != null}">
-            <span class="welcome"
-                  th:text="${(currentCompany.companyName != null ? currentCompany.companyName : '업체') + ' 님'}">
-                업체 님
-            </span>
+        <!-- 업체 로그인 -->
+        <div class="nav-auth" th:if="${currentCompany != null}">
+      <span class="welcome"
+            th:text="${(currentCompany.companyName != null ? currentCompany.companyName : '업체') + ' 님'}">
+        업체 님
+      </span>
             <a th:href="@{/mypage-company}" class="btn-mypage">업체 마이페이지</a>
-
-            <!-- 컨트롤러가 /logout POST도 받도록 구현됨 -->
             <form th:action="@{/logout}" method="post" style="display:inline;">
-                <!-- 시큐리티 사용 시 CSRF 토큰 추가
-                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-                -->
                 <button type="submit" class="btn-logout">로그아웃</button>
             </form>
         </div>
 
-        <!-- 개인 회원 로그인 상태 -->
-        <div class="nav-auth"
-             th:if="${currentCompany == null and currentUser != null}">
-            <span class="welcome"
-                  th:text="${(currentUser.name != null ? currentUser.name : '회원') + ' 님'}">
-                회원 님
-            </span>
+        <!-- 개인 로그인 -->
+        <div class="nav-auth" th:if="${currentCompany == null and currentUser != null}">
+      <span class="welcome"
+            th:text="${(currentUser.name != null ? currentUser.name : '회원') + ' 님'}">
+        회원 님
+      </span>
             <a th:href="@{/mypage}" class="btn-mypage">마이페이지</a>
-
             <form th:action="@{/logout}" method="post" style="display:inline;">
-                <!-- 시큐리티 사용 시 CSRF 토큰 추가
-                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-                -->
                 <button type="submit" class="btn-logout">로그아웃</button>
             </form>
         </div>
     </div>
 </header>
-</body>
-</html>

@@ -1,28 +1,21 @@
 package com.apiround.greenhub.controller;
 
 import com.apiround.greenhub.entity.Recipe;
-import com.apiround.greenhub.service.RecipeService;
-import jakarta.servlet.http.HttpSession;
-import org.springframework.beans.factory.annotation.Autowired;
-import com.apiround.greenhub.entity.Recipe;
 import com.apiround.greenhub.entity.item.Region;
 import com.apiround.greenhub.service.RecipeService;
 import com.apiround.greenhub.service.item.SeasonalService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.http.ResponseEntity;
+
+import jakarta.servlet.http.HttpSession;
+import java.util.List;
 import java.util.Map;
-
-import java.util.List;
-
-import com.apiround.greenhub.service.item.RegionService;
-
-import java.util.List;
 
 @Controller
 @RequiredArgsConstructor
@@ -41,7 +34,7 @@ public class HomeController {
             System.out.println("랜덤 레시피 API 호출됨");
             Recipe recipe = recipeService.getRandomRecipeForRecommendation();
             System.out.println("레시피 조회 결과: " + (recipe != null ? recipe.getTitle() : "null"));
-            
+
             if (recipe == null) {
                 System.out.println("레시피가 null입니다. 기본 데이터 반환");
                 // 기본 레시피 데이터 반환
@@ -59,7 +52,7 @@ public class HomeController {
             // 응답 데이터 구성
             List<String> ingredients = getRecipeIngredients(recipe.getRecipeId());
             System.out.println("재료 목록: " + ingredients);
-            
+
             Map<String, Object> response = Map.of(
                     "name", recipe.getTitle() != null ? recipe.getTitle() : "맛있는 요리",
                     "region", "전국 지역 특산품",
@@ -69,7 +62,6 @@ public class HomeController {
                     "imageUrl", recipe.getHeroImageUrl() != null ? recipe.getHeroImageUrl() : "/images/default.jpg"
             );
 
-            System.out.println("최종 응답: " + response);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             System.out.println("API 오류: " + e.getMessage());
@@ -103,11 +95,6 @@ public class HomeController {
     @GetMapping("/find-password")
     public String findPassword() { return "find-password"; }
 
-    // /mypage-companyCompanyMypageController
-    // @GetMapping("/mypage-company")
-    // public String mypageCompany() { return "mypage_company"; }
-
-
     @GetMapping("/myrecipe")
     public String myrecipe(HttpSession session, Model model) {
         Integer userId = (Integer) session.getAttribute("loginUserId");
@@ -134,8 +121,7 @@ public class HomeController {
     @GetMapping("/newrecipe")
     public String newrecipe() { return "newrecipe"; }
 
-    @GetMapping("/orderhistory")
-    public String orderhistory() { return "orderhistory"; }
+
 
     @GetMapping("/myrecipe-detail")
     public String myrecipeDetail(@RequestParam(required = false) String id,
@@ -161,9 +147,6 @@ public class HomeController {
 
     @GetMapping("/refund")
     public String refund() { return "refund"; }
-
-    @GetMapping("/buying")
-    public String buying() { return "buying"; }
 
     @GetMapping("/reviewlist")
     public String reviewlist() { return "reviewlist"; }
