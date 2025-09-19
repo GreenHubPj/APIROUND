@@ -193,6 +193,7 @@ function renderPriceOptions() {
   priceOptionsContainer.innerHTML = '';
   priceSelect.innerHTML = '<option value="">가격 옵션을 선택하세요</option>';
 
+   console.log('priceOptions',currentProduct.priceOptions)
   (currentProduct.priceOptions || []).forEach((option, index) => {
     // 카드
     const optionElement = document.createElement('div');
@@ -219,12 +220,13 @@ function renderPriceOptions() {
 
     //옵션이 1개면 자동선택 처리
     if ((currentProduct.priceOptions || []).length === 1) {
-    const onlyOption = currentProduct.price0ptions[®];
+    console.log('조건문 실행됨')
+    const onlyOption = currentProduct.priceOptions[0];
     selectedPriceOption = onlyOption;
     // 카드와 select도 동기화
-    const card = document. querySelector (*[data-option-id="${onlyOption.id}"]*);
+    const card = document. querySelector (`[data-option-id="${onlyOption.id}"]`);
     if (card) card.classList.add('active');
-    const priceselect = document.getElementById('priceOptionSelect');
+    const priceSelect = document.getElementById('priceOptionSelect');
     if (priceSelect) priceSelect.value = onlyOption.id;
     updateTotalPrice();
     }
