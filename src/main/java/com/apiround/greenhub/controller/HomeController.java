@@ -10,7 +10,6 @@ import com.apiround.greenhub.service.RecipeService;
 import com.apiround.greenhub.service.item.SeasonalService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,9 +20,9 @@ import java.util.Map;
 
 import java.util.List;
 
-import jakarta.servlet.http.HttpSession;
+import com.apiround.greenhub.service.item.RegionService;
+
 import java.util.List;
-import java.util.Map;
 
 @Controller
 @RequiredArgsConstructor
@@ -47,12 +46,12 @@ public class HomeController {
                 System.out.println("레시피가 null입니다. 기본 데이터 반환");
                 // 기본 레시피 데이터 반환
                 Map<String, Object> defaultResponse = Map.of(
-                    "name", "김치찌개",
-                    "region", "전국 지역 특산품",
-                    "ingredients", List.of("김치", "돼지고기", "두부", "대파"),
-                    "description", "맛있는 김치찌개입니다.",
-                    "recipeId", 1,
-                    "imageUrl", "/images/kimchi.jpg"
+                        "name", "김치찌개",
+                        "region", "전국 지역 특산품",
+                        "ingredients", List.of("김치", "돼지고기", "두부", "대파"),
+                        "description", "맛있는 김치찌개입니다.",
+                        "recipeId", 1,
+                        "imageUrl", "/images/kimchi.jpg"
                 );
                 return ResponseEntity.ok(defaultResponse);
             }
@@ -62,12 +61,12 @@ public class HomeController {
             System.out.println("재료 목록: " + ingredients);
 
             Map<String, Object> response = Map.of(
-                "name", recipe.getTitle() != null ? recipe.getTitle() : "맛있는 요리",
-                "region", "전국 지역 특산품", // 기본값 또는 추후 지역 정보 연동
-                "ingredients", getRecipeIngredients(recipe.getRecipeId().intValue()),
-                "description", recipe.getSummary() != null ? recipe.getSummary() : "특별한 레시피입니다.",
-                "recipeId", recipe.getRecipeId(),
-                "imageUrl", recipe.getHeroImageUrl()
+                    "name", recipe.getTitle() != null ? recipe.getTitle() : "맛있는 요리",
+                    "region", "전국 지역 특산품",
+                    "ingredients", ingredients,
+                    "description", recipe.getSummary() != null ? recipe.getSummary() : "특별한 레시피입니다.",
+                    "recipeId", recipe.getRecipeId(),
+                    "imageUrl", recipe.getHeroImageUrl() != null ? recipe.getHeroImageUrl() : "/images/default.jpg"
             );
 
             System.out.println("최종 응답: " + response);
@@ -87,12 +86,6 @@ public class HomeController {
         List<Recipe> randomRecipes = recipeService.getRandomRecipesForMain();
         model.addAttribute("randomRecipes", randomRecipes);
         return "main";
-    }
-
-    /** /main → 메인으로 통합 */
-    @GetMapping("/main")
-    public String main() {
-        return "redirect:/";
     }
 
     @GetMapping("/seasonal")
@@ -124,7 +117,7 @@ public class HomeController {
         model.addAttribute("userId", userId);
         return "myrecipe";
     }
-    
+
     /** 레시피 재료 목록을 문자열 배열로 반환 */
     private List<String> getRecipeIngredients(Integer recipeId) {
         try {
@@ -141,8 +134,7 @@ public class HomeController {
     @GetMapping("/newrecipe")
     public String newrecipe() { return "newrecipe"; }
 
-    //@GetMapping("/orderhistory")
-    //public String orderhistory() { return "orderhistory"; }
+
 
     @GetMapping("/myrecipe-detail")
     public String myrecipeDetail(@RequestParam(required = false) String id,
@@ -168,8 +160,6 @@ public class HomeController {
 
     @GetMapping("/refund")
     public String refund() { return "refund"; }
-
-    // ⛔ /buying 매핑은 BuyingController가 담당합니다. (중복 방지)
 
     @GetMapping("/reviewlist")
     public String reviewlist() { return "reviewlist"; }
