@@ -1,3 +1,4 @@
+// src/main/java/com/apiround/greenhub/repository/OrderRepository.java
 package com.apiround.greenhub.repository;
 
 import com.apiround.greenhub.entity.Order;
@@ -22,9 +23,6 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
     """)
     List<Order> findActiveByUser(@Param("userId") Integer userId);
 
-    // ✅ 주문 상세용 (orderNumber로 조회)
-    Optional<Order> findByOrderNumberAndUserIdAndIsDeletedFalse(String orderNumber, Integer userId);
-
-    // ✅ 주문 상세용 (orderId로 조회)
-    Optional<Order> findByOrderIdAndUserIdAndIsDeletedFalse(Integer orderId, Integer userId);
+    // ✅ 추가: 주문번호로 단건 조회 (VendorOrderServiceImpl, OrderServiceImpl에서 사용)
+    Optional<Order> findByOrderNumber(String orderNumber);
 }
