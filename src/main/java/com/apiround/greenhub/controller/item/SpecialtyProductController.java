@@ -38,12 +38,6 @@ public class SpecialtyProductController {
             products = safeList(regionService.getActiveProductsOrderByProductIdDesc());
         }
 
-        // 디버깅을 위한 로그 추가
-        System.out.println("Region 페이지 상품 수: " + products.size());
-        for (Region product : products) {
-            System.out.println("상품 ID: " + product.getProductId() + ", 상품명: " + product.getProductName());
-        }
-
         model.addAttribute("products", products);
         model.addAttribute("selectedRegion", region);
         return "region";

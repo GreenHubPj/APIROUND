@@ -34,9 +34,11 @@ public class ListingServiceImpl implements ListingService {
     public Integer createListingFromSpecialty(
             Integer productId,
             Integer sellerId,
+            String productType,
             String title,
             String description,
             String thumbnailUrl,
+            String regionText,
             String harvestSeason
     ) {
         if (productId == null) throw new IllegalArgumentException("productId가 없습니다.");
@@ -47,7 +49,7 @@ public class ListingServiceImpl implements ListingService {
 
         // 최저가 활성 옵션
         Optional<ProductPriceOption> cheapest =
-                optionRepo.findFirstByProductIdAndIsActiveTrueOrderByPriceAscOptionIdAsc(productId);
+                optionRepo.findTop1ByProductIdAndIsActiveTrueOrderByPriceAscOptionIdAsc(productId);
 
         if (cheapest.isEmpty()) {
             log.warn("활성 옵션이 없어 listing 생성을 건너뜁니다. productId={}", productId);
@@ -64,12 +66,21 @@ public class ListingServiceImpl implements ListingService {
         listing.setSellerId(sellerId);
         listing.setProductId(productId);
         listing.setTitle((title == null || title.isBlank()) ? product.getProductName() : title);
+        listing.setProductType(productType != null ? productType : product.getProductType());
+        listing.setRegionText(regionText != null ? regionText : product.getRegionText());
         listing.setDescription((description == null) ? product.getDescription() : description);
         listing.setThumbnailUrl((thumbnailUrl == null || thumbnailUrl.isBlank()) ? product.getThumbnailUrl() : thumbnailUrl);
 
         listing.setUnitCode(opt.getUnit());
         listing.setPackSize(opt.getQuantity() != null ? opt.getQuantity().stripTrailingZeros().toPlainString() : null);
-        listing.setPriceValue(opt.getPrice() == null ? null : BigDecimal.valueOf(opt.getPrice()).setScale(2));
+
+        if (opt.getPrice() != null) {
+            listing.setPriceValue(BigDecimal.valueOf(opt.getPrice())); // listing.priceValue는 DB에서 DECIMAL(12,2)
+        } else {
+            listing.setPriceValue(null);
+        }
+
+
         listing.setCurrency("KRW");
         listing.setStockQty(BigDecimal.ZERO);
         listing.setStatus(Status.ACTIVE);
@@ -85,6 +96,7 @@ public class ListingServiceImpl implements ListingService {
         return saved.getListingId();
     }
 
+
     @Override
     public Integer saveListing(ListingDto form) {
         if (form.getSellerId() == null) throw new IllegalArgumentException("sellerId가 없습니다.");
@@ -99,9 +111,12 @@ public class ListingServiceImpl implements ListingService {
         listing.setSellerId(form.getSellerId());
         listing.setProductId(form.getProductId());
         listing.setTitle(form.getTitle());
+        listing.setProductType(form.getProductType());
+        listing.setRegionText(form.getRegionText());
         listing.setDescription(form.getDescription());
+        listing.setHarvestSeason(form.getHarvestSeason());
 
-        // DTO에 없는 필드는 건드리지 않음 (thumbnailUrl, harvestSeason 등)
+        // DTO에 없는 필드는 건드리지 않음 (thumbnailUrl 등)
         listing.setUnitCode(form.getUnitCode());
         listing.setPackSize(form.getPackSize());
         listing.setPriceValue(form.getPriceValue());
@@ -111,15 +126,13 @@ public class ListingServiceImpl implements ListingService {
         // status가 String일 수 있으므로 안전 변환
         Status status = Status.ACTIVE;
         if (form.getStatus() != null) {
-            String s = form.getStatus().toString().trim().toUpperCase();
-            switch (s) {
-                case "PAUSED":   status = Status.PAUSED;   break;
-                case "SOLDOUT":  status = Status.SOLDOUT;  break;
+            String s = form.getStatus().trim().toUpperCase();
+            status = switch (s) {
+                case "PAUSED"   -> Status.INACTIVE;
                 // 혹시 "INACTIVE"/"STOPPED" 등 과거 값이 오면 매핑
-                case "INACTIVE": status = Status.PAUSED;   break;
-                case "STOPPED":  status = Status.SOLDOUT;  break;
-                default:         status = Status.ACTIVE;   break;
-            }
+                case "INACTIVE" -> Status.INACTIVE;
+                default         -> Status.ACTIVE;
+            };
         }
         listing.setStatus(status);
 
