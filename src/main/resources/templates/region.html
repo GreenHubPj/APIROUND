@@ -34,12 +34,10 @@
                     </div>
                 </div>
             </section>
-
         </div>
     </section>
 
     <section class="content">
-
         <!-- 컨텐츠 영역 -->
         <div class="content-wrapper">
             <!-- 카테고리 필터 -->
@@ -47,77 +45,66 @@
                 <div class="category-filter-container">
                     <h3 class="filter-title">상품 카테고리</h3>
                     <div class="category-buttons">
-                        <button class="category-btn active" data-category="all">
-                            <span>전체</span>
-                        </button>
-                        <button class="category-btn" data-category="농산물">
-                            <span>농산물</span>
-                        </button>
-                        <button class="category-btn" data-category="축산물">
-                            <span>축산물</span>
-                        </button>
-                        <button class="category-btn" data-category="수산물">
-                            <span>수산물</span>
-                        </button>
-                        <button class="category-btn" data-category="가공식품">
-                            <span>가공식품</span>
-                        </button>
+                        <button class="category-btn active" data-category="all"><span>전체</span></button>
+                        <button class="category-btn" data-category="농산물"><span>농산물</span></button>
+                        <button class="category-btn" data-category="축산물"><span>축산물</span></button>
+                        <button class="category-btn" data-category="수산물"><span>수산물</span></button>
+                        <button class="category-btn" data-category="가공식품"><span>가공식품</span></button>
                     </div>
                 </div>
             </section>
 
             <!-- 상품 목록 -->
-             <section class="products-section" id="productsSection">
-                 <!-- 동적 상품 데이터 -->
-                        <div th:each="product : ${products}"
-                        class="product-card"
-                        th:attr="data-region=${product.regionText},
-                        data-product-id=${product.productId},
-                        data-category=${product.productType}"
-                        th:onclick="|location.href='@{/region-detail(id=${product.productId}, region=${product.regionText})}'|"
-                        style="cursor: pointer;">
-                     <div class="product-image">
-                         <img th:src="${product.thumbnailUrl ?: '/images/따봉 트럭.png'}" 
-                              th:alt="${product.productName}"
-                              onerror="this.src='/images/따봉 트럭.png'">
-                         <p class="product-place" th:text="${product.regionText}"></p>
-                     </div>
+            <section class="products-section" id="productsSection">
+                <div th:each="product : ${products}"
+                     class="product-card"
+                     th:attr="data-region=${product.regionText},
+                              data-product-id=${product.productId},
+                              data-category=${product.productType}"
+                     th:onclick="|location.href='@{/region-detail(id=${product.productId}, region=${product.regionText})}'|"
+                     style="cursor: pointer;">
 
-                     <div class="product-content">
-                         <h3 class="product-title" th:text="${product.productName}"></h3>
-                         <div class="product-info">
-                             <div class="title-info">
-                                 <p class="product-description" th:text="${product.description}"></p>
-                             </div>
-                             <div class="product-prices" th:data-product-type="${product.productType}">
-                                 <!-- 가격이 JavaScript로 동적으로 생성됩니다 -->
-                             </div>
-                         </div>
-                     </div>
+                    <div class="product-image">
+                        <img
+                                th:alt="${product.productName}"
+                                th:src="@{/api/products/{id}/thumbnail(id=${product.productId})}"
+                                th:onerror="|this.onerror=null;this.src='@{/images/따봉 트럭.png}'|"
+                                style="width: 100%; height: 200px; object-fit: cover;">
+                        <p class="product-place" th:text="${product.regionText}"></p>
+                    </div>
 
-                     <div class="company-info">
-                         <h4>업체 문의</h4>
-                         <p th:text="${product.companyPhone ?: '053-555-444'}">053-555-444</p>
-                         <p th:text="${product.companyEmail ?: 'monkyeon@naver.com'}">monkyeon@naver.com</p>
-                         <p th:text="${product.companyName ?: '문경이좋아'}">문경이좋아</p>
-                     </div>
-                 </div>
+                    <div class="product-content">
+                        <h3 class="product-title" th:text="${product.productName}"></h3>
+                        <div class="product-info">
+                            <div class="title-info">
+                                <p class="product-description" th:text="${product.description}"></p>
+                            </div>
+                            <div class="product-prices" th:data-product-type="${product.productType}">
+                                <!-- 가격이 JS로 동적 생성 -->
+                            </div>
+                        </div>
+                    </div>
 
-             </section>
+                    <div class="company-info">
+                        <h4>업체 문의</h4>
+                        <p th:text="${product.companyPhone ?: '053-555-444'}">053-555-444</p>
+                        <p th:text="${product.companyEmail ?: 'monkyeon@naver.com'}">monkyeon@naver.com</p>
+                        <p th:text="${product.companyName ?: '문경이좋아'}">문경이좋아</p>
+                    </div>
 
-             <!-- 더보기 버튼 -->
-             <div class="load-more-container">
-                 <button class="load-more-btn" id="loadMoreBtn">더보기</button>
-             </div>
+                </div>
+            </section>
 
+            <!-- 더보기 버튼 -->
+            <div class="load-more-container">
+                <button class="load-more-btn" id="loadMoreBtn">더보기</button>
+            </div>
         </div>
 
         <!-- 지도 섹션 -->
         <aside class="map-section">
             <div class="map-wrap">
                 <img src="/images/svg/한국 지도.svg" alt="한국 지도" class="korea-map" id="koreaMap">
-
-                <!-- 지역 이름 라벨들 -->
                 <div class="region-labels">
                     <span class="region-label seoul-label" data-region="seoul">서울</span>
                     <span class="region-label gyeonggi-label" data-region="gyeonggi">경기도</span>
@@ -150,11 +137,9 @@
                     </button>
                 </div>
             </section>
-    </aside>
+        </aside>
     </section>
 </main>
-
-
 
 <!-- 푸터 include -->
 <div th:replace="common/footer :: footer"></div>

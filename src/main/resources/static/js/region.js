@@ -436,23 +436,77 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (loadMoreBtn) {
         loadMoreBtn.addEventListener('click', function() {
-            
-            // 다음 상품들을 표시
-            const hasMore = showNextProducts();
-
-            // 더보기 버튼 상태 업데이트
-            updateLoadMoreButton();
-            
-            // 더 이상 상품이 없으면 메시지 표시
-            if (!hasMore) {
-                showNoMoreProductsMessage();
-            }
-            
-            // 애니메이션 적용
-            animateVisibleCards();
+            loadMoreProducts();
         });
     } else {
         console.error('더보기 버튼을 찾을 수 없습니다!');
+    }
+
+    // 더 많은 상품 로드 (클라이언트 사이드)
+    function loadMoreProducts() {
+        const visibleCards = [];
+        
+        productCards.forEach(card => {
+            const cardRegion = card.getAttribute('data-region');
+            const cardCategory = card.getAttribute('data-category');
+            const cardTitle = card.querySelector('.product-title').textContent.toLowerCase();
+            const searchTerm = searchInput ? searchInput.value.trim().toLowerCase() : '';
+            
+            let shouldShow = true;
+            
+            // 지역 필터링
+            if (currentRegion !== 'all') {
+                const regionTextElement = card.querySelector('.product-place');
+                const regionText = regionTextElement ? regionTextElement.textContent : '';
+                
+                if (!isRegionMatch(currentRegion, regionText) && cardRegion !== currentRegion) {
+                    shouldShow = false;
+                }
+            }
+            
+            // 카테고리 필터링
+            if (currentCategory !== 'all' && cardCategory !== currentCategory) {
+                shouldShow = false;
+            }
+            
+            // 검색어 필터링
+            if (searchTerm && !cardTitle.includes(searchTerm)) {
+                shouldShow = false;
+            }
+            
+            if (shouldShow) {
+                visibleCards.push(card);
+            }
+        });
+        
+        if (displayedCount < visibleCards.length) {
+            const nextBatch = visibleCards.slice(displayedCount, displayedCount + 5);
+            nextBatch.forEach((card, index) => {
+                // hidden 클래스 제거하여 카드 표시
+                card.classList.remove('hidden');
+                
+                // 애니메이션을 위한 초기 설정
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                
+                // 애니메이션을 위한 지연
+                setTimeout(() => {
+                    card.style.transition = 'all 0.3s ease';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                    
+                    // 애니메이션 완료 후 인라인 스타일 제거
+                    setTimeout(() => {
+                        card.style.opacity = '';
+                        card.style.transform = '';
+                        card.style.transition = '';
+                    }, 300);
+                }, index * 100); // 각 카드마다 100ms씩 지연
+            });
+            
+            displayedCount += nextBatch.length;
+            updateLoadMoreButton();
+        }
     }
 
     // 더 이상 상품이 없을 때 메시지 표시
@@ -557,27 +611,85 @@ document.addEventListener('DOMContentLoaded', function() {
         filterProducts();
     });
 
-function renderProductPrices() {
-  productCards.forEach(card => {
+// 상품 가격 정보를 API로 가져와서 렌더링
+async function renderProductPrices() {
+
+  for (const card of productCards) {
     const priceContainer = card.querySelector('.product-prices');
     const productId = card.getAttribute('data-product-id');
     
-    priceContainer.innerHTML = '';
+    if (!priceContainer || !productId) {
+      continue;
+    }
     
-    // 기본 가격 표시 (API 호출 없이)
-    if (productId) {
-      // 기본 가격 정보 표시
-      let priceHtml = `
+    priceContainer.innerHTML = '<div class="price-loading">가격 정보 로딩중...</div>';
+    
+    try {
+      
+      // 가격 정보 API 호출
+      const response = await fetch(`/api/product-prices/${productId}`);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const priceOptions = await response.json();
+      
+      // 가격 정보 렌더링 (최대 2개까지)
+      if (priceOptions && priceOptions.length > 0) {
+        let priceHtml = '';
+        
+        // 최대 2개까지만 표시
+        const displayPrices = priceOptions.slice(0, 2);
+        
+        displayPrices.forEach((price, index) => {
+          const formattedPrice = price.price ? price.price.toLocaleString() + '원' : '문의';
+          const label = price.quantity && price.unit ? 
+            `${price.quantity}${price.unit}` : 
+            `가격 ${index + 1}`;
+          
+          priceHtml += `
+            <div class="price-item">
+              <span class="price-label">${label}</span>
+              <span class="price-value">${formattedPrice}</span>
+            </div>
+          `;
+        });
+        
+        // 2개 이상의 가격이 있으면 "더보기" 표시
+        if (priceOptions.length > 2) {
+          priceHtml += `
+            <div class="price-more">
+              <span class="more-text">+${priceOptions.length - 2}개 더</span>
+            </div>
+          `;
+        }
+        
+        priceContainer.innerHTML = priceHtml;
+      } else {
+        // 가격 정보가 없는 경우
+        priceContainer.innerHTML = `
+          <div class="price-item">
+            <span class="price-label">가격</span>
+            <span class="price-value">업체 문의</span>
+          </div>
+        `;
+      }
+      
+    } catch (error) {      
+      // 에러 시 기본 가격 정보 표시
+      priceContainer.innerHTML = `
         <div class="price-item">
-          <span class="price-label">기본 가격</span>
-          <span class="price-value">문의</span>
+          <span class="price-label">가격</span>
+          <span class="price-value">업체 문의</span>
         </div>
       `;
-      priceContainer.innerHTML = priceHtml;
-    } else {
-      priceContainer.innerHTML = '<p class="no-price">업체에 문의해주세요</p>';
     }
-  });
+    
+    // API 호출이 너무 빠르면 서버에 부하가 갈 수 있으므로 약간의 지연 추가
+    await new Promise(resolve => setTimeout(resolve, 100));
+  }
+  
 }
 
 // 상품 카드 클릭 이벤트 설정
@@ -610,7 +722,7 @@ function setupProductCardClickEvents() {
     
     filterProducts();
     
-    console.log('지역별 특산품 페이지 초기화 완료');
+
 });
 
 (function () {

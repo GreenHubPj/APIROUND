@@ -22,11 +22,22 @@ public class RegionService {
     /** 같은 지역 랜덤 관련상품 (현재 상품 제외) */
     @Transactional(readOnly = true)
     public List<Region> getRandomRelatedByRegion(String regionText, Integer excludeId, int limit) {
+        // 관련 상품 조회 시작
+        
         if (regionText == null || regionText.isBlank() || limit <= 0) {
             return List.of();
         }
-        List<Object[]> results = regionRepository.findRandomByRegionText(regionText, excludeId, limit);
-        return convertObjectArrayToRegion(results);
+        
+        try {
+            List<Object[]> results = regionRepository.findCombinedProductsByRegionFlexible(regionText, excludeId, limit);
+            List<Region> converted = convertObjectArrayToRegion(results);
+            
+            return converted;
+        } catch (Exception e) {
+            System.err.println("쿼리 실행 오류: " + e.getMessage());
+            e.printStackTrace();
+            return List.of();
+        }
     }
 
     // 모든 특산품 조회 (내림차순 정렬)
@@ -65,7 +76,22 @@ public class RegionService {
         return products;
     }
 
-    // UNION을 사용하여 product_listing과 specialty_product를 조합하여 조회
+    // UNION을 사용하여 product_listing과 specialty_product를 조합하여 조회 (페이지네이션)
+    public List<Region> getCombinedProductsWithUnion(int page, int size) {
+        int offset = page * size;
+        List<Object[]> results = regionRepository.findCombinedProductsWithUnionPaged(offset, size);
+        List<Region> products = convertObjectArrayToRegion(results);
+        
+        // 각 상품에 업체 정보와 가격 옵션 설정
+        for (Region product : products) {
+            setCompanyInfoForProduct(product);
+            setPriceOptionsForProduct(product);
+        }
+        
+        return products;
+    }
+
+    // UNION을 사용하여 product_listing과 specialty_product를 조합하여 조회 (전체)
     public List<Region> getCombinedProductsWithUnion() {
         List<Object[]> results = regionRepository.findCombinedProductsWithUnion();
         List<Region> products = convertObjectArrayToRegion(results);
@@ -141,14 +167,34 @@ public class RegionService {
 
     // 상품에 업체 정보 설정
     private void setCompanyInfoForProduct(Region product) {
-        // 기본값 설정 (실제 데이터가 없을 때 사용)
+        try {
+
+            // product_listing에서 온 상품인 경우에만 실제 업체 정보 조회
+            if ("ACTIVE".equals(product.getStatus()) || "INACTIVE".equals(product.getStatus())) {
+                com.apiround.greenhub.entity.Company company = regionRepository.findCompanyByProductId(product.getProductId());
+                
+                if (company != null) {
+                    product.setCompanyName(company.getCompanyName());
+                    product.setCompanyEmail(company.getEmail());
+                    product.setCompanyPhone(company.getManagerPhone());
+                } else {
+                    setDefaultCompanyInfo(product);
+                }
+            } else {
+                setDefaultCompanyInfo(product);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            setDefaultCompanyInfo(product);
+        }
+    }
+
+    // 기본 업체 정보 설정
+    private void setDefaultCompanyInfo(Region product) {
         product.setCompanyName("문경이좋아");
         product.setCompanyEmail("monkyeon@naver.com");
         product.setCompanyPhone("053-555-444");
-        
-        // TODO: 실제 업체 정보를 ProductListing을 통해 가져오는 로직 추가
-        // 현재는 기본값으로 설정
-        // 추후 ProductListing과 Company를 조인하여 실제 업체 정보를 가져올 수 있음
     }
 
     // 상품의 가격 옵션 조회 (product_listing에서만 가능)
@@ -284,19 +330,29 @@ public class RegionService {
                     .description((String) row[8])    // description
                     .build();
                 
+                // thumbnail_data와 thumbnail_mime 설정 (안전한 타입 체크)
+                if (row.length > 9 && row[9] != null && row[9] instanceof byte[]) {
+                    region.setThumbnailData((byte[]) row[9]);
+                }
+                if (row.length > 10 && row[10] != null && row[10] instanceof String) {
+                    region.setThumbnailMime((String) row[10]);
+                }
                 
-                // thumbnailUrl 처리 - 다양한 형식 지원
-                if (region.getThumbnailUrl() != null && !region.getThumbnailUrl().startsWith("http")) {
-                    String originalUrl = region.getThumbnailUrl();
-                    
-                    if (originalUrl.startsWith("/")) {
-                        // 이미 /로 시작하는 경우 그대로 사용
-                    } else if (originalUrl.startsWith("uploads/")) {
+                // thumbnailUrl 처리 - Base64와 URL 모두 지원
+                String thumbnailUrl = region.getThumbnailUrl();
+                if (thumbnailUrl != null && !thumbnailUrl.trim().isEmpty()) {
+                    if (thumbnailUrl.startsWith("data:image/")) {
+                        // Base64 데이터는 그대로 사용
+                    } else if (thumbnailUrl.startsWith("http")) {
+                        // 외부 URL은 그대로 사용
+                    } else if (thumbnailUrl.startsWith("/")) {
+                        // 절대 경로는 그대로 사용
+                    } else if (thumbnailUrl.startsWith("uploads/")) {
                         // uploads/로 시작하는 경우 / 추가
-                        region.setThumbnailUrl("/" + originalUrl);
+                        region.setThumbnailUrl("/" + thumbnailUrl);
                     } else {
                         // 상대 경로인 경우 /uploads/ 추가
-                        region.setThumbnailUrl("/uploads/" + originalUrl);
+                        region.setThumbnailUrl("/uploads/" + thumbnailUrl);
                     }
                 }
 
