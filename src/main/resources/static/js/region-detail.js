@@ -4,7 +4,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // 서버가 옵션을 넣어줬는지 확인 → 옵션 없으면 버튼/셀렉트 비활성
   const optionsInSelect = document.querySelectorAll('#priceOptionSelect option[value]:not([value=""])').length;
+  console.log('=== 초기화 시점 옵션 확인 ===');
+  console.log('window.__NO_PRICE__:', window.__NO_PRICE__);
+  console.log('optionsInSelect 개수:', optionsInSelect);
+  console.log('priceOptionSelect disabled 상태:', document.getElementById('priceOptionSelect')?.disabled);
+  console.log('priceOptionSelect HTML:', document.getElementById('priceOptionSelect')?.outerHTML);
+  
   if (window.__NO_PRICE__ || optionsInSelect === 0) {
+    console.log('옵션이 없어서 버튼들 비활성화');
     document.getElementById('priceOptionSelect')?.setAttribute('disabled', true);
     document.getElementById('addToCartBtn')?.setAttribute('disabled', true);
     document.getElementById('buyNowBtn')?.setAttribute('disabled', true);
@@ -122,6 +129,12 @@ function getProductFromServer() {
   const harvestSeason = document.getElementById('seasonInfo')?.textContent || '';
   const productId = parseInt(getProductIdFromUrl());
 
+  // 서버에서 전달된 옵션 데이터 확인
+  console.log('=== 서버 옵션 데이터 확인 ===');
+  console.log('priceOptions div 존재:', document.getElementById('priceOptions'));
+  console.log('priceOptionSelect 존재:', document.getElementById('priceOptionSelect'));
+  console.log('priceOptions div 내용:', document.getElementById('priceOptions')?.innerHTML);
+  
   // 실제 데이터베이스에서 옵션 ID를 가져오기 위해 DOM에서 파싱
   const priceOptions = Array.from(
     document.querySelectorAll('#priceOptions .price-option')
@@ -131,6 +144,9 @@ function getProductFromServer() {
     unit: el.dataset.unit,
     price: Number(el.dataset.price)
   }));
+  
+  console.log('파싱된 priceOptions:', priceOptions);
+  console.log('priceOptions 길이:', priceOptions.length);
 
   const companyInfo = generateRandomCompany(regionText);
 
@@ -549,7 +565,7 @@ async function addToCart(event) {
 
     const cartPayload = {
       optionId: optionId,
-      quantity: quantity,
+      quantity: quantity.toString(),
       unit: selectedPriceOption.unit
     };
 
