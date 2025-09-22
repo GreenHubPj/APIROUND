@@ -196,11 +196,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
         console.log('새 레시피 저장:', recipeData);
 
-        fetch('/mypage/recipes?userId=1', {
+        fetch('/mypage/recipes', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(recipeData)
         })
         .then(response => {
