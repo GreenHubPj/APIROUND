@@ -34,7 +34,7 @@ public class WebConfig implements WebMvcConfigurer {
     };
 
     private static final String[] STATIC_OPEN_PATHS = {
-            "/css/**","/js/**","/images/**","/webjars/**","/favicon.ico","/uploads/**","/upload-dir/**"
+            "/css/**","/js/**","/images/**","/videos/**","/webjars/**","/favicon.ico","/uploads/**","/upload-dir/**"
     };
 
     /** 공개 경로(뷰 + 공개 API prefix) */
@@ -48,6 +48,8 @@ public class WebConfig implements WebMvcConfigurer {
             "/api/public/**",
             "/api/account/**",
             "/api/random-recipe",  // ✅ 랜덤 레시피 추천 API 공개
+            "/api/related-products",  // ✅ 관련 상품 API 공개
+            "/api/product-prices/**",  // ✅ 상품 가격 정보 API 공개
             "/error",
             // ✅ 상품 리뷰 뷰 페이지 공개
             "/products/**"
@@ -145,6 +147,16 @@ public class WebConfig implements WebMvcConfigurer {
                 return true;
             }
 
+            // ✅ 관련 상품 API 공개
+            if ("GET".equalsIgnoreCase(method) && uri.startsWith("/api/related-products")) {
+                return true;
+            }
+
+            // ✅ 상품 가격 정보 API 공개
+            if ("GET".equalsIgnoreCase(method) && uri.startsWith("/api/product-prices/")) {
+                return true;
+            }
+
             HttpSession session = request.getSession(false);
             boolean authed = session != null && (session.getAttribute("user") != null || session.getAttribute("company") != null);
             if (authed) return true;
@@ -199,14 +211,11 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addResourceHandler("/css/**").addResourceLocations("classpath:/static/css/");
         registry.addResourceHandler("/js/**").addResourceLocations("classpath:/static/js/");
         registry.addResourceHandler("/images/**").addResourceLocations("classpath:/static/images/");
+        registry.addResourceHandler("/videos/**").addResourceLocations("classpath:/static/videos/");
+        // 업로드된 파일들 - 정적 리소스로 관리 (다른 컴퓨터에서도 접근 가능)
+        registry.addResourceHandler("/uploads/**").addResourceLocations("classpath:/static/uploads/");
         
-        // 업로드된 파일들 - 여러 경로 지원
-        registry.addResourceHandler("/uploads/**")
-                .addResourceLocations(
-                    "file:upload-dir/", 
-                    "file:" + System.getProperty("user.home") + "/greenhub-uploads/",
-                    "file:./upload-dir/"
-                );
+        // 기존 upload-dir 경로도 지원 (호환성)
         registry.addResourceHandler("/upload-dir/**").addResourceLocations("file:upload-dir/");
     }
 

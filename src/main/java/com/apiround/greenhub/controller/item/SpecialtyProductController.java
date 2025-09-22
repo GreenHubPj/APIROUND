@@ -1,14 +1,17 @@
 package com.apiround.greenhub.controller.item;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.apiround.greenhub.entity.item.Region;
@@ -29,7 +32,6 @@ public class SpecialtyProductController {
                                   @RequestParam(required = false) String region) {
         List<Region> products;
 
-        
         if (type != null && !type.isEmpty()) {
             // 타입별 필터링된 UNION 조회
             products = safeList(regionService.getCombinedProductsByTypeWithUnion(type));
@@ -37,7 +39,7 @@ public class SpecialtyProductController {
             // 지역별 필터링된 UNION 조회
             products = safeList(regionService.getCombinedProductsByRegionWithUnion(region));
         } else {
-            // 전체 UNION 조회 (product_listing + specialty_product)
+            // 전체 UNION 조회
             products = safeList(regionService.getCombinedProductsWithUnion());
         }
 
@@ -85,14 +87,8 @@ public class SpecialtyProductController {
                 })
                 .collect(Collectors.toList());
 
-        System.out.println("🔥 후보 상품 수: " + candidates.size() + ", 기준 지역: " + normalized);
-        for (Region candidate : candidates) {
-            System.out.println("🔥 후보 상품: ID=" + candidate.getProductId() + ", 지역=" + candidate.getRegionText());
-        }
-
         Collections.shuffle(candidates);
         List<Region> related = candidates.stream().limit(4).collect(Collectors.toList());
-        System.out.println("🔥 관련 상품 수: " + related.size());
         model.addAttribute("relatedProducts", related);
 
         return "region-detail";
@@ -137,5 +133,81 @@ public class SpecialtyProductController {
         map.put("jeju", "제주");
 
         return map.getOrDefault(key.toLowerCase(), key);
+    }
+
+    // 상품 가격 정보 조회 API (region 페이지용)
+    @GetMapping("/api/product-prices/{productId}")
+    public ResponseEntity<List<Map<String, Object>>> getProductPrices(@PathVariable Integer productId) {
+        try {
+            // 상품 가격 정보 조회
+            
+            // 상품 기본 정보 조회
+            Region product = regionService.getCombinedProductByIdWithUnion(productId);
+            if (product == null) {
+                // 상품을 찾을 수 없음
+                return ResponseEntity.notFound().build();
+            }
+            
+            // 가격 옵션 조회
+            List<com.apiround.greenhub.entity.item.ProductPriceOption> priceOptions = product.getPriceOptions();
+            // 가격 옵션 조회 완료
+            
+            List<Map<String, Object>> result = new ArrayList<>();
+            
+            if (priceOptions != null && !priceOptions.isEmpty()) {
+                for (com.apiround.greenhub.entity.item.ProductPriceOption option : priceOptions) {
+                    Map<String, Object> priceInfo = new HashMap<>();
+                    priceInfo.put("optionId", option.getOptionId());
+                    priceInfo.put("quantity", option.getQuantity());
+                    priceInfo.put("unit", option.getUnit());
+                    priceInfo.put("price", option.getPrice());
+                    priceInfo.put("isActive", option.getIsActive());
+                    result.add(priceInfo);
+                    
+                    // 가격 옵션 처리
+                }
+            } else {
+                // 가격 옵션이 없음
+            }
+            
+            return ResponseEntity.ok(result);
+            
+        } catch (Exception e) {
+            System.err.println("상품 가격 조회 오류: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    // 관련 상품 API 엔드포인트
+    @GetMapping("/api/related-products")
+    public ResponseEntity<List<Region>> getRelatedProducts(@RequestParam Integer productId,
+                                                           @RequestParam(required = false) String region) {
+        try {
+            Region currentProduct = regionService.getCombinedProductByIdWithUnion(productId);
+            
+            if (currentProduct == null) {
+                return ResponseEntity.notFound().build();
+            }
+
+            String regionKey = (region != null && !region.isBlank())
+                    ? region
+                    : currentProduct.getRegionText();
+
+            String normalized = normalizeRegion(regionKey);
+            
+            if (normalized == null) {
+                return ResponseEntity.ok(Collections.emptyList());
+            }
+
+            List<Region> related = regionService.getRandomRelatedByRegion(normalized, productId, 4);
+            
+            return ResponseEntity.ok(related);
+            
+        } catch (Exception e) {
+            System.err.println("관련 상품 조회 오류: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().build();
+        }
     }
 }

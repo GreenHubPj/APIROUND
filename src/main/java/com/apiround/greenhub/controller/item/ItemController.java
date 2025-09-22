@@ -1,13 +1,7 @@
 // src/main/java/com/apiround/greenhub/controller/item/ItemController.java
 package com.apiround.greenhub.controller.item;
 
-import java.io.InputStream;
 import java.math.BigDecimal;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
-import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collections;
@@ -15,9 +9,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.UUID;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
@@ -35,9 +26,11 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import com.apiround.greenhub.dto.ListingDto;
 import com.apiround.greenhub.entity.Company;
 import com.apiround.greenhub.entity.ProductListing;
+import com.apiround.greenhub.entity.item.ProductImage;
 import com.apiround.greenhub.entity.item.ProductPriceOption;
 import com.apiround.greenhub.repository.CompanyRepository;
 import com.apiround.greenhub.repository.ProductListingRepository;
+import com.apiround.greenhub.repository.item.ProductImageRepository;
 import com.apiround.greenhub.repository.item.ProductPriceOptionRepository;
 import com.apiround.greenhub.service.item.ItemService;
 import com.apiround.greenhub.service.item.ListingService;
@@ -53,12 +46,16 @@ public class ItemController {
 
     @Value("${app.upload-dir:./upload-dir}")
     private String uploadDir;
+    
+    // 정적 리소스 경로 (다른 컴퓨터에서도 접근 가능)
+    private final String staticUploadDir = "src/main/resources/static/uploads/";
 
     private final ItemService itemService;                 // specialty_product + options
     private final ListingService listingService;           // product_listing
     private final CompanyRepository companyRepository;
     private final ProductListingRepository listingRepo;
     private final ProductPriceOptionRepository optionRepo;
+    private final ProductImageRepository imageRepo;
 
     /** 상품관리 페이지 */
     @GetMapping("/item-management")
@@ -127,6 +124,9 @@ public class ItemController {
             if (finalThumbnailUrl != null && finalThumbnailUrl.length() > 5000) {
                 finalThumbnailUrl = finalThumbnailUrl.substring(0, 5000);
             }
+            
+            // 이미지 정보를 저장할 변수
+            ProductImage savedImage = null;
 
             // 2) 널 가드
             optionLabels = (optionLabels != null) ? optionLabels : Collections.emptyList();
@@ -193,10 +193,26 @@ public class ItemController {
                         optionRepo.save(priceOption);
                     }
                 }
-                log.info("가격 옵션 저장 완료 - {}개 옵션", prices.size());
+                // 가격 옵션 저장 완료
             }
 
-            log.info("상품 저장 성공 - listingId: {}", listingId);
+            // 5) 새로 업로드된 이미지만 DB에 저장 (Base64 데이터 포함)
+            if (imageFile != null && !imageFile.isEmpty() && finalThumbnailUrl != null && finalThumbnailUrl.startsWith("data:image/")) {
+                savedImage = ProductImage.builder()
+                    .productId(generatedProductId)
+                    .imageUrl(finalThumbnailUrl)
+                    .imageData(finalThumbnailUrl) // Base64 데이터 저장
+                    .originalFilename(imageFile.getOriginalFilename())
+                    .fileSize(imageFile.getSize())
+                    .mimeType(imageFile.getContentType())
+                    .isThumbnail(true)
+                    .sortOrder(1)
+                    .build();
+                imageRepo.save(savedImage);
+                log.info("이미지 DB 저장 완료 - productId: {}", generatedProductId);
+            }
+
+            // 상품 저장 성공
             ra.addFlashAttribute("msg", "상품이 저장되었습니다.");
             return "redirect:/item-management#listing=" + listingId;
 
@@ -212,39 +228,30 @@ public class ItemController {
         }
     }
 
-    /** Multipart or data URL 처리 */
+    /** Multipart or data URL 처리 - 새 파일만 DB에 Base64로 저장 */
     private String saveThumbnail(MultipartFile imageFile, String thumbnailUrl) throws Exception {
-        Path root = Paths.get(uploadDir).toAbsolutePath().normalize();
-        Files.createDirectories(root);
-
-        // 1) 파일 첨부가 있으면 그걸 우선 저장
+        // 1) 새 파일 첨부가 있으면 Base64로 변환하여 DB에 저장
         if (imageFile != null && !imageFile.isEmpty()) {
-            String ext = getExt(imageFile.getOriginalFilename(), "png");
-            String fileName = System.currentTimeMillis() + "_" + UUID.randomUUID() + "." + ext;
-            Path target = root.resolve(fileName);
-            try (InputStream in = imageFile.getInputStream()) {
-                Files.copy(in, target, StandardCopyOption.REPLACE_EXISTING);
+            byte[] bytes = imageFile.getBytes();
+            String base64 = Base64.getEncoder().encodeToString(bytes);
+            String mimeType = imageFile.getContentType();
+            if (mimeType == null) {
+                mimeType = "image/jpeg"; // 기본값
             }
-            log.info("업로드 파일 저장: {}", target);
-            return "/uploads/" + fileName;
+            return "data:" + mimeType + ";base64," + base64;
         }
 
-        // 2) data URL(base64) 처리
+        // 2) data URL(base64) 처리 - 그대로 반환 (이미 DB에 저장된 것)
         if (thumbnailUrl != null && thumbnailUrl.startsWith("data:image/")) {
-            Pattern p = Pattern.compile("^data:image/(png|jpe?g|gif);base64,(.+)$", Pattern.CASE_INSENSITIVE);
-            Matcher m = p.matcher(thumbnailUrl);
-            if (m.find()) {
-                String ext = m.group(1).toLowerCase().replace("jpeg", "jpg");
-                byte[] bytes = Base64.getDecoder().decode(m.group(2));
-                String fileName = System.currentTimeMillis() + "_" + UUID.randomUUID() + "." + ext;
-                Path target = root.resolve(fileName);
-                Files.write(target, bytes, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
-                log.info("data URL 이미지 저장: {}", target);
-                return "/uploads/" + fileName;
-            }
+            return thumbnailUrl;
         }
 
-        // 3) 기본 이미지
+        // 3) 기존 URL이 있으면 그대로 반환 (URL 방식 유지)
+        if (thumbnailUrl != null && !thumbnailUrl.trim().isEmpty()) {
+            return thumbnailUrl;
+        }
+
+        // 4) 기본 이미지
         return "/images/농산물.png";
     }
 
@@ -285,6 +292,14 @@ public class ItemController {
     @DeleteMapping("/api/products/{id}")
     @ResponseBody
     public Map<String, Object> delete(@PathVariable Integer id) {
+        // 상품 삭제 전에 이미지 정보도 삭제
+        try {
+            imageRepo.deleteByProductId(id);
+            // 이미지 정보 삭제 완료
+        } catch (Exception e) {
+            log.warn("상품 이미지 정보 삭제 실패 - productId: {}, error: {}", id, e.getMessage());
+        }
+        
         itemService.deleteProduct(id);
         return Map.of("ok", true);
     }
@@ -427,17 +442,49 @@ public class ItemController {
                         priceOption.setUpdatedAt(java.time.LocalDateTime.now());
                         
                         optionRepo.save(priceOption);
-                        log.info("가격 옵션 생성 - optionLabel: {}, quantity: {}, unit: {}, price: {}",
-                                priceOption.getOptionLabel(), priceOption.getQuantity(), priceOption.getUnit(), priceOption.getPrice());
+                        // 가격 옵션 생성
                     }
                 }
-                log.info("가격 옵션 수정 완료 - {}개 옵션", prices.size());
+                // 가격 옵션 수정 완료
             }
 
-            log.info("상품 수정 완료 - listingId: {}", id);
+            // ✅ 새로 업로드된 이미지만 DB에 저장/업데이트 (Base64 데이터 포함)
+            if (imageFile != null && !imageFile.isEmpty() && finalThumbnailUrl != null && finalThumbnailUrl.startsWith("data:image/")) {
+                // 기존 이미지 삭제 (같은 상품의 기존 이미지들)
+                imageRepo.deleteByProductId(listing.getProductId());
+                
+                // 새 이미지 정보 저장
+                ProductImage newImage = ProductImage.builder()
+                    .productId(listing.getProductId())
+                    .imageUrl(finalThumbnailUrl)
+                    .imageData(finalThumbnailUrl) // Base64 데이터 저장
+                    .originalFilename(imageFile.getOriginalFilename())
+                    .fileSize(imageFile.getSize())
+                    .mimeType(imageFile.getContentType())
+                    .isThumbnail(true)
+                    .sortOrder(1)
+                    .build();
+                imageRepo.save(newImage);
+                log.info("이미지 DB 업데이트 완료 - productId: {}", listing.getProductId());
+            }
+
+            // 상품 수정 완료
             return Map.of("success", true);
         } catch (Exception e) {
             log.error("상품 수정 실패", e);
+            return Map.of("success", false, "error", e.getMessage());
+        }
+    }
+
+    /** 상품 이미지 정보 조회 */
+    @GetMapping("/api/products/{id}/images")
+    @ResponseBody
+    public Map<String, Object> getProductImages(@PathVariable Integer id) {
+        try {
+            List<ProductImage> images = imageRepo.findByProductIdOrderBySortOrderAsc(id);
+            return Map.of("success", true, "images", images);
+        } catch (Exception e) {
+            log.error("상품 이미지 조회 실패 - productId: {}", id, e);
             return Map.of("success", false, "error", e.getMessage());
         }
     }
