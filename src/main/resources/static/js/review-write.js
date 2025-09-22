@@ -1,12 +1,12 @@
-// 리뷰 작성 페이지 전용
 document.addEventListener('DOMContentLoaded', () => {
   initializeStarRating();
   initializeTextarea();
   initializeSaveButton();
-  addPageAnimations();
+  addWritePageAnimations();
 });
 
 let currentRating = 5; // 기본 별점
+let isDirty = false;
 
 function initializeStarRating() {
   const stars = document.querySelectorAll('.star[data-rating]');
@@ -14,9 +14,7 @@ function initializeStarRating() {
   const ratingTexts = { 1: '별로에요', 2: '아쉬워요', 3: '보통이에요', 4: '좋아요', 5: '최고에요' };
 
   const highlight = rating => {
-    stars.forEach((s, idx) => {
-      s.classList.toggle('active', idx < rating);
-    });
+    stars.forEach((s, idx) => s.classList.toggle('active', idx < rating));
     if (ratingText) {
       ratingText.textContent = ratingTexts[rating] ?? '';
       ratingText.style.color = getRatingColor(rating);
@@ -25,7 +23,11 @@ function initializeStarRating() {
 
   stars.forEach(star => {
     star.addEventListener('click', () => {
-      currentRating = parseInt(star.getAttribute('data-rating'), 10);
+      const r = parseInt(star.getAttribute('data-rating'), 10);
+      if (r !== currentRating) {
+        currentRating = r;
+        isDirty = true;
+      }
       highlight(currentRating);
     });
     star.addEventListener('mouseenter', () => {
@@ -59,7 +61,10 @@ function initializeTextarea() {
   };
 
   update();
-  textarea.addEventListener('input', update);
+  textarea.addEventListener('input', () => {
+    isDirty = true;
+    update();
+  });
   textarea.addEventListener('focus', function () {
     this.style.borderColor = '#0056b3';
     this.style.boxShadow = '0 0 0 3px rgba(0, 123, 255, 0.1)';
@@ -96,10 +101,8 @@ async function submitReview() {
     return;
   }
 
-  // productId 추출 (URL 쿼리나 data-속성 사용)
-  // 권장: <main data-product-id="..."> 로 전달
+  // productId: <main data-product-id="..."> 우선, 없으면 쿼리스트링 사용
   const productId = document.querySelector('main[data-product-id]')?.getAttribute('data-product-id')
-    // fallback: /review-write?productId=123 형태
     || new URLSearchParams(location.search).get('productId');
 
   if (!productId) {
@@ -123,6 +126,7 @@ async function submitReview() {
       throw new Error(msg || '저장에 실패했습니다.');
     }
 
+    isDirty = false; // 저장 성공 → 이탈 경고 해제
     button.style.background = 'linear-gradient(135deg, #28a745 0%, #34ce57 100%)';
     button.textContent = '저장 완료!';
     setTimeout(() => {
@@ -146,7 +150,7 @@ async function safeText(res) {
   }
 }
 
-function addPageAnimations() {
+function addWritePageAnimations() {
   const productSection = document.querySelector('.product-info-section');
   if (productSection) {
     productSection.style.opacity = '0';
@@ -172,13 +176,12 @@ function addPageAnimations() {
 
 // ESC로 뒤로가기/페이지 이탈 방지
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') {
-    history.back();
-  }
+  if (e.key === 'Escape') history.back();
 });
 window.addEventListener('beforeunload', e => {
   const textarea = document.querySelector('.review-textarea');
-  if ((textarea?.value?.trim()?.length ?? 0) > 0 || currentRating > 0) {
+  const hasText = (textarea?.value?.trim()?.length ?? 0) > 0;
+  if (isDirty || hasText) {
     e.preventDefault();
     e.returnValue = '작성 중인 리뷰가 있습니다. 정말 나가시겠습니까?';
   }

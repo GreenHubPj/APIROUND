@@ -28,6 +28,16 @@
     });
   });
 
+  // 공통 비밀번호 정책
+  function isStrong(pw) {
+    if (!pw || pw.length < 8) return false;
+    const hasLetter = /[A-Za-z]/.test(pw);
+    const hasDigit = /\d/.test(pw);
+    const hasSpecial = /[~!@#$%^&*()_+\-=`[\]{}|;':",.<>/?]/.test(pw);
+    return hasLetter && hasDigit && hasSpecial;
+  }
+  const policyMsg = "비밀번호는 8자 이상이며, 영문/숫자/특수문자를 각각 1자 이상 포함해야 합니다.";
+
   // ───────── 개인 이메일 인증
   const sendBtn    = document.getElementById('sendEmailCodeBtn');
   const verifyBtn  = document.getElementById('verifyEmailCodeBtn');
@@ -231,7 +241,7 @@
     if (!name || !loginId || !pw || !pw2 || !email || !phone) { e.preventDefault(); alert('필수 항목을 모두 입력해주세요.'); return; }
     if (pw !== pw2) { e.preventDefault(); alert('비밀번호가 일치하지 않습니다.'); return; }
     if (loginId.length < 4) { e.preventDefault(); alert('아이디는 4자 이상이어야 합니다.'); return; }
-    if (pw.length < 6) { e.preventDefault(); alert('비밀번호는 6자 이상이어야 합니다.'); return; }
+    if (!isStrong(pw)) { e.preventDefault(); alert(policyMsg); return; }
 
     if (!emailVerified) { e.preventDefault(); alert('이메일 인증을 완료해주세요.'); return; }
 
@@ -254,7 +264,7 @@
     const pw = document.getElementById('sellerPassword').value;
     const pw2 = document.getElementById('sellerPasswordConfirm').value;
     const brn = document.getElementById('businessRegistrationNumber').value.trim();
-    const email = (companyEmailInput.value || '').trim();
+    const email = (document.getElementById('companyEmail').value || '').trim();
     const managerName = document.getElementById('managerName').value.trim();
     const managerPhone = document.getElementById('managerPhone').value.trim();
 
@@ -263,7 +273,7 @@
     }
     if (pw !== pw2) { e.preventDefault(); alert('비밀번호가 일치하지 않습니다.'); return; }
     if (loginId.length < 4) { e.preventDefault(); alert('아이디는 4자 이상이어야 합니다.'); return; }
-    if (pw.length < 6) { e.preventDefault(); alert('비밀번호는 6자 이상이어야 합니다.'); return; }
+    if (!isStrong(pw)) { e.preventDefault(); alert(policyMsg); return; }
 
     if (!companyEmailVerified) { e.preventDefault(); alert('회사 이메일 인증을 완료해주세요.'); return; }
 

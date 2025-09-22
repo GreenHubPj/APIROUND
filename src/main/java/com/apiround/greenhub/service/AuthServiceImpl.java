@@ -24,13 +24,18 @@ public class AuthServiceImpl implements AuthService {
         if (user.getPassword() == null || user.getPassword().isBlank())
             throw new IllegalArgumentException("비밀번호는 필수입니다.");
 
+        // 정책 일치
+        if (!PasswordUtil.isStrong(user.getPassword())) {
+            throw new IllegalArgumentException(PasswordUtil.policyMessage());
+        }
+
         if (userRepository.existsByLoginId(user.getLoginId()))
             throw new IllegalArgumentException("이미 사용 중인 아이디입니다.");
         if (user.getEmail() != null && !user.getEmail().isBlank()
                 && userRepository.existsByEmail(user.getEmail()))
             throw new IllegalArgumentException("이미 가입된 이메일입니다.");
 
-        // 비밀번호 해시 저장
+        // 단일 해시
         user.setPassword(PasswordUtil.encode(user.getPassword()));
 
         try {

@@ -1,4 +1,3 @@
-// src/main/java/com/apiround/greenhub/repository/ProductListingRepository.java
 package com.apiround.greenhub.repository;
 
 import java.util.List;

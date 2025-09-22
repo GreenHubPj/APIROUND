@@ -251,11 +251,13 @@ public class AuthController {
             return "redirect:/signup";
         }
 
+        // 이메일 인증 확인
         if (!emailCodeService.isVerified(form.getEmail().trim())) {
             ra.addFlashAttribute("error", "이메일 인증을 완료해주세요.");
             return "redirect:/signup";
         }
 
+        // 아이디/이메일 중복 검사
         if (userRepository.existsByLoginId(form.getLoginId()) ||
                 companyRepository.existsByLoginId(form.getLoginId())) {
             ra.addFlashAttribute("error", "이미 사용 중인 아이디입니다.");
@@ -266,10 +268,16 @@ public class AuthController {
             return "redirect:/signup";
         }
 
+        // 동의 항목 기본값
         if (form.getMarketingConsent() == null) form.setMarketingConsent(false);
         if (form.getSmsConsent() == null) form.setSmsConsent(false);
 
+        // ✅ 성별 값 정규화 (DB는 CHAR(1) → M/F/O 만 허용)
+        form.setGender(normalizeGender(form.getGender()));
+
+        // 비밀번호 해시 저장
         form.setPassword(PasswordUtil.encode(form.getPassword()));
+
         try {
             userRepository.save(form);
             emailCodeService.clear(form.getEmail().trim());
@@ -425,4 +433,18 @@ public class AuthController {
     // ───────── 유틸
     private boolean isBlank(String s) { return s == null || s.isBlank(); }
     private String opt(String s) { return (s == null || s.isBlank()) ? null : s.trim(); }
+
+    /** 폼에서 넘어온 성별 값을 DB 규격(M/F/O)으로 정규화. 나머지는 null 처리 */
+    private String normalizeGender(String raw) {
+        if (raw == null || raw.isBlank()) return null;
+        String v = raw.trim().toUpperCase();
+        // 이미 영문 코드인 경우
+        if (v.equals("M") || v.equals("F") || v.equals("O")) return v;
+        // 한글 값 매핑
+        if (raw.equals("남성")) return "M";
+        if (raw.equals("여성")) return "F";
+        if (raw.equals("기타")) return "O";
+        // 알 수 없는 값은 저장하지 않음(null)
+        return null;
+    }
 }

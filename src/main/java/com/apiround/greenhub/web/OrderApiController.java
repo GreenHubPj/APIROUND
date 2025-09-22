@@ -5,7 +5,7 @@ import com.apiround.greenhub.web.dto.OrderCreatedResponse;
 import com.apiround.greenhub.web.service.OrderService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,27 +14,42 @@ import java.util.Map;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/orders")
+@Slf4j
 public class OrderApiController {
 
     private final OrderService orderService;
 
     @PostMapping("/checkout")
     public ResponseEntity<?> checkout(@RequestBody CheckoutRequest req, HttpSession session) {
-        // 세션에서 로그인 사용자 식별
         Integer userId = (Integer) session.getAttribute("loginUserId");
-
-        // 미로그인 → 401 반환
         if (userId == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("error", "LOGIN_REQUIRED", "message", "로그인이 필요합니다."));
+            log.warn("[/orders/checkout] 401 LOGIN_REQUIRED");
+            return ResponseEntity.status(401).body(Map.of(
+                    "success", false,
+                    "message", "LOGIN_REQUIRED"
+            ));
         }
-
-        // 정상 처리
-        OrderCreatedResponse res = orderService.createOrder(req, userId);
-        // 프론트가 그대로 사용하도록 redirect 경로도 함께 리턴
-        return ResponseEntity.ok(Map.of(
-                "orderId", res.getOrderId(),
-                "redirect", "/orderhistory"
-        ));
+        try {
+            log.info("[/orders/checkout] userId={}, items={}", userId,
+                    (req.getItems() == null ? 0 : req.getItems().size()));
+            OrderCreatedResponse created = orderService.createOrder(req, userId);
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "orderId", created.getOrderId(),
+                    "redirect", created.getRedirectUrl()
+            ));
+        } catch (IllegalArgumentException e) {
+            log.warn("[/orders/checkout] 400 {}", e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", e.getMessage()
+            ));
+        } catch (Exception e) {
+            log.error("[/orders/checkout] 500", e);
+            return ResponseEntity.internalServerError().body(Map.of(
+                    "success", false,
+                    "message", "주문 생성 중 문제가 발생했습니다."
+            ));
+        }
     }
 }
