@@ -72,7 +72,7 @@ document.addEventListener('DOMContentLoaded', function () {
   }
   setTimeout(animateModules, 300);
 
-  // 주문/배송 플로우(데모 카운트만 표시 – 사용자 정보와 무관)
+  // 주문/배송 플로우: 서버 렌더값 유지 + 필요 시 API로 갱신
   initOrderTracking();
 
   function initOrderTracking() {
@@ -100,12 +100,6 @@ document.addEventListener('DOMContentLoaded', function () {
       });
     });
 
-    // 데모 카운트(필요시 서버 데이터로 대체하세요)
-    const counts = [1, 1, 0, 0, 0];
-    document.querySelectorAll('.step-box').forEach((el, i) => {
-      el.textContent = counts[i] ?? 0;
-    });
-
     // 등장 애니메이션
     flow.style.opacity = '0';
     flow.style.transform = 'translateY(20px)';
@@ -123,5 +117,29 @@ document.addEventListener('DOMContentLoaded', function () {
         s.style.transform = 'scale(1)';
       }, 400 + i * 100);
     });
+
+    // ✅ 서버 집계 API로 안전 갱신 (에러 시, 서버 렌더 값 유지)
+    fetch('/api/my/order-status')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (!data) return;
+        const mapOrder = [
+          data.orderReceived ?? 0,
+          data.paymentCompleted ?? 0,
+          data.preparingProduct ?? 0,
+          data.shipping ?? 0,
+          data.deliveryCompleted ?? 0,
+        ];
+        document.querySelectorAll('.step-box').forEach((el, i) => {
+          el.textContent = mapOrder[i] ?? 0;
+        });
+        // count > 0 이면 completed, 아니면 pending
+        document.querySelectorAll('.flow-step').forEach((el, i) => {
+          const has = (mapOrder[i] ?? 0) > 0;
+          el.classList.toggle('completed', has);
+          el.classList.toggle('pending', !has);
+        });
+      })
+      .catch(() => { /* 무시: 서버 렌더값 유지 */ });
   }
 });

@@ -88,7 +88,6 @@ function addProfilePageAnimations() {
 }
 
 // ===== 데이터 로딩 (로그인 사용자 기준) =====
-// 작성 가능한 리뷰: 주문/배송완료 but 리뷰 미작성
 async function loadWritableReviews() {
   const wrap = document.querySelector('#writable .review-list');
   if (!wrap) return;
@@ -118,7 +117,6 @@ async function loadWritableReviews() {
   }
 }
 
-// 작성한 리뷰
 async function loadWrittenReviews() {
   const wrap = document.querySelector('#written .review-list');
   if (!wrap) return;
@@ -157,7 +155,5 @@ function makeStars(n) {
   return s;
 }
 function escapeHtml(t) {
-  return String(t)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;');
+  return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;');
 }

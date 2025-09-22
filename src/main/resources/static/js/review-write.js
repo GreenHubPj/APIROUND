@@ -1,4 +1,3 @@
-// 리뷰 작성 페이지 전용
 document.addEventListener('DOMContentLoaded', () => {
   initializeStarRating();
   initializeTextarea();
@@ -6,8 +5,8 @@ document.addEventListener('DOMContentLoaded', () => {
   addWritePageAnimations();
 });
 
-let currentRating = 5;       // 기본 별점
-let isDirty = false;         // 실제로 변경되었는지 추적
+let currentRating = 5; // 기본 별점
+let isDirty = false;
 
 function initializeStarRating() {
   const stars = document.querySelectorAll('.star[data-rating]');

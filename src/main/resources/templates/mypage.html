@@ -66,7 +66,6 @@
                                         (currentUser.gender == 'O' ? '기타' : '성별'))}">성별</span>
                     </div>
 
-
                     <div class="user-info-item" th:if="${currentUser.birthDate != null}">
                         <span class="info-icon">🎂</span>
                         <span class="info-text" th:text="${#temporals.format(currentUser.birthDate, 'yyyy년 MM월 dd일')}">생년월일</span>
