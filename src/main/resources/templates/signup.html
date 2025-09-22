@@ -83,13 +83,14 @@
                 <input type="tel" id="individualPhone" name="phone" class="form-input" placeholder="예) 010-1234-5678" required />
             </div>
 
+            <!-- ✅ 성별 값은 DB 규격(M/F/O)로 전송 -->
             <div class="form-group">
                 <label class="form-label" for="gender">성별 (선택)</label>
                 <select id="gender" name="gender" class="form-input">
                     <option value="">선택 안함</option>
-                    <option value="남성">남성</option>
-                    <option value="여성">여성</option>
-                    <option value="기타">기타</option>
+                    <option value="M">남성</option>
+                    <option value="F">여성</option>
+                    <option value="O">기타</option>
                 </select>
             </div>
 
@@ -139,7 +140,7 @@
         </div>
     </form>
 
-    <!-- 판매 회원가입 -->
+    <!-- 판매 회원가입 (변경 없음) -->
     <form id="signupFormSeller" th:action="@{/auth/signup-company}" method="post" novalidate class="signup-form" style="display:none;">
         <h2 class="section-title">판매 회원가입</h2>
         <p class="required-text">*필수 입력 정보입니다.</p>
