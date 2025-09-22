@@ -330,6 +330,14 @@ public class RegionService {
                     .description((String) row[8])    // description
                     .build();
                 
+                // thumbnail_data와 thumbnail_mime 설정 (안전한 타입 체크)
+                if (row.length > 9 && row[9] != null && row[9] instanceof byte[]) {
+                    region.setThumbnailData((byte[]) row[9]);
+                }
+                if (row.length > 10 && row[10] != null && row[10] instanceof String) {
+                    region.setThumbnailMime((String) row[10]);
+                }
+                
                 // thumbnailUrl 처리 - Base64와 URL 모두 지원
                 String thumbnailUrl = region.getThumbnailUrl();
                 if (thumbnailUrl != null && !thumbnailUrl.trim().isEmpty()) {

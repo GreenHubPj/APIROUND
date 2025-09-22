@@ -7,6 +7,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -206,6 +209,64 @@ public class SpecialtyProductController {
             
         } catch (Exception e) {
             System.err.println("관련 상품 조회 오류: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    // 썸네일 이미지 API 엔드포인트
+    @GetMapping("/api/products/{id}/thumbnail")
+    public ResponseEntity<byte[]> getProductThumbnail(@PathVariable Integer id) {
+        try {
+            // 상품 정보 조회
+            Region product = regionService.getCombinedProductByIdWithUnion(id);
+            if (product == null) {
+                return ResponseEntity.notFound().build();
+            }
+
+            // 1. ProductListing에서 thumbnail_data가 있는지 확인
+            if (product.getThumbnailData() != null && product.getThumbnailData().length > 0) {
+                HttpHeaders headers = new HttpHeaders();
+                headers.setContentType(MediaType.parseMediaType(
+                    product.getThumbnailMime() != null ? product.getThumbnailMime() : "image/jpeg"
+                ));
+                headers.setContentLength(product.getThumbnailData().length);
+                return new ResponseEntity<>(product.getThumbnailData(), headers, HttpStatus.OK);
+            }
+
+            // 2. SpecialtyProduct에서 thumbnail_url이 있는지 확인
+            if (product.getThumbnailUrl() != null && !product.getThumbnailUrl().trim().isEmpty() 
+                && !product.getThumbnailUrl().equals("null") && !product.getThumbnailUrl().equals("#")) {
+                
+                // URL이 data:로 시작하는지 확인 (base64 인코딩된 이미지)
+                if (product.getThumbnailUrl().startsWith("data:")) {
+                    try {
+                        // data:image/jpeg;base64, 부분 제거하고 base64 디코딩
+                        String base64Data = product.getThumbnailUrl().substring(product.getThumbnailUrl().indexOf(",") + 1);
+                        byte[] imageBytes = java.util.Base64.getDecoder().decode(base64Data);
+                        
+                        HttpHeaders headers = new HttpHeaders();
+                        headers.setContentType(MediaType.parseMediaType(
+                            product.getThumbnailUrl().substring(5, product.getThumbnailUrl().indexOf(";"))
+                        ));
+                        headers.setContentLength(imageBytes.length);
+                        return new ResponseEntity<>(imageBytes, headers, HttpStatus.OK);
+                    } catch (Exception e) {
+                        System.err.println("Base64 디코딩 오류: " + e.getMessage());
+                    }
+                } else {
+                    // 일반 URL인 경우 - 리다이렉트로 처리
+                    return ResponseEntity.status(HttpStatus.FOUND)
+                            .header("Location", product.getThumbnailUrl())
+                            .build();
+                }
+            }
+
+            // 3. 기본 이미지 반환 (이미지가 없는 경우)
+            return ResponseEntity.notFound().build();
+
+        } catch (Exception e) {
+            System.err.println("썸네일 조회 오류: " + e.getMessage());
             e.printStackTrace();
             return ResponseEntity.internalServerError().build();
         }

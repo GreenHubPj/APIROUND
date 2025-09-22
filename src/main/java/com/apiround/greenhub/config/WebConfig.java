@@ -69,7 +69,8 @@ public class WebConfig implements WebMvcConfigurer {
         // /api/** 보호 + 리뷰 GET만 화이트리스트
         registry.addInterceptor(new ApiGuardInterceptor())
                 .addPathPatterns("/api/**")
-                .excludePathPatterns(STATIC_OPEN_PATHS);
+                .excludePathPatterns(STATIC_OPEN_PATHS)
+                .excludePathPatterns("/api/products/*/thumbnail"); // 썸네일 API 제외
     }
 
     private static class LoginRequiredInterceptor implements HandlerInterceptor {
@@ -154,6 +155,11 @@ public class WebConfig implements WebMvcConfigurer {
 
             // ✅ 상품 가격 정보 API 공개
             if ("GET".equalsIgnoreCase(method) && uri.startsWith("/api/product-prices/")) {
+                return true;
+            }
+
+            // ✅ 상품 썸네일 이미지 API 공개
+            if ("GET".equalsIgnoreCase(method) && uri.matches("/api/products/\\d+/thumbnail")) {
                 return true;
             }
 
