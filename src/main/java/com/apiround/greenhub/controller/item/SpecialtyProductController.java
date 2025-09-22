@@ -29,13 +29,16 @@ public class SpecialtyProductController {
                                   @RequestParam(required = false) String region) {
         List<Region> products;
 
+        
         if (type != null && !type.isEmpty()) {
-            products = safeList(regionService.getProductsByTypeOrderByProductIdDesc(type));
+            // 타입별 필터링된 UNION 조회
+            products = safeList(regionService.getCombinedProductsByTypeWithUnion(type));
         } else if (region != null && !region.isEmpty()) {
-            products = safeList(regionService.getProductsByRegionCode(region));
+            // 지역별 필터링된 UNION 조회
+            products = safeList(regionService.getCombinedProductsByRegionWithUnion(region));
         } else {
-            // ACTIVE 상태인 상품만 조회
-            products = safeList(regionService.getActiveProductsOrderByProductIdDesc());
+            // 전체 UNION 조회 (product_listing + specialty_product)
+            products = safeList(regionService.getCombinedProductsWithUnion());
         }
 
         model.addAttribute("products", products);
@@ -47,26 +50,20 @@ public class SpecialtyProductController {
     public String productDetail(@RequestParam Integer id,
                                 @RequestParam(required = false) String region,
                                 Model model) {
-        Region product = regionService.getProductById(id);
+        // UNION 쿼리로 product_listing과 specialty_product에서 상품 조회
+        Region product = regionService.getCombinedProductByIdWithUnion(id);
         if (product == null) {
             // 존재하지 않는 상품인 경우 region 페이지로 리다이렉트
             return "redirect:/region";
         }
         
-        // 상품 상태 확인 (ProductListing과 조인하여 상태 정보 가져오기)
-        String productStatus = regionService.getProductStatusById(id);
+        // 상품 상태는 이미 UNION 쿼리에서 가져옴
         model.addAttribute("product", product);
-        model.addAttribute("productStatus", productStatus);
+        model.addAttribute("productStatus", product.getStatus());
         
         // 가격 옵션 정보 추가
-        System.out.println("상품 ID: " + id + ", 가격 옵션 수: " + (product.getPriceOptions() != null ? product.getPriceOptions().size() : 0));
-        if (product.getPriceOptions() != null && !product.getPriceOptions().isEmpty()) {
-            model.addAttribute("options", product.getPriceOptions());
-            System.out.println("가격 옵션 설정됨");
-        } else {
-            model.addAttribute("options", null);
-            System.out.println("가격 옵션이 없음");
-        }
+        // product_listing에서 온 상품은 가격 옵션이 있고, specialty_product에서 온 상품은 null
+        model.addAttribute("options", product.getPriceOptions());
 
         // 기준 지역(파라미터가 없으면 상품의 regionText)
         String regionKey = (region != null && !region.isBlank())
@@ -75,8 +72,8 @@ public class SpecialtyProductController {
 
         String normalized = normalizeRegion(regionKey);
 
-        // 전체 목록 널-안전 확보
-        List<Region> all = safeList(regionService.getAllProductsOrderByProductIdDesc());
+        // 관련 상품도 UNION 쿼리로 조회
+        List<Region> all = safeList(regionService.getCombinedProductsWithUnion());
 
         // 같은 지역 + 자기 자신 제외
         List<Region> candidates = all.stream()
@@ -88,8 +85,14 @@ public class SpecialtyProductController {
                 })
                 .collect(Collectors.toList());
 
+        System.out.println("🔥 후보 상품 수: " + candidates.size() + ", 기준 지역: " + normalized);
+        for (Region candidate : candidates) {
+            System.out.println("🔥 후보 상품: ID=" + candidate.getProductId() + ", 지역=" + candidate.getRegionText());
+        }
+
         Collections.shuffle(candidates);
-        List<Region> related = candidates.stream().limit(8).collect(Collectors.toList());
+        List<Region> related = candidates.stream().limit(4).collect(Collectors.toList());
+        System.out.println("🔥 관련 상품 수: " + related.size());
         model.addAttribute("relatedProducts", related);
 
         return "region-detail";
