@@ -113,7 +113,11 @@ function getProductFromServer() {
         unit: opt.unit,
         price: opt.price
       })),
-      companyInfo: generateRandomCompany(serverProduct.regionText),
+      companyInfo: window.serverData.companyInfo || {
+        name: serverProduct.companyName || `${serverProduct.regionText || '지역'} 농가`,
+        phone: serverProduct.companyPhone || '010-0000-0000',
+        email: serverProduct.companyEmail || 'seller@example.com'
+      },
       images: [{ id: 1, src: serverProduct.thumbnailUrl, alt: serverProduct.productName }]
     };
   }
@@ -148,7 +152,12 @@ function getProductFromServer() {
   console.log('파싱된 priceOptions:', priceOptions);
   console.log('priceOptions 길이:', priceOptions.length);
 
-  const companyInfo = generateRandomCompany(regionText);
+  // DOM에서 업체 정보 가져오기
+  const companyInfo = {
+    name: document.getElementById('companyName')?.textContent || `${regionText || '지역'} 농가`,
+    phone: document.getElementById('companyPhone')?.textContent || '010-0000-0000',
+    email: document.getElementById('companyEmail')?.textContent || 'seller@example.com'
+  };
 
   return {
     id: productId,
@@ -164,14 +173,7 @@ function getProductFromServer() {
   };
 }
 
-// 더미: 업체 랜덤 정보 (필요하면 실제 데이터로 교체)
-function generateRandomCompany(regionText) {
-  return {
-    name: `${regionText || '지역'} 농가`,
-    phone: '010-0000-0000',
-    email: 'seller@example.com'
-  };
-}
+// generateRandomCompany 함수는 더 이상 사용하지 않음 - 실제 업체 정보 사용
 
 // 상품 상세 정보 렌더링
 function renderProductDetail() {
@@ -210,18 +212,46 @@ function renderProductDetail() {
 
 // 업체 정보 렌더링
 function renderCompanyInfo() {
-  if (!currentProduct.companyInfo) return;
+  console.log('=== 업체 정보 렌더링 시작 ===');
+  console.log('currentProduct:', currentProduct);
+  console.log('currentProduct.companyInfo:', currentProduct?.companyInfo);
+  
+  if (!currentProduct.companyInfo) {
+    console.log('업체 정보가 없어서 기본값으로 설정');
+    // 기본값으로 설정
+    const companyNameElement = document.getElementById('companyName');
+    if (companyNameElement) companyNameElement.textContent = '문경농협';
+
+    const companyPhoneElement = document.getElementById('companyPhone');
+    if (companyPhoneElement) companyPhoneElement.textContent = '054-555-1234';
+
+    const companyEmailElement = document.getElementById('companyEmail');
+    if (companyEmailElement) companyEmailElement.textContent = 'mungyeong@coop.co.kr';
+    return;
+  }
 
   const companyInfo = currentProduct.companyInfo;
+  console.log('렌더링할 업체 정보:', companyInfo);
 
   const companyNameElement = document.getElementById('companyName');
-  if (companyNameElement) companyNameElement.textContent = companyInfo.name;
+  if (companyNameElement) {
+    companyNameElement.textContent = companyInfo.name;
+    console.log('업체명 설정:', companyInfo.name);
+  }
 
   const companyPhoneElement = document.getElementById('companyPhone');
-  if (companyPhoneElement) companyPhoneElement.textContent = companyInfo.phone;
+  if (companyPhoneElement) {
+    companyPhoneElement.textContent = companyInfo.phone;
+    console.log('업체 전화번호 설정:', companyInfo.phone);
+  }
 
   const companyEmailElement = document.getElementById('companyEmail');
-  if (companyEmailElement) companyEmailElement.textContent = companyInfo.email;
+  if (companyEmailElement) {
+    companyEmailElement.textContent = companyInfo.email;
+    console.log('업체 이메일 설정:', companyInfo.email);
+  }
+  
+  console.log('=== 업체 정보 렌더링 완료 ===');
 }
 
 // 가격 옵션 렌더링
@@ -341,42 +371,168 @@ function updateThumbnailActive() {
   });
 }
 
-// 관련 상품 로드(데모)
-function loadRelatedProducts() {
-  const relatedProducts = [
-    {
-      id: 4,
-      name: '제주 한라봉',
-      category: '과일',
-      region: '제주',
-      priceOptions: [{ quantity: 2, unit: 'kg', price: 25000 }],
-      images: [{ src: 'https://via.placeholder.com/250x150/ff8c42/ffffff?text=제주+한라봉', alt: '제주 한라봉' }]
-    },
-    {
-      id: 5,
-      name: '강원도 무',
-      category: '채소',
-      region: '강원',
-      priceOptions: [{ quantity: 1, unit: '개', price: 5000 }],
-      images: [{ src: 'https://via.placeholder.com/250x150/27ae60/ffffff?text=강원+무', alt: '강원도 무' }]
-    },
-    {
-      id: 6,
-      name: '경북 배',
-      category: '과일',
-      region: '경북',
-      priceOptions: [{ quantity: 1, unit: 'kg', price: 15000 }],
-      images: [{ src: 'https://via.placeholder.com/250x150/e74c3c/ffffff?text=경북+배', alt: '경북 배' }]
-    }
-  ];
+// 관련 상품 로드 (API를 통해 동적으로 로드)
+async function loadRelatedProducts() {
+  const productId = getProductIdFromUrl();
+  const region = getRegionFromUrl();
+  
+  console.log('=== 관련 상품 로드 시작 ===');
+  console.log('productId:', productId);
+  console.log('region:', region);
+  console.log('currentProduct:', currentProduct);
+  
+  if (!productId) {
+    console.log('상품 ID가 없어서 관련 상품을 로드할 수 없습니다.');
+    return;
+  }
 
-  renderRelatedProducts(relatedProducts);
+  try {
+    const apiUrl = `/api/related-products?productId=${productId}${region ? `&region=${encodeURIComponent(region)}` : ''}`;
+    console.log('API URL:', apiUrl);
+    
+    const response = await fetch(apiUrl);
+    console.log('API 응답 상태:', response.status, response.statusText);
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('API 오류 응답:', errorText);
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const relatedProducts = await response.json();
+    console.log('API에서 받은 관련 상품 데이터:', relatedProducts);
+    console.log('관련 상품 개수:', relatedProducts ? relatedProducts.length : 0);
+    
+    renderRelatedProductsFromAPI(relatedProducts);
+    
+  } catch (error) {
+    console.error('관련 상품 로드 실패:', error);
+    
+    if (window.serverData && window.serverData.relatedProducts) {
+      console.log('API 실패로 인해 서버 렌더링 데이터 사용');
+      console.log('서버 데이터:', window.serverData.relatedProducts);
+      setupRelatedProductClickEvents();
+    } else {
+      console.log('관련 상품을 찾을 수 없습니다.');
+    }
+  }
 
   // 리뷰 데이터 로드(로컬 데모)
   loadReviews();
 
   // 리뷰보기 버튼 이벤트 리스너
   setupReviewButton();
+}
+
+// API에서 받은 데이터로 관련 상품 렌더링
+function renderRelatedProductsFromAPI(products) {
+  const grid = document.getElementById('relatedProductsGrid');
+  if (!grid) {
+    console.log('관련 상품 그리드를 찾을 수 없습니다.');
+    return;
+  }
+
+  // 기존 서버 렌더링된 HTML 제거하고 새로운 HTML 생성
+  grid.innerHTML = '';
+
+  if (!products || products.length === 0) {
+    console.log('관련 상품이 없습니다.');
+    // 관련 상품이 없을 때 메시지 표시
+    const noProductsSection = document.querySelector('.related-products-section');
+    if (noProductsSection) {
+      const existingNoRelated = noProductsSection.querySelector('.no-related');
+      if (existingNoRelated) {
+        existingNoRelated.style.display = 'block';
+      }
+    }
+    return;
+  }
+
+  // 관련 상품이 없을 때 메시지 숨기기
+  const noProductsSection = document.querySelector('.related-products-section');
+  if (noProductsSection) {
+    const existingNoRelated = noProductsSection.querySelector('.no-related');
+    if (existingNoRelated) {
+      existingNoRelated.style.display = 'none';
+    }
+  }
+
+  // 현재 지역 정보 가져오기
+  const currentRegion = getRegionFromUrl() || currentProduct?.region;
+
+  // 실제 상품 카드 렌더링
+  products.forEach(product => {
+    const card = document.createElement('a');
+    card.className = 'related-card';
+    card.href = `/region-detail?id=${product.productId}&region=${encodeURIComponent(currentRegion || product.regionText)}`;
+    
+    // 이미지 URL 처리
+    let imageUrl = product.thumbnailUrl;
+    if (!imageUrl || imageUrl === 'null' || imageUrl === '#') {
+      imageUrl = '/images/따봉 트럭.png'; // 기본 이미지
+    } else if (!imageUrl.startsWith('http') && !imageUrl.startsWith('/')) {
+      imageUrl = '/' + imageUrl;
+    }
+
+    // 가격 정보 표시 (minPrice가 있으면 표시, 없으면 업체 문의)
+    const priceInfo = product.minPrice ? `${product.minPrice.toLocaleString()}원~` : '업체 문의';
+
+    card.innerHTML = `
+      <div class="related-thumb">
+        <img src="${imageUrl}" 
+             alt="${product.productName}" 
+             onerror="this.onerror=null;this.src='/images/따봉 트럭.png'"
+             style="width: 100%; height: 100%; object-fit: cover;">
+      </div>
+      <div class="related-info">
+        <div class="related-name">${product.productName}</div>
+        <div class="related-price">${priceInfo}</div>
+        <div class="related-meta">
+          <span>${product.regionText}</span>
+          <span>${product.productType}</span>
+        </div>
+      </div>
+    `;
+
+    grid.appendChild(card);
+  });
+
+  // 4개 미만일 때 빈 카드 추가하여 레이아웃 유지
+  const maxCards = 4;
+  const remainingSlots = maxCards - products.length;
+  
+  for (let i = 0; i < remainingSlots; i++) {
+    const emptyCard = document.createElement('div');
+    emptyCard.className = 'related-card empty-card';
+    emptyCard.innerHTML = `
+      <div class="related-thumb empty-thumb">
+        <div class="empty-placeholder">
+          <span>상품 준비중</span>
+        </div>
+      </div>
+      <div class="related-info empty-info">
+        <div class="related-name">준비중인 상품</div>
+        <div class="related-price">곧 출시</div>
+        <div class="related-meta">
+          <span>준비중</span>
+          <span>준비중</span>
+        </div>
+      </div>
+    `;
+    grid.appendChild(emptyCard);
+  }
+
+  console.log(`${products.length}개의 관련 상품이 렌더링되었습니다. (빈 슬롯 ${remainingSlots}개 추가)`);
+}
+
+// 관련 상품 클릭 이벤트 설정
+function setupRelatedProductClickEvents() {
+  const relatedCards = document.querySelectorAll('.related-card');
+  relatedCards.forEach(card => {
+    // 이미 HTML에서 href로 링크가 설정되어 있으므로 추가 이벤트는 필요 없음
+    // 필요시 여기서 추가 로직 구현 가능
+    console.log('관련 상품 카드 설정됨:', card);
+  });
 }
 
 // 리뷰보기 버튼 설정

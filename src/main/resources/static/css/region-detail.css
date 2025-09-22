@@ -617,7 +617,7 @@ body {
 
 .related-products-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    grid-template-columns: repeat(4, 1fr);
     gap: 20px;
 }
 
@@ -634,6 +634,46 @@ body {
     border-color: #ff8c42;
     transform: translateY(-5px);
     box-shadow: 0 8px 25px rgba(255, 140, 66, 0.2);
+}
+
+/* 빈 카드 스타일 */
+.related-card.empty-card {
+    opacity: 0.6;
+    cursor: default;
+    border-style: dashed;
+    border-color: #ddd;
+}
+
+.related-card.empty-card:hover {
+    transform: none;
+    box-shadow: none;
+    border-color: #ddd;
+}
+
+.empty-thumb {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.empty-placeholder {
+    text-align: center;
+    color: #6c757d;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.empty-info .related-name {
+    color: #6c757d;
+}
+
+.empty-info .related-price {
+    color: #adb5bd;
+}
+
+.empty-info .related-meta span {
+    color: #adb5bd;
 }
 
 .related-image {
@@ -701,7 +741,7 @@ body {
     }
     
     .related-products-grid {
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        grid-template-columns: repeat(3, 1fr);
     }
 }
 
@@ -754,6 +794,10 @@ body {
     
     .company-details {
         gap: 12px;
+    }
+    
+    .related-products-grid {
+        grid-template-columns: repeat(2, 1fr);
     }
     
     .company-label {

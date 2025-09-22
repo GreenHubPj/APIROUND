@@ -132,7 +132,25 @@ public interface RegionRepository extends JpaRepository<Region, Integer> {
             @Param("excludeId") Integer excludeId,
             @Param("limit") int limit);
 
-    // product_listing과 specialty_product를 UNION으로 조합하여 조회
+    // product_listing과 specialty_product를 UNION으로 조합하여 조회 (페이지네이션)
+    @Query(value = """
+        SELECT product_id, title, product_type, region_text, harvest_season, is_deleted, status, thumbnail_url, description 
+        FROM (
+            SELECT product_id, title, product_type, region_text, harvest_season, is_deleted, status, thumbnail_url, description, 1 AS src_order 
+            FROM product_listing 
+            WHERE status = 'ACTIVE' AND is_deleted = 'N'
+            UNION ALL 
+            SELECT product_id, product_name AS title, product_type, region_text, harvest_season, is_deleted, '' AS status, thumbnail_url, description, 2 AS src_order 
+            FROM specialty_product
+        ) t 
+        ORDER BY src_order ASC, 
+                 CASE WHEN src_order = 1 THEN product_id END DESC, 
+                 CASE WHEN src_order = 2 THEN product_id END ASC
+        LIMIT :size OFFSET :offset
+        """, nativeQuery = true)
+    List<Object[]> findCombinedProductsWithUnionPaged(@Param("offset") int offset, @Param("size") int size);
+
+    // product_listing과 specialty_product를 UNION으로 조합하여 조회 (전체)
     @Query(value = """
         SELECT product_id, title, product_type, region_text, harvest_season, is_deleted, status, thumbnail_url, description 
         FROM (
@@ -151,13 +169,13 @@ public interface RegionRepository extends JpaRepository<Region, Integer> {
 
     // 타입별로 필터링된 UNION 조회
     @Query(value = """
-        SELECT product_id, title, product_type, region_text, harvest_season, is_deleted, status, thumbnail_url 
+        SELECT product_id, title, product_type, region_text, harvest_season, is_deleted, status, thumbnail_url, description 
         FROM (
-            SELECT product_id, title, product_type, region_text, harvest_season, is_deleted, status, thumbnail_url, 1 AS src_order 
+            SELECT product_id, title, product_type, region_text, harvest_season, is_deleted, status, thumbnail_url, description, 1 AS src_order 
             FROM product_listing 
             WHERE status = 'ACTIVE' AND is_deleted = 'N' AND product_type = :productType
             UNION ALL 
-            SELECT product_id, product_name AS title, product_type, region_text, harvest_season, is_deleted, '' AS status, thumbnail_url, 2 AS src_order 
+            SELECT product_id, product_name AS title, product_type, region_text, harvest_season, is_deleted, '' AS status, thumbnail_url, description, 2 AS src_order 
             FROM specialty_product
             WHERE product_type = :productType
         ) t 
@@ -169,15 +187,15 @@ public interface RegionRepository extends JpaRepository<Region, Integer> {
 
     // 지역별로 필터링된 UNION 조회
     @Query(value = """
-        SELECT product_id, title, product_type, region_text, harvest_season, is_deleted, status, thumbnail_url 
+        SELECT product_id, title, product_type, region_text, harvest_season, is_deleted, status, thumbnail_url, description 
         FROM (
-            SELECT product_id, title, product_type, region_text, harvest_season, is_deleted, status, thumbnail_url, 1 AS src_order 
+            SELECT product_id, title, product_type, region_text, harvest_season, is_deleted, status, thumbnail_url, description, 1 AS src_order 
             FROM product_listing 
-            WHERE status = 'ACTIVE' AND is_deleted = 'N' AND region_text LIKE %:regionText%
+            WHERE status = 'ACTIVE' AND is_deleted = 'N' AND region_text LIKE CONCAT('%', :regionText, '%')
             UNION ALL 
-            SELECT product_id, product_name AS title, product_type, region_text, harvest_season, is_deleted, '' AS status, thumbnail_url, 2 AS src_order 
+            SELECT product_id, product_name AS title, product_type, region_text, harvest_season, is_deleted, '' AS status, thumbnail_url, description, 2 AS src_order 
             FROM specialty_product
-            WHERE region_text LIKE %:regionText%
+            WHERE region_text LIKE CONCAT('%', :regionText, '%')
         ) t 
         ORDER BY src_order ASC, 
                  CASE WHEN src_order = 1 THEN product_id END DESC, 
@@ -226,4 +244,41 @@ public interface RegionRepository extends JpaRepository<Region, Integer> {
         ORDER BY ppo.sortOrder ASC, ppo.optionId ASC
         """)
     List<com.apiround.greenhub.entity.item.ProductPriceOption> findPriceOptionsByProductId(@Param("productId") Integer productId);
+
+    // 상품 ID로 업체 정보 조회 (ProductListing과 Company 조인)
+    @Query("""
+        SELECT c FROM Company c
+        INNER JOIN ProductListing pl ON c.companyId = pl.sellerId
+        WHERE pl.productId = :productId
+        AND pl.isDeleted = 'N'
+        """)
+    com.apiround.greenhub.entity.Company findCompanyByProductId(@Param("productId") Integer productId);
+
+    // 지역별 관련 상품 조회 (유연한 매칭 + 랜덤 정렬)
+    @Query(value = """
+        SELECT product_id, title, product_type, region_text, harvest_season, is_deleted, status, thumbnail_url, description, 
+               RAND() as random_order
+        FROM product_listing 
+        WHERE status = 'ACTIVE' AND is_deleted = 'N'
+        AND (region_text = :regionText 
+             OR region_text LIKE CONCAT('%', :regionText, '%')
+             OR :regionText LIKE CONCAT('%', region_text, '%'))
+        AND product_id <> :excludeId
+        
+        UNION ALL 
+        
+        SELECT product_id, product_name AS title, product_type, region_text, harvest_season, is_deleted, '' AS status, thumbnail_url, description,
+               RAND() as random_order
+        FROM specialty_product
+        WHERE (region_text = :regionText 
+               OR region_text LIKE CONCAT('%', :regionText, '%')
+               OR :regionText LIKE CONCAT('%', region_text, '%'))
+        AND product_id <> :excludeId
+        
+        ORDER BY random_order ASC
+        LIMIT :limit
+        """, nativeQuery = true)
+    List<Object[]> findCombinedProductsByRegionFlexible(@Param("regionText") String regionText, 
+                                                        @Param("excludeId") Integer excludeId, 
+                                                        @Param("limit") int limit);
 }

@@ -79,15 +79,15 @@
                     <div class="company-details">
                         <div class="company-item">
                             <span class="company-label">업체명:</span>
-                            <span class="company-value" id="companyName">문경농협</span>
+                            <span class="company-value" id="companyName" th:text="${product.companyName ?: '문경농협'}">문경농협</span>
                         </div>
                         <div class="company-item">
                             <span class="company-label">전화번호:</span>
-                            <span class="company-value" id="companyPhone">054-555-1234</span>
+                            <span class="company-value" id="companyPhone" th:text="${product.companyPhone ?: '054-555-1234'}">054-555-1234</span>
                         </div>
                         <div class="company-item">
                             <span class="company-label">이메일:</span>
-                            <span class="company-value" id="companyEmail">mungyeong@coop.co.kr</span>
+                            <span class="company-value" id="companyEmail" th:text="${product.companyEmail ?: 'mungyeong@coop.co.kr'}">mungyeong@coop.co.kr</span>
                         </div>
                     </div>
                 </div>
@@ -181,43 +181,13 @@
             </div>
         </div>
 
-        <!-- 관련 상품 섹션 -->
-        <div class="related-products-section"
-             th:if="${relatedProducts != null and !#lists.isEmpty(relatedProducts)}">
+        <!-- 관련 상품 섹션 (JavaScript에서 동적으로 렌더링) -->
+        <div class="related-products-section">
             <h2 class="section-title">관련 상품</h2>
-
-            <div class="related-products-grid" id="relatedProductsGrid"
-                 th:with="r=${#strings.isEmpty(param.region) ? product.regionText : param.region}">
-                <a class="related-card"
-                   th:each="rp, stat : ${relatedProducts}"
-                   th:if="${stat.index < 4}"
-                   th:href="@{/region-detail(id=${rp.productId}, region=${r})}"
-                   th:with="
-                    thumb=${#strings.trim(rp.thumbnailUrl)},
-                    isBad=${#strings.isEmpty(thumb) or #strings.equalsIgnoreCase(thumb,'null') or #strings.equals(thumb,'#')},
-                    fallback=@{/images/따봉 트럭.png}">
-                    <div class="related-thumb">
-                        <img th:alt="${rp.productName}"
-                             th:src="${isBad} ? ${fallback} : ${thumb}"
-                             th:attr="onerror=|this.onerror=null;this.src='@{/images/따봉 트럭.png}'|"
-                             style="width: 100%; height: 100%; object-fit: cover;">
-                    </div>
-                    <div class="related-info">
-                        <div class="related-name" th:text="${rp.productName}">상품명</div>
-                        <div class="related-meta">
-                            <span th:text="${rp.regionText}">지역</span>
-                            <span th:text="${rp.productType}">유형</span>
-                        </div>
-                    </div>
-                </a>
+            <div class="related-products-grid" id="relatedProductsGrid">
+                <!-- JavaScript에서 동적으로 로드됩니다 -->
             </div>
-        </div>
-
-        <!-- 아무것도 없을 때 안내 (선택) -->
-        <div class="related-products-section"
-             th:if="${relatedProducts == null or #lists.isEmpty(relatedProducts)}">
-            <h2 class="section-title">관련 상품</h2>
-            <p class="no-related">같은 지역의 다른 상품이 아직 없어요.</p>
+            <p class="no-related" style="display: none;">같은 지역의 다른 상품이 아직 없어요.</p>
         </div>
     </div>
 </main>
@@ -247,7 +217,12 @@
 window.serverData = {
     product: /*[[${product}]]*/ null,
     priceOptions: /*[[${options}]]*/ null,
-    relatedProducts: /*[[${relatedProducts}]]*/ null
+    relatedProducts: /*[[${relatedProducts}]]*/ null,
+    companyInfo: {
+        name: /*[[${product.companyName}]]*/ null,
+        phone: /*[[${product.companyPhone}]]*/ null,
+        email: /*[[${product.companyEmail}]]*/ null
+    }
 };
 </script>
 <script src="/js/region-detail.js"></script>

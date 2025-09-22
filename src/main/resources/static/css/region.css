@@ -281,7 +281,6 @@ body {
     gap: 25px;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     align-items: flex-start;
-    cursor: pointer;
 }
 
 .product-card:hover {
@@ -395,13 +394,68 @@ body {
 
 .product-prices {
     display: flex;
-    gap: 8px;
+    gap: 6px;
     margin-bottom: 20px;
     flex-direction: column;
-    max-height: 120px;
+    max-height: 100px;
     overflow-y: auto;
 }
 
+.price-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #f8f9fa;
+    padding: 6px 10px;
+    border-radius: 4px;
+    margin-bottom: 4px;
+    border: 1px solid #e9ecef;
+    font-size: 13px;
+}
+
+.price-label {
+    font-size: 12px;
+    color: #666;
+    font-weight: 500;
+}
+
+.price-value {
+    font-size: 13px;
+    color: #ff6b35;
+    font-weight: 600;
+}
+
+.price-more {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 4px 8px;
+    background-color: #e9ecef;
+    border-radius: 4px;
+    margin-top: 2px;
+}
+
+.more-text {
+    font-size: 11px;
+    color: #666;
+    font-weight: 500;
+}
+
+.price-loading {
+    font-size: 12px;
+    color: #999;
+    text-align: center;
+    padding: 8px;
+}
+
+.no-price {
+    font-size: 12px;
+    color: #666;
+    text-align: center;
+    padding: 8px;
+}
+
+/* 기존 스타일 유지 */
 .price {
     background-color: #f8f9fa;
     padding: 6px 12px;
