@@ -51,7 +51,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ItemController {
 
-    @Value("${app.upload-dir:${user.home}/greenhub-uploads}")
+    @Value("${app.upload-dir:./upload-dir}")
     private String uploadDir;
 
     private final ItemService itemService;                 // specialty_product + options

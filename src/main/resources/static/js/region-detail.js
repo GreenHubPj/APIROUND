@@ -94,6 +94,31 @@ function loadProductDetail() {
 
 // 서버에서 전달된 상품 데이터 가져오기
 function getProductFromServer() {
+  // 서버에서 전달된 데이터가 있으면 우선 사용
+  if (window.serverData && window.serverData.product) {
+    const serverProduct = window.serverData.product;
+    const serverPriceOptions = window.serverData.priceOptions || [];
+    
+    return {
+      id: serverProduct.productId,
+      name: serverProduct.productName,
+      category: serverProduct.productType,
+      region: serverProduct.regionText,
+      description: serverProduct.description,
+      thumbnailUrl: serverProduct.thumbnailUrl,
+      harvestSeason: serverProduct.harvestSeason,
+      priceOptions: serverPriceOptions.map(opt => ({
+        id: opt.optionId,
+        quantity: opt.quantity,
+        unit: opt.unit,
+        price: opt.price
+      })),
+      companyInfo: generateRandomCompany(serverProduct.regionText),
+      images: [{ id: 1, src: serverProduct.thumbnailUrl, alt: serverProduct.productName }]
+    };
+  }
+
+  // 서버 데이터가 없으면 DOM에서 파싱
   const productName = document.getElementById('productTitle')?.textContent || '';
   const productTags = document.querySelectorAll('.product-tag');
   const productType = productTags[0]?.textContent || '';
@@ -209,7 +234,6 @@ function renderPriceOptions() {
   priceOptionsContainer.innerHTML = '';
   priceSelect.innerHTML = '<option value="">가격 옵션을 선택하세요</option>';
 
-   console.log('priceOptions',currentProduct.priceOptions)
   (currentProduct.priceOptions || []).forEach((option, index) => {
     // 카드
     const optionElement = document.createElement('div');
@@ -236,7 +260,6 @@ function renderPriceOptions() {
 
     //옵션이 1개면 자동선택 처리
     if ((currentProduct.priceOptions || []).length === 1) {
-    console.log('조건문 실행됨')
     const onlyOption = currentProduct.priceOptions[0];
     selectedPriceOption = onlyOption;
     // 카드와 select도 동기화
@@ -527,8 +550,6 @@ function updateTotalPrice() {
 
 // 장바구니 담기
 async function addToCart(event) {
-    console.log('addToCart 시작됨')
-    console.log(selectedPriceOption)
    if (!selectedPriceOption) {
       showMessageAtPosition('가격 옵션을 선택해주세요.', 'error', event.target);
       return;

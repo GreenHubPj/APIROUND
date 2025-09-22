@@ -131,4 +131,99 @@ public interface RegionRepository extends JpaRepository<Region, Integer> {
             @Param("regionText") String regionText,
             @Param("excludeId") Integer excludeId,
             @Param("limit") int limit);
+
+    // product_listing과 specialty_product를 UNION으로 조합하여 조회
+    @Query(value = """
+        SELECT product_id, title, product_type, region_text, harvest_season, is_deleted, status, thumbnail_url, description 
+        FROM (
+            SELECT product_id, title, product_type, region_text, harvest_season, is_deleted, status, thumbnail_url, description, 1 AS src_order 
+            FROM product_listing 
+            WHERE status = 'ACTIVE' AND is_deleted = 'N'
+            UNION ALL 
+            SELECT product_id, product_name AS title, product_type, region_text, harvest_season, is_deleted, '' AS status, thumbnail_url, description, 2 AS src_order 
+            FROM specialty_product
+        ) t 
+        ORDER BY src_order ASC, 
+                 CASE WHEN src_order = 1 THEN product_id END DESC, 
+                 CASE WHEN src_order = 2 THEN product_id END ASC
+        """, nativeQuery = true)
+    List<Object[]> findCombinedProductsWithUnion();
+
+    // 타입별로 필터링된 UNION 조회
+    @Query(value = """
+        SELECT product_id, title, product_type, region_text, harvest_season, is_deleted, status, thumbnail_url 
+        FROM (
+            SELECT product_id, title, product_type, region_text, harvest_season, is_deleted, status, thumbnail_url, 1 AS src_order 
+            FROM product_listing 
+            WHERE status = 'ACTIVE' AND is_deleted = 'N' AND product_type = :productType
+            UNION ALL 
+            SELECT product_id, product_name AS title, product_type, region_text, harvest_season, is_deleted, '' AS status, thumbnail_url, 2 AS src_order 
+            FROM specialty_product
+            WHERE product_type = :productType
+        ) t 
+        ORDER BY src_order ASC, 
+                 CASE WHEN src_order = 1 THEN product_id END DESC, 
+                 CASE WHEN src_order = 2 THEN product_id END ASC
+        """, nativeQuery = true)
+    List<Object[]> findCombinedProductsByTypeWithUnion(@Param("productType") String productType);
+
+    // 지역별로 필터링된 UNION 조회
+    @Query(value = """
+        SELECT product_id, title, product_type, region_text, harvest_season, is_deleted, status, thumbnail_url 
+        FROM (
+            SELECT product_id, title, product_type, region_text, harvest_season, is_deleted, status, thumbnail_url, 1 AS src_order 
+            FROM product_listing 
+            WHERE status = 'ACTIVE' AND is_deleted = 'N' AND region_text LIKE %:regionText%
+            UNION ALL 
+            SELECT product_id, product_name AS title, product_type, region_text, harvest_season, is_deleted, '' AS status, thumbnail_url, 2 AS src_order 
+            FROM specialty_product
+            WHERE region_text LIKE %:regionText%
+        ) t 
+        ORDER BY src_order ASC, 
+                 CASE WHEN src_order = 1 THEN product_id END DESC, 
+                 CASE WHEN src_order = 2 THEN product_id END ASC
+        """, nativeQuery = true)
+    List<Object[]> findCombinedProductsByRegionWithUnion(@Param("regionText") String regionText);
+
+    // 특정 ID로 UNION 조회 (product_listing과 specialty_product에서 찾기)
+    @Query(value = """
+        SELECT product_id, title, product_type, region_text, harvest_season, is_deleted, status, thumbnail_url, description 
+        FROM (
+            SELECT product_id, title, product_type, region_text, harvest_season, is_deleted, status, thumbnail_url, description, 1 AS src_order 
+            FROM product_listing 
+            WHERE product_id = :productId AND status = 'ACTIVE' AND is_deleted = 'N'
+            UNION ALL 
+            SELECT product_id, product_name AS title, product_type, region_text, harvest_season, is_deleted, '' AS status, thumbnail_url, description, 2 AS src_order 
+            FROM specialty_product
+            WHERE product_id = :productId
+        ) t 
+        ORDER BY src_order ASC
+        LIMIT 1
+        """, nativeQuery = true)
+    List<Object[]> findCombinedProductByIdWithUnion(@Param("productId") Integer productId);
+
+    // 디버깅용: thumbnail_url 확인 쿼리
+    @Query(value = """
+        SELECT product_id, title, thumbnail_url 
+        FROM product_listing 
+        WHERE status = 'ACTIVE' AND is_deleted = 'N' 
+        LIMIT 5
+        """, nativeQuery = true)
+    List<Object[]> findThumbnailUrlsFromProductListing();
+
+    @Query(value = """
+        SELECT product_id, product_name, thumbnail_url 
+        FROM specialty_product 
+        LIMIT 5
+        """, nativeQuery = true)
+    List<Object[]> findThumbnailUrlsFromSpecialtyProduct();
+
+    // 특정 상품의 가격 옵션 조회
+    @Query("""
+        SELECT ppo FROM ProductPriceOption ppo 
+        WHERE ppo.productId = :productId 
+        AND (ppo.isActive IS NULL OR ppo.isActive = true)
+        ORDER BY ppo.sortOrder ASC, ppo.optionId ASC
+        """)
+    List<com.apiround.greenhub.entity.item.ProductPriceOption> findPriceOptionsByProductId(@Param("productId") Integer productId);
 }

@@ -199,7 +199,8 @@
                     <div class="related-thumb">
                         <img th:alt="${rp.productName}"
                              th:src="${isBad} ? ${fallback} : ${thumb}"
-                             th:attr="onerror=|this.onerror=null;this.src='@{/images/따봉 트럭.png}'|">
+                             th:attr="onerror=|this.onerror=null;this.src='@{/images/따봉 트럭.png}'|"
+                             style="width: 100%; height: 100%; object-fit: cover;">
                     </div>
                     <div class="related-info">
                         <div class="related-name" th:text="${rp.productName}">상품명</div>
@@ -224,6 +225,14 @@
 <!-- 푸터 include (요청대로 유지) -->
 <div th:replace="common/footer :: footer"></div>
 
+<script>
+// 서버에서 전달된 데이터를 JavaScript에서 사용할 수 있도록 설정
+window.serverData = {
+    product: /*[[${product}]]*/ null,
+    priceOptions: /*[[${options}]]*/ null,
+    relatedProducts: /*[[${relatedProducts}]]*/ null
+};
+</script>
 <script src="/js/region-detail.js"></script>
 
 </body>
