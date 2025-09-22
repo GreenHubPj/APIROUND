@@ -3,13 +3,9 @@ package com.apiround.greenhub.controller;
 import com.apiround.greenhub.entity.Recipe;
 import com.apiround.greenhub.service.RecipeService;
 import jakarta.servlet.http.HttpSession;
-import org.springframework.beans.factory.annotation.Autowired;
-import com.apiround.greenhub.entity.Recipe;
 import com.apiround.greenhub.entity.item.Region;
-import com.apiround.greenhub.service.RecipeService;
 import com.apiround.greenhub.service.item.SeasonalService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,19 +15,20 @@ import org.springframework.http.ResponseEntity;
 import java.util.Map;
 
 import java.util.List;
+import java.util.ArrayList;
 
-import com.apiround.greenhub.service.item.RegionService;
-
-import java.util.List;
+import com.apiround.greenhub.cart.service.CartService;
+import com.apiround.greenhub.cart.dto.CartDto;
+import com.apiround.greenhub.entity.User;
 
 @Controller
 @RequiredArgsConstructor
 public class HomeController {
 
-    @Autowired
-    private RecipeService recipeService;
+    private final RecipeService recipeService;
 
     private final SeasonalService seasonalService;
+    private final CartService cartService;
 
     /** API: 오늘 뭐먹지 랜덤 레시피 추천 */
     @GetMapping("/api/random-recipe")
@@ -41,17 +38,17 @@ public class HomeController {
             System.out.println("랜덤 레시피 API 호출됨");
             Recipe recipe = recipeService.getRandomRecipeForRecommendation();
             System.out.println("레시피 조회 결과: " + (recipe != null ? recipe.getTitle() : "null"));
-            
+
             if (recipe == null) {
                 System.out.println("레시피가 null입니다. 기본 데이터 반환");
                 // 기본 레시피 데이터 반환
                 Map<String, Object> defaultResponse = Map.of(
-                    "name", "김치찌개",
-                    "region", "전국 지역 특산품",
-                    "ingredients", List.of("김치", "돼지고기", "두부", "대파"),
-                    "description", "맛있는 김치찌개입니다.",
-                    "recipeId", 1,
-                    "imageUrl", "/images/kimchi.jpg"
+                        "name", "김치찌개",
+                        "region", "전국 지역 특산품",
+                        "ingredients", List.of("김치", "돼지고기", "두부", "대파"),
+                        "description", "맛있는 김치찌개입니다.",
+                        "recipeId", 1,
+                        "imageUrl", "/images/kimchi.jpg"
                 );
                 return ResponseEntity.ok(defaultResponse);
             }
@@ -59,7 +56,7 @@ public class HomeController {
             // 응답 데이터 구성
             List<String> ingredients = getRecipeIngredients(recipe.getRecipeId());
             System.out.println("재료 목록: " + ingredients);
-            
+
             Map<String, Object> response = Map.of(
                     "name", recipe.getTitle() != null ? recipe.getTitle() : "맛있는 요리",
                     "region", "전국 지역 특산품",
