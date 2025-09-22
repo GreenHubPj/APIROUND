@@ -1,520 +1,606 @@
-// 고객 주문관리 페이지 JavaScript
+// /src/main/resources/static/js/customerOrder.js
+// 고객 주문관리 페이지 JavaScript (실데이터 연동 버전)
 
 let salesChart = null;
 
-document.addEventListener('DOMContentLoaded', function() {
-    // 날짜 필터 기능
+// 전역 상태
+const state = {
+    orders: [],        // [{orderNumber, createdAt: Date, amount: number, uiStatus}]
+    filtered: [],      // 현재 필터(기간/탭) 적용된 목록
+    activeStatusTab: 'all',
+    dateRange: { start: null, end: null }, // Date
+};
+
+// UI에 쓰는 상태 라벨 & 버튼 클래스 매핑
+const STATUS_BTN = {
+    new:        { text: '신규 주문',  cls: 'new' },
+    confirmed:  { text: '주문 확인',  cls: 'confirmed' },
+    preparing:  { text: '배송 준비',  cls: 'preparing' },
+    shipping:   { text: '배송중',    cls: 'shipping' },
+    completed:  { text: '완료',      cls: 'completed' },
+    cancelled:  { text: '취소',      cls: 'cancelled' },
+};
+
+document.addEventListener('DOMContentLoaded', async function() {
     initializeDateFilters();
-    
-    // 탭 기능
     initializeTabs();
-    
-    // 차트 초기화
-    initializeChart();
-    
-    // 차트 뷰 토글
     initializeChartToggle();
-    
-    // 주문 상태 업데이트
-    initializeOrderStatusUpdates();
-    
-    // 빠른 날짜 선택
-    initializeQuickDateButtons();
-    
-    // 애니메이션 효과
     initializeAnimations();
+
+    // ✅ 서버에서 판매사 주문 불러오기
+    await loadVendorOrders();
+
+    // 초기 렌더
+    if (state.orders.length > 0) {
+        // 기본 기간: 최근 30일
+        const today = new Date();
+        const oneMonthAgo = new Date(today.getTime() - (30 * 24 * 60 * 60 * 1000));
+        setDateInputs(oneMonthAgo, today);
+        applyDateFilter(oneMonthAgo, today);
+
+        renderAll();
+    } else {
+        // 실패거나 데이터 없음: 화면에 안내
+        showNotification('표시할 주문이 없습니다.', 'info');
+    }
 });
 
-// 날짜 필터 초기화
-function initializeDateFilters() {
-    const startDateInput = document.getElementById('startDate');
-    const endDateInput = document.getElementById('endDate');
-    const applyBtn = document.querySelector('.apply-btn');
-    
-    // 기본 날짜 설정
-    const today = new Date();
-    const oneMonthAgo = new Date(today.getTime() - (30 * 24 * 60 * 60 * 1000));
-    
-    if (startDateInput && endDateInput) {
-        startDateInput.value = formatDate(oneMonthAgo);
-        endDateInput.value = formatDate(today);
+// ========================= 서버 연동 =========================
+async function loadVendorOrders() {
+    try {
+        const res = await fetch('/api/seller/orders/my', { credentials: 'include' });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const json = await res.json();
+
+        if (!json.success || !Array.isArray(json.orders)) {
+            throw new Error('API 응답 형식이 올바르지 않습니다.');
+        }
+
+        // 서버 DTO: VendorOrderSummaryDto { id(date/status/vendorSubtotal/...) }
+        state.orders = json.orders.map(o => {
+            const created = o.date ? new Date(o.date) : new Date();
+            const amt = toNumber(o.vendorSubtotal ?? o.finalAmount ?? 0);
+            const uiStatus = (o.status || 'preparing').toLowerCase();
+
+            // ✅ 주문의 아이템들까지 보관 (상품명/수량/금액)
+            const items = Array.isArray(o.items) ? o.items.map(it => ({
+                name: it.name,
+                quantity: Number(it.quantity ?? 0),
+                price: toNumber(it.price ?? it.lineAmount ?? 0),
+            })) : [];
+
+            return {
+                orderNumber: o.id,
+                createdAt: created,
+                amount: amt,
+                uiStatus,
+                items, // ✅ 추가
+            };
+        });
+
+
+
+        // 차트 초기화는 데이터 들어온 뒤
+        initializeChart();
+
+    } catch (err) {
+        console.warn('주문 로드 실패:', err);
+        // 더미 유지 없이 빈 상태로 둠 (HTML에 하드코딩된 더미를 덮어쓰기 위해 아래에서 렌더 시 전부 교체)
+        state.orders = [];
     }
-    
-    // 적용 버튼 클릭 이벤트
+}
+
+// ========================= 렌더링 =========================
+function renderAll() {
+    renderOrderList();
+    updateStatusCardsFromState();
+    updateDailySummaryText();
+    updateChartsFromState();
+    renderSalesSummary(); // ✅ 매출 요약 갱신
+}
+
+function renderOrderList() {
+    const list = document.querySelector('.order-list');
+    if (!list) return;
+
+    // 현재 필터: 상태 탭 + 날짜 범위
+    const rows = filterByStatus(state.filtered, state.activeStatusTab);
+
+    if (rows.length === 0) {
+        list.innerHTML = `
+            <div style="padding:1rem; text-align:center; color:#6c757d;">
+                표시할 주문이 없습니다.
+            </div>`;
+        return;
+    }
+
+    // 시간 최근순 정렬
+    rows.sort((a, b) => b.createdAt - a.createdAt);
+
+    list.innerHTML = rows.map(r => {
+        const btn = STATUS_BTN[r.uiStatus] || STATUS_BTN.preparing;
+        const timeText = renderTimeInfo(r.createdAt);
+        const formattedAmount = '₩' + r.amount.toLocaleString();
+
+        return `
+        <div class="order-item" data-status="${r.uiStatus}">
+            <div class="order-info">
+                <div class="order-number">#${escapeHtml(r.orderNumber)}</div>
+                <div class="order-time">${timeText}</div>
+            </div>
+            <div class="order-amount">${formattedAmount}</div>
+            <div class="order-actions">
+                <button class="status-button ${btn.cls}">${btn.text}</button>
+            </div>
+        </div>`;
+    }).join('');
+
+    // 상태 버튼 이벤트 바인딩(프론트 전용 전환)
+    initializeOrderStatusUpdates();
+}
+
+function updateStatusCardsFromState() {
+    const counts = {
+        new: 0, confirmed: 0, preparing: 0, shipping: 0, completed: 0, cancelled: 0,
+    };
+    state.filtered.forEach(o => {
+        if (counts[o.uiStatus] !== undefined) counts[o.uiStatus]++;
+    });
+
+    const newOrdersCard       = document.querySelector('.new-orders .card-number');
+    const confirmedOrdersCard = document.querySelector('.confirmed-orders .card-number');
+    const cancelledOrdersCard = document.querySelector('.cancelled-orders .card-number');
+    const totalOrdersCard     = document.querySelector('.total-orders .card-number');
+
+    if (newOrdersCard)       newOrdersCard.textContent = counts.new;
+    if (confirmedOrdersCard) confirmedOrdersCard.textContent = counts.confirmed;
+    if (cancelledOrdersCard) cancelledOrdersCard.textContent = counts.cancelled;
+    if (totalOrdersCard)     totalOrdersCard.textContent = state.filtered.length;
+}
+
+function updateDailySummaryText() {
+    const summaryText = document.querySelector('.summary-text');
+    if (!summaryText) return;
+
+    const orders = filterByStatus(state.filtered, state.activeStatusTab);
+    const total = orders.reduce((sum, o) => sum + o.amount, 0);
+    summaryText.textContent = `주문 ${orders.length}건 매출 ₩${total.toLocaleString()}`;
+}
+
+// ✅ 매출 요약(우측 카드) 업데이트: 현재 탭 + 날짜필터가 적용된 주문으로 집계
+function renderSalesSummary() {
+    const section = document.querySelector('.sales-summary-section');
+    if (!section) return;
+
+    // HTML에 있는 6개 값 순서: 총 매출, 총 주문건, 평균 주문금액, 주문 완료율, 최다 주문시간, 베스트 상품
+    const values = section.querySelectorAll('.summary-grid .summary-item .summary-value');
+    if (values.length < 6) return;
+
+    const setVal = (idx, text) => { if (values[idx]) values[idx].textContent = text; };
+
+    // 현재 기간/탭 필터 적용된 목록 기준
+    const orders = state.filtered;
+
+    // 총 매출 / 총 주문건 / 평균 주문금액
+    const totalSales  = orders.reduce((sum, o) => sum + (Number(o.amount) || 0), 0);
+    const totalOrders = orders.length;
+    const avgAmount   = totalOrders > 0 ? Math.round(totalSales / totalOrders) : 0;
+
+    // 완료율: 상태가 'completed' 인 주문 비율
+    const completed = orders.filter(o => o.uiStatus === 'completed').length;
+    const completionRate = totalOrders > 0 ? (completed * 100) / totalOrders : 0;
+
+    // 최다 주문시간(시간대별 주문 "건수" 기준)
+    const hourCounts = Array(24).fill(0);
+    orders.forEach(o => { hourCounts[o.createdAt.getHours()]++; });
+    const peakHour = hourCounts.reduce((bestIdx, v, idx, arr) => v > arr[bestIdx] ? idx : bestIdx, 0);
+    const peakHourLabel = `${String(peakHour).padStart(2,'0')}:00-${String((peakHour+1)%24).padStart(2,'0')}:00`;
+
+    // ✅ 베스트 상품: 현재 필터 범위의 모든 주문 아이템 중 "수량 합"이 가장 큰 상품명
+    let bestProduct = '-';
+    const productQty = new Map();
+    orders.forEach(o => {
+        (o.items || []).forEach(it => {
+            const key = it.name || '상품';
+            const q = Number(it.quantity) || 0;
+            productQty.set(key, (productQty.get(key) || 0) + q);
+        });
+    });
+    if (productQty.size > 0) {
+        bestProduct = [...productQty.entries()].sort((a, b) => b[1] - a[1])[0][0];
+    }
+
+    // 값 반영 (인덱스는 현재 HTML 순서와 1:1)
+    setVal(0, `₩${totalSales.toLocaleString()}`);  // 총 매출
+    setVal(1, `${totalOrders}건`);                 // 총 주문건
+    setVal(2, `₩${avgAmount.toLocaleString()}`);   // 평균 주문금액
+    setVal(3, `${completionRate.toFixed(1)}%`);    // 주문 완료율
+    setVal(4, peakHourLabel);                      // 최다 주문시간
+    setVal(5, bestProduct);                        // ✅ 베스트 상품
+}
+
+
+// ========================= 차트 =========================
+function initializeChart() {
+    const ctx = document.getElementById('salesChart');
+    if (!ctx) return;
+
+    // 기본 빈 차트
+    salesChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [{
+                label: '일별 매출',
+                data: [],
+                borderColor: '#28a745',
+                backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4,
+                pointBackgroundColor: '#28a745',
+                pointBorderColor: '#ffffff',
+                pointBorderWidth: 2,
+                pointRadius: 6,
+                pointHoverRadius: 8
+            }]
+        },
+        options: baseChartOptions('#28a745', 'rgba(40, 167, 69, 0.1)')
+    });
+}
+
+function initializeChartToggle() {
+    const toggleButtons = document.querySelectorAll('.toggle-btn');
+    toggleButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const view = this.getAttribute('data-view');
+            toggleButtons.forEach(btn => btn.classList.remove('active'));
+            this.classList.add('active');
+            changeChartView(view);
+        });
+    });
+}
+
+function changeChartView(view) {
+    if (!salesChart) return;
+
+    if (view === 'daily') {
+        const { labels, data } = buildDailySeries(state.filtered);
+        salesChart.data.labels = labels;
+        salesChart.data.datasets[0].data = data;
+        applyChartColors(salesChart, '#28a745', 'rgba(40, 167, 69, 0.1)');
+    } else {
+        const { labels, data } = buildHourlySeries(state.filtered);
+        salesChart.data.labels = labels;
+        salesChart.data.datasets[0].data = data;
+        applyChartColors(salesChart, '#20c997', 'rgba(32, 201, 151, 0.1)');
+    }
+    salesChart.update('active');
+}
+
+function updateChartsFromState() {
+    // 기본은 일별 뷰
+    const dailyBtn = document.querySelector('.toggle-btn[data-view="daily"]');
+    if (dailyBtn) {
+        dailyBtn.classList.add('active');
+    }
+    changeChartView('daily');
+}
+
+function buildDailySeries(rows) {
+    // 최근 7일 또는 현재 필터 기간 전체
+    // 여기서는 필터된 rows를 날짜별 합계로 그룹
+    const map = new Map(); // 'M/D' -> total
+    rows.forEach(o => {
+        const d = o.createdAt;
+        const key = `${d.getMonth() + 1}/${d.getDate()}`;
+        map.set(key, (map.get(key) || 0) + o.amount);
+    });
+
+    // 정렬
+    const entries = Array.from(map.entries()).sort((a, b) => toMonthDay(a[0]) - toMonthDay(b[0]));
+    const labels = entries.map(e => e[0]);
+    const data = entries.map(e => e[1]);
+    return { labels, data };
+}
+
+function buildHourlySeries(rows) {
+    // 0~23시 그룹
+    const buckets = Array(24).fill(0);
+    rows.forEach(o => {
+        const h = o.createdAt.getHours();
+        buckets[h] += o.amount;
+    });
+    return {
+        labels: Array.from({ length: 24 }, (_, i) => (i < 10 ? `0${i}:00` : `${i}:00`)),
+        data: buckets
+    };
+}
+
+function baseChartOptions(border, fill) {
+    return {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                display: true,
+                position: 'top',
+                labels: {
+                    usePointStyle: true,
+                    padding: 20,
+                    font: { family: 'Noto Sans KR', size: 12, weight: '500' }
+                }
+            },
+            tooltip: {
+                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                titleColor: '#ffffff',
+                bodyColor: '#ffffff',
+                borderColor: border,
+                borderWidth: 1,
+                cornerRadius: 8,
+                displayColors: false,
+                callbacks: { label: ctx => '매출: ₩' + (ctx.parsed.y || 0).toLocaleString() }
+            }
+        },
+        scales: {
+            x: {
+                grid: { display: false },
+                ticks: { font: { family: 'Noto Sans KR', size: 11 }, color: '#6c757d' }
+            },
+            y: {
+                beginAtZero: true,
+                grid: { color: 'rgba(0, 0, 0, 0.1)', drawBorder: false },
+                ticks: {
+                    font: { family: 'Noto Sans KR', size: 11 },
+                    color: '#6c757d',
+                    callback: v => '₩' + (v || 0).toLocaleString()
+                }
+            }
+        },
+        interaction: { intersect: false, mode: 'index' },
+        animation: { duration: 2000, easing: 'easeInOutQuart' }
+    };
+}
+
+function applyChartColors(chart, border, fill) {
+    chart.data.datasets[0].borderColor = border;
+    chart.data.datasets[0].backgroundColor = fill;
+    chart.data.datasets[0].pointBackgroundColor = border;
+}
+
+// ========================= 탭 / 필터 =========================
+function initializeTabs() {
+    const tabButtons = document.querySelectorAll('.tab-button');
+    tabButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const target = this.getAttribute('data-tab');
+
+            if (target === 'new') {
+                // ✅ '신규 주문' 탭 클릭 시: 오늘 날짜로 기간을 강제 적용
+                const today = new Date();
+                const s = startOfDay(today);
+                const e = endOfDay(today);
+
+                // 날짜 입력 UI도 오늘로 맞춰줌(선택)
+                setDateInputs(s, e);
+
+                // 상태의 기간 필터만 오늘로 재적용
+                applyDateFilter(s, e);
+
+                // 오늘의 "모든 상태" 주문을 보이게 하려면:
+                state.activeStatusTab = 'all';
+
+                // 만약 "오늘 + 신규 상태만" 보고 싶다면 위 줄 대신 아래 한 줄을 쓰면 됨
+                // state.activeStatusTab = 'new';
+            } else {
+                // 다른 탭은 기존 동작 유지 (상태 기반 필터)
+                state.activeStatusTab = target;
+            }
+
+            // 탭 하이라이트 유지
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            this.classList.add('active');
+
+            // 화면 다시 그리기 (리스트/요약/차트 모두 반영)
+            renderAll();
+        });
+    });
+}
+
+
+function initializeDateFilters() {
+    const applyBtn = document.querySelector('.apply-btn');
     if (applyBtn) {
         applyBtn.addEventListener('click', function() {
-            const startDate = startDateInput.value;
-            const endDate = endDateInput.value;
-            
-            if (startDate && endDate) {
-                filterOrdersByDate(startDate, endDate);
+            const range = readDateInputs();
+            if (range.start && range.end) {
+                applyDateFilter(range.start, range.end);
+                renderAll();
                 showNotification('조회 기간이 적용되었습니다.', 'success');
             } else {
                 showNotification('시작일과 종료일을 모두 선택해주세요.', 'error');
             }
         });
     }
+    initializeQuickDateButtons();
 }
 
-// 빠른 날짜 선택 초기화
 function initializeQuickDateButtons() {
     const quickButtons = document.querySelectorAll('.quick-btn');
-    
     quickButtons.forEach(button => {
         button.addEventListener('click', function() {
-            // 모든 버튼에서 active 클래스 제거
             quickButtons.forEach(btn => btn.classList.remove('active'));
-            // 클릭된 버튼에 active 클래스 추가
             this.classList.add('active');
-            
-            const period = this.getAttribute('data-period');
-            setQuickDateRange(period);
-        });
-    });
-}
+            const today = new Date();
+            let s, e;
 
-// 빠른 날짜 범위 설정
-function setQuickDateRange(period) {
-    const today = new Date();
-    const startDateInput = document.getElementById('startDate');
-    const endDateInput = document.getElementById('endDate');
-    
-    let startDate, endDate;
-    
-    switch(period) {
-        case 'today':
-            startDate = endDate = today;
-            break;
-        case 'yesterday':
-            const yesterday = new Date(today.getTime() - (24 * 60 * 60 * 1000));
-            startDate = endDate = yesterday;
-            break;
-        case 'thisWeek':
-            const startOfWeek = new Date(today);
-            startOfWeek.setDate(today.getDate() - today.getDay());
-            startDate = startOfWeek;
-            endDate = today;
-            break;
-        case 'lastWeek':
-            const lastWeekStart = new Date(today);
-            lastWeekStart.setDate(today.getDate() - today.getDay() - 7);
-            const lastWeekEnd = new Date(lastWeekStart);
-            lastWeekEnd.setDate(lastWeekStart.getDate() + 6);
-            startDate = lastWeekStart;
-            endDate = lastWeekEnd;
-            break;
-        case 'thisMonth':
-            const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-            startDate = startOfMonth;
-            endDate = today;
-            break;
-        case 'lastMonth':
-            const lastMonthStart = new Date(today.getFullYear(), today.getMonth() - 1, 1);
-            const lastMonthEnd = new Date(today.getFullYear(), today.getMonth(), 0);
-            startDate = lastMonthStart;
-            endDate = lastMonthEnd;
-            break;
-    }
-    
-    if (startDateInput && endDateInput) {
-        startDateInput.value = formatDate(startDate);
-        endDateInput.value = formatDate(endDate);
-    }
-    
-    // 자동으로 필터 적용
-    filterOrdersByDate(formatDate(startDate), formatDate(endDate));
-}
-
-// 탭 기능 초기화
-function initializeTabs() {
-    const tabButtons = document.querySelectorAll('.tab-button');
-    const orderItems = document.querySelectorAll('.order-item');
-    
-    tabButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            const targetTab = this.getAttribute('data-tab');
-            
-            // 모든 탭 버튼에서 active 클래스 제거
-            tabButtons.forEach(btn => btn.classList.remove('active'));
-            // 클릭된 탭 버튼에 active 클래스 추가
-            this.classList.add('active');
-            
-            // 주문 아이템 필터링
-            filterOrdersByStatus(targetTab);
-        });
-    });
-}
-
-// 주문 상태별 필터링
-function filterOrdersByStatus(status) {
-    const orderItems = document.querySelectorAll('.order-item');
-    
-    orderItems.forEach(item => {
-        const itemStatus = item.getAttribute('data-status');
-        
-        if (status === 'all' || itemStatus === status) {
-            item.style.display = 'block';
-            // 애니메이션 효과
-            item.style.opacity = '0';
-            item.style.transform = 'translateY(20px)';
-            
-            setTimeout(() => {
-                item.style.transition = 'all 0.3s ease';
-                item.style.opacity = '1';
-                item.style.transform = 'translateY(0)';
-            }, 100);
-        } else {
-            item.style.display = 'none';
-        }
-    });
-    
-    // 일별 요약 업데이트
-    updateDailySummary(status);
-}
-
-// 차트 초기화
-function initializeChart() {
-    const ctx = document.getElementById('salesChart');
-    if (!ctx) return;
-    
-    // 일별 더미 데이터
-    const dailyData = {
-        labels: ['9/3', '9/4', '9/5', '9/6', '9/7', '9/8', '9/9'],
-        datasets: [{
-            label: '일별 매출',
-            data: [85000, 92000, 78000, 105000, 88000, 95000, 567000],
-            borderColor: '#28a745',
-            backgroundColor: 'rgba(40, 167, 69, 0.1)',
-            borderWidth: 3,
-            fill: true,
-            tension: 0.4,
-            pointBackgroundColor: '#28a745',
-            pointBorderColor: '#ffffff',
-            pointBorderWidth: 2,
-            pointRadius: 6,
-            pointHoverRadius: 8
-        }]
-    };
-    
-    // 시간별 더미 데이터
-    const hourlyData = {
-        labels: ['00:00', '02:00', '04:00', '06:00', '08:00', '10:00', '12:00', '14:00', '16:00', '18:00', '20:00', '22:00'],
-        datasets: [{
-            label: '시간별 매출',
-            data: [0, 0, 0, 5000, 15000, 25000, 35000, 45000, 55000, 40000, 30000, 10000],
-            borderColor: '#20c997',
-            backgroundColor: 'rgba(32, 201, 151, 0.1)',
-            borderWidth: 3,
-            fill: true,
-            tension: 0.4,
-            pointBackgroundColor: '#20c997',
-            pointBorderColor: '#ffffff',
-            pointBorderWidth: 2,
-            pointRadius: 6,
-            pointHoverRadius: 8
-        }]
-    };
-    
-    // 차트 생성
-    salesChart = new Chart(ctx, {
-        type: 'line',
-        data: dailyData,
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: true,
-                    position: 'top',
-                    labels: {
-                        usePointStyle: true,
-                        padding: 20,
-                        font: {
-                            family: 'Noto Sans KR',
-                            size: 12,
-                            weight: '500'
-                        }
-                    }
-                },
-                tooltip: {
-                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                    titleColor: '#ffffff',
-                    bodyColor: '#ffffff',
-                    borderColor: '#28a745',
-                    borderWidth: 1,
-                    cornerRadius: 8,
-                    displayColors: false,
-                    callbacks: {
-                        label: function(context) {
-                            return '매출: ₩' + context.parsed.y.toLocaleString();
-                        }
-                    }
-                }
-            },
-            scales: {
-                x: {
-                    grid: {
-                        display: false
-                    },
-                    ticks: {
-                        font: {
-                            family: 'Noto Sans KR',
-                            size: 11
-                        },
-                        color: '#6c757d'
-                    }
-                },
-                y: {
-                    beginAtZero: true,
-                    grid: {
-                        color: 'rgba(0, 0, 0, 0.1)',
-                        drawBorder: false
-                    },
-                    ticks: {
-                        font: {
-                            family: 'Noto Sans KR',
-                            size: 11
-                        },
-                        color: '#6c757d',
-                        callback: function(value) {
-                            return '₩' + value.toLocaleString();
-                        }
-                    }
-                }
-            },
-            interaction: {
-                intersect: false,
-                mode: 'index'
-            },
-            animation: {
-                duration: 2000,
-                easing: 'easeInOutQuart'
+            switch (this.getAttribute('data-period')) {
+                case 'today':
+                    s = startOfDay(today); e = endOfDay(today); break;
+                case 'yesterday':
+                    const y = new Date(today.getTime() - 86400000);
+                    s = startOfDay(y); e = endOfDay(y); break;
+                case 'thisWeek':
+                    const startW = startOfWeek(today);
+                    s = startOfDay(startW); e = endOfDay(today); break;
+                case 'lastWeek':
+                    const lwEnd = new Date(startOfWeek(today).getTime() - 86400000);
+                    const lwStart = new Date(lwEnd.getTime() - 6 * 86400000);
+                    s = startOfDay(lwStart); e = endOfDay(lwEnd); break;
+                case 'thisMonth':
+                    const startM = new Date(today.getFullYear(), today.getMonth(), 1);
+                    s = startOfDay(startM); e = endOfDay(today); break;
+                case 'lastMonth':
+                    const lmStart = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+                    const lmEnd = new Date(today.getFullYear(), today.getMonth(), 0);
+                    s = startOfDay(lmStart); e = endOfDay(lmEnd); break;
             }
-        }
-    });
-    
-    // 차트 데이터 저장
-    window.chartData = {
-        daily: dailyData,
-        hourly: hourlyData
-    };
-}
 
-// 차트 뷰 토글 초기화
-function initializeChartToggle() {
-    const toggleButtons = document.querySelectorAll('.toggle-btn');
-    
-    toggleButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            const view = this.getAttribute('data-view');
-            
-            // 모든 토글 버튼에서 active 클래스 제거
-            toggleButtons.forEach(btn => btn.classList.remove('active'));
-            // 클릭된 버튼에 active 클래스 추가
-            this.classList.add('active');
-            
-            // 차트 뷰 변경
-            changeChartView(view);
+            setDateInputs(s, e);
+            applyDateFilter(s, e);
+            renderAll();
         });
     });
 }
 
-// 차트 뷰 변경
-function changeChartView(view) {
-    if (!salesChart || !window.chartData) return;
-    
-    // 차트 데이터 업데이트
-    if (view === 'daily') {
-        salesChart.data = window.chartData.daily;
-        salesChart.data.datasets[0].borderColor = '#28a745';
-        salesChart.data.datasets[0].backgroundColor = 'rgba(40, 167, 69, 0.1)';
-        salesChart.data.datasets[0].pointBackgroundColor = '#28a745';
-    } else {
-        salesChart.data = window.chartData.hourly;
-        salesChart.data.datasets[0].borderColor = '#20c997';
-        salesChart.data.datasets[0].backgroundColor = 'rgba(32, 201, 151, 0.1)';
-        salesChart.data.datasets[0].pointBackgroundColor = '#20c997';
-    }
-    
-    // 차트 업데이트
-    salesChart.update('active');
+function applyDateFilter(start, end) {
+    state.dateRange = { start, end };
+    state.filtered = state.orders.filter(o => {
+        const t = o.createdAt.getTime();
+        return t >= start.getTime() && t <= end.getTime();
+    });
 }
 
-// 주문 상태 업데이트 초기화
+function filterByStatus(list, status) {
+    if (status === 'all') return list.slice();
+    return list.filter(o => o.uiStatus === status);
+}
+
+// ========================= 상태 버튼 동작(프론트 전환만) =========================
 function initializeOrderStatusUpdates() {
     const statusButtons = document.querySelectorAll('.status-button');
-    
     statusButtons.forEach(button => {
         button.addEventListener('click', function() {
-            const currentStatus = this.textContent;
             const orderItem = this.closest('.order-item');
-            const orderNumber = orderItem.querySelector('.order-number').textContent;
-            
-            // 상태 변경 확인
+            const orderNumber = orderItem?.querySelector('.order-number')?.textContent || '';
             if (confirm(`주문 ${orderNumber}의 상태를 변경하시겠습니까?`)) {
-                updateOrderStatus(this, orderItem);
+                updateOrderStatusFrontOnly(this, orderItem);
             }
         });
     });
 }
 
-// 주문 상태 업데이트
-function updateOrderStatus(button, orderItem) {
-    const currentStatus = button.textContent;
-    let nextStatus, nextClass, nextText;
-    
-    switch(currentStatus) {
-        case '신규 주문':
-            nextStatus = 'confirmed';
-            nextClass = 'confirmed';
-            nextText = '주문 확인';
-            break;
-        case '주문 확인':
-            nextStatus = 'preparing';
-            nextClass = 'preparing';
-            nextText = '배송 준비';
-            break;
-        case '배송 준비':
-            nextStatus = 'shipping';
-            nextClass = 'shipping';
-            nextText = '배송중';
-            break;
-        case '배송중':
-            nextStatus = 'completed';
-            nextClass = 'completed';
-            nextText = '완료';
-            break;
-        default:
-            return;
+// 서버 반영 없이 프론트에서만 다음 상태로 전환 (필요 시 API 연결)
+function updateOrderStatusFrontOnly(button, orderItem) {
+    const currentText = button.textContent.trim();
+    const next = nextStatusByText(currentText);
+    if (!next) return;
+
+    button.className = `status-button ${next.cls}`;
+    button.textContent = next.text;
+    orderItem?.setAttribute('data-status', mapButtonTextToKey(next.text));
+
+    // 내부 상태도 갱신
+    const num = orderItem?.querySelector('.order-number')?.textContent?.replace('#', '')?.trim();
+    const target = state.filtered.find(o => `#${o.orderNumber}` === `#${num}`);
+    if (target) {
+        target.uiStatus = mapButtonTextToKey(next.text);
+        // 원본 orders에서도 동일 변경
+        const origin = state.orders.find(o => o.orderNumber === target.orderNumber);
+        if (origin) origin.uiStatus = target.uiStatus;
     }
-    
-    // 버튼 상태 업데이트
-    button.className = `status-button ${nextClass}`;
-    button.textContent = nextText;
-    
-    // 주문 아이템 상태 업데이트
-    orderItem.setAttribute('data-status', nextStatus);
-    
-    // 요약 카드 업데이트
-    updateStatusCards();
-    
-    // 성공 메시지
+
+    updateStatusCardsFromState();
+    updateDailySummaryText();
     showNotification('주문 상태가 업데이트되었습니다.', 'success');
 }
 
-// 상태 카드 업데이트
-function updateStatusCards() {
-    const orderItems = document.querySelectorAll('.order-item');
-    
-    const counts = {
-        new: 0,
-        confirmed: 0,
-        preparing: 0,
-        shipping: 0,
-        completed: 0,
-        cancelled: 0
-    };
-    
-    orderItems.forEach(item => {
-        const status = item.getAttribute('data-status');
-        if (counts.hasOwnProperty(status)) {
-            counts[status]++;
-        }
-    });
-    
-    // 카드 번호 업데이트
-    const newOrdersCard = document.querySelector('.new-orders .card-number');
-    const confirmedOrdersCard = document.querySelector('.confirmed-orders .card-number');
-    const cancelledOrdersCard = document.querySelector('.cancelled-orders .card-number');
-    const totalOrdersCard = document.querySelector('.total-orders .card-number');
-    
-    if (newOrdersCard) newOrdersCard.textContent = counts.new;
-    if (confirmedOrdersCard) confirmedOrdersCard.textContent = counts.confirmed;
-    if (cancelledOrdersCard) cancelledOrdersCard.textContent = counts.cancelled;
-    if (totalOrdersCard) totalOrdersCard.textContent = orderItems.length;
-}
-
-// 일별 요약 업데이트
-function updateDailySummary(status) {
-    const orderItems = document.querySelectorAll('.order-item');
-    const summaryText = document.querySelector('.summary-text');
-    
-    let visibleOrders = 0;
-    let totalAmount = 0;
-    
-    orderItems.forEach(item => {
-        if (item.style.display !== 'none') {
-            visibleOrders++;
-            const amountText = item.querySelector('.order-amount').textContent;
-            const amount = parseInt(amountText.replace(/[^\d]/g, ''));
-            totalAmount += amount;
-        }
-    });
-    
-    if (summaryText) {
-        summaryText.textContent = `주문 ${visibleOrders}건 매출 ₩${totalAmount.toLocaleString()}`;
+function nextStatusByText(text) {
+    switch (text) {
+        case '신규 주문': return STATUS_BTN.confirmed;
+        case '주문 확인': return STATUS_BTN.preparing;
+        case '배송 준비': return STATUS_BTN.shipping;
+        case '배송중':   return STATUS_BTN.completed;
+        default: return null;
     }
 }
 
-// 날짜별 주문 필터링
-function filterOrdersByDate(startDate, endDate) {
-    // 실제 구현에서는 서버에서 데이터를 가져와야 함
-    console.log(`날짜 필터링: ${startDate} ~ ${endDate}`);
-    
-    // 예시: 모든 주문을 표시 (실제로는 필터링된 데이터를 표시)
-    const orderItems = document.querySelectorAll('.order-item');
-    orderItems.forEach(item => {
-        item.style.display = 'block';
-    });
-    
-    // 일별 요약 업데이트
-    updateDailySummary('all');
+function mapButtonTextToKey(text) {
+    for (const k of Object.keys(STATUS_BTN)) {
+        if (STATUS_BTN[k].text === text) return k;
+    }
+    return 'preparing';
 }
 
-// 애니메이션 초기화
-function initializeAnimations() {
-    // 카드 애니메이션
-    const cards = document.querySelectorAll('.status-card, .summary-item');
-    cards.forEach((card, index) => {
-        card.style.opacity = '0';
-        card.style.transform = 'translateY(30px)';
-        
-        setTimeout(() => {
-            card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
-            card.style.opacity = '1';
-            card.style.transform = 'translateY(0)';
-        }, index * 100);
-    });
-    
-    // 주문 아이템 애니메이션
-    const orderItems = document.querySelectorAll('.order-item');
-    orderItems.forEach((item, index) => {
-        item.style.opacity = '0';
-        item.style.transform = 'translateX(-30px)';
-        
-        setTimeout(() => {
-            item.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
-            item.style.opacity = '1';
-            item.style.transform = 'translateX(0)';
-        }, (index * 100) + 500);
-    });
+// ========================= 유틸 =========================
+function setDateInputs(start, end) {
+    const s = document.getElementById('startDate');
+    const e = document.getElementById('endDate');
+    if (s) s.value = toInputDate(start);
+    if (e) e.value = toInputDate(end);
 }
 
-// 유틸리티 함수들
-function formatDate(date) {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
+function readDateInputs() {
+    const s = document.getElementById('startDate')?.value;
+    const e = document.getElementById('endDate')?.value;
+    return {
+        start: s ? startOfDay(new Date(s)) : null,
+        end:   e ? endOfDay(new Date(e))   : null,
+    };
 }
 
-// 알림 표시
+function toInputDate(d) {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+}
+
+function startOfDay(d) { const t = new Date(d); t.setHours(0,0,0,0); return t; }
+function endOfDay(d)   { const t = new Date(d); t.setHours(23,59,59,999); return t; }
+function startOfWeek(d){
+    const t = new Date(d);
+    const day = t.getDay(); // 0(Sun)~6(Sat)
+    t.setDate(t.getDate() - day);
+    t.setHours(0,0,0,0);
+    return t;
+}
+
+function toMonthDay(md) {
+    // 'M/D' -> 숫자 비교용 mmdd
+    const [m, d] = md.split('/').map(Number);
+    return m * 100 + d;
+}
+
+function renderTimeInfo(date) {
+    const now = new Date();
+    const diff = now - date; // ms
+    const mins = Math.floor(diff / 60000);
+    const hrs = Math.floor(mins / 60);
+    const isToday = now.toDateString() === date.toDateString();
+
+    if (isToday) {
+        if (hrs >= 1) return `${pad2(date.getHours())}:${pad2(date.getMinutes())} (${hrs}시간 전)`;
+        return `${pad2(date.getHours())}:${pad2(date.getMinutes())} (${Math.max(mins,1)}분 전)`;
+    } else {
+        // 어제/그 외
+        const yday = new Date(now.getTime() - 86400000);
+        const label = (yday.toDateString() === date.toDateString()) ? '어제' : `${date.getFullYear()}.${pad2(date.getMonth()+1)}.${pad2(date.getDate())}`;
+        return `${label} ${pad2(date.getHours())}:${pad2(date.getMinutes())}`;
+    }
+}
+
+function pad2(n) { return n < 10 ? '0' + n : '' + n; }
+function toNumber(x) { return typeof x === 'number' ? x : Number(x || 0); }
+function escapeHtml(s) {
+    return String(s ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+// 알림
 function showNotification(message, type = 'info') {
     const notification = document.createElement('div');
     notification.className = `notification ${type}`;
     notification.textContent = message;
-    
-    // 스타일 적용
     Object.assign(notification.style, {
         position: 'fixed',
         top: '20px',
@@ -527,48 +613,49 @@ function showNotification(message, type = 'info') {
         transform: 'translateX(100%)',
         transition: 'transform 0.3s ease'
     });
-    
-    // 타입별 색상
-    const colors = {
-        success: '#28a745',
-        error: '#dc3545',
-        info: '#17a2b8',
-        warning: '#ffc107'
-    };
+    const colors = { success: '#28a745', error: '#dc3545', info: '#17a2b8', warning: '#ffc107' };
     notification.style.backgroundColor = colors[type] || colors.info;
-    
     document.body.appendChild(notification);
-    
-    // 애니메이션
-    setTimeout(() => {
-        notification.style.transform = 'translateX(0)';
-    }, 100);
-    
-    // 자동 제거
+    setTimeout(() => { notification.style.transform = 'translateX(0)'; }, 50);
     setTimeout(() => {
         notification.style.transform = 'translateX(100%)';
-        setTimeout(() => {
-            if (notification.parentNode) {
-                notification.parentNode.removeChild(notification);
-            }
-        }, 300);
+        setTimeout(() => notification.remove(), 300);
     }, 3000);
 }
 
-// 키보드 이벤트 (ESC로 알림 닫기)
-document.addEventListener('keydown', function(e) {
+document.addEventListener('keydown', e => {
     if (e.key === 'Escape') {
-        const notifications = document.querySelectorAll('.notification');
-        notifications.forEach(notification => {
-            if (notification.parentNode) {
-                notification.parentNode.removeChild(notification);
-            }
-        });
+        document.querySelectorAll('.notification').forEach(n => n.remove());
     }
 });
 
-// 페이지 로드 시 초기화
+// 첫 렌더 이후 카드/요약 보정
 setTimeout(() => {
-    updateStatusCards();
-    updateDailySummary('all');
-}, 1000);
+    updateStatusCardsFromState();
+    updateDailySummaryText();
+}, 800);
+
+// 초기 애니메이션 (디자인 유지)
+function initializeAnimations() {
+    const cards = document.querySelectorAll('.status-card, .summary-item');
+    cards.forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(30px)';
+        setTimeout(() => {
+            card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, index * 100);
+    });
+
+    const orderItems = document.querySelectorAll('.order-item');
+    orderItems.forEach((item, index) => {
+        item.style.opacity = '0';
+        item.style.transform = 'translateX(-30px)';
+        setTimeout(() => {
+            item.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            item.style.opacity = '1';
+            item.style.transform = 'translateX(0)';
+        }, (index * 100) + 500);
+    });
+}

@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface OrderRepository extends JpaRepository<Order, Integer> {
 
@@ -21,4 +22,7 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
          order by o.createdAt desc
     """)
     List<Order> findActiveByUser(@Param("userId") Integer userId);
+
+    // ✅ 추가: 주문번호로 단건 조회 (VendorOrderServiceImpl, OrderServiceImpl에서 사용)
+    Optional<Order> findByOrderNumber(String orderNumber);
 }
