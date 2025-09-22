@@ -29,7 +29,12 @@ public class CompanySignupServiceImpl implements CompanySignupService {
         if (companyRepository.existsByBusinessRegistrationNumber(c.getBusinessRegistrationNumber()))
             throw new IllegalArgumentException("이미 등록된 사업자등록번호입니다.");
 
-        // 여기서 1회 해싱
+        // 비밀번호 정책(서버 보강) – 컨트롤러에서 1차 검증했지만 서비스에서도 한 번 더 확인
+        if (!PasswordUtil.isStrong(c.getPassword())) {
+            throw new IllegalArgumentException(PasswordUtil.policyMessage());
+        }
+
+        // 🔐 여기서 '단 한 번' 해싱 (컨트롤러에서는 원문을 넘겨줘야 함)
         c.setPassword(PasswordUtil.encode(c.getPassword()));
         LocalDateTime now = LocalDateTime.now();
         c.setCreatedAt(now);

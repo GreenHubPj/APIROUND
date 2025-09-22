@@ -1,4 +1,3 @@
-// src/main/java/com/apiround/greenhub/web/service/OrderServiceImpl.java
 package com.apiround.greenhub.web.service;
 
 import com.apiround.greenhub.entity.Order;
@@ -17,6 +16,7 @@ import com.apiround.greenhub.web.entity.OrderItem;
 import com.apiround.greenhub.web.repository.OrderItemRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -30,6 +30,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class OrderServiceImpl implements OrderService {
 
     private final OrderRepository orderRepository;
@@ -37,8 +38,6 @@ public class OrderServiceImpl implements OrderService {
     private final SpecialtyProductRepository specialtyProductRepository;
     private final ProductPriceOptionRepository productPriceOptionRepository;
     private final ProductListingRepository productListingRepository;
-
-    // 조회 전용 (order_item 대량 조회용)
     private final NamedParameterJdbcTemplate jdbc;
 
     @Override
@@ -51,7 +50,6 @@ public class OrderServiceImpl implements OrderService {
             throw new IllegalStateException("로그인이 필요합니다.");
         }
 
-        // 1) 주문 마스터
         Order order = new Order();
         order.setUserId(userId);
         order.setOrderNumber(generateOrderNumber());
@@ -73,68 +71,119 @@ public class OrderServiceImpl implements OrderService {
         BigDecimal shipping = BigDecimal.valueOf(3000);
         List<OrderItem> toSaveItems = new ArrayList<>();
 
-        // 2) 라인 아이템
         for (CheckoutRequest.Item ci : req.getItems()) {
-            if (ci.getProductId() == null) {
-                throw new IllegalArgumentException("productId는 필수입니다.");
-            }
             int count = (ci.getCount() != null && ci.getCount() > 0) ? ci.getCount() : 1;
 
-            ProductPriceOption option = null;
-            if (ci.getOptionId() != null) {
-                option = productPriceOptionRepository.findById(ci.getOptionId()).orElse(null);
-            } else if (StringUtils.hasText(ci.getOptionLabel())) {
-                option = productPriceOptionRepository
-                        .findFirstByProductIdAndOptionLabelIgnoreCase(ci.getProductId(), ci.getOptionLabel().trim());
+            // 1) listing
+            ProductListing listing = null;
+            if (ci.getListingId() != null) {
+                listing = productListingRepository.findById(ci.getListingId())
+                        .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 리스팅입니다. listingId=" + ci.getListingId()));
             }
 
-            // 단가 확정
-            BigDecimal unitPrice = ci.getUnitPrice();
-            if (unitPrice == null) {
-                if (option != null && option.getPrice() != null) {
-                    unitPrice = BigDecimal.valueOf(option.getPrice().longValue());
-                } else {
-                    throw new IllegalArgumentException("단가를 결정할 수 없습니다. (option/price 필요)");
+            // 2) option
+            ProductPriceOption option = null;
+            if (ci.getOptionId() != null) {
+                option = productPriceOptionRepository.findById(ci.getOptionId())
+                        .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 옵션입니다. optionId=" + ci.getOptionId()));
+            } else if (StringUtils.hasText(ci.getOptionLabel())) {
+                Integer probeProductId = (listing != null) ? listing.getProductId() : ci.getProductId();
+                if (probeProductId != null) {
+                    option = productPriceOptionRepository.findFirstByProductIdAndOptionLabelIgnoreCase(
+                            probeProductId, ci.getOptionLabel().trim());
                 }
+            }
+
+            // 3) productId 후보 추출
+            Integer resolvedProductId = null;
+            if (listing != null) resolvedProductId = listing.getProductId();
+            if (option != null) {
+                if (resolvedProductId == null) resolvedProductId = option.getProductId();
+                else if (!option.getProductId().equals(resolvedProductId)) {
+                    throw new IllegalStateException("옵션과 리스팅의 상품이 일치하지 않습니다.");
+                }
+            }
+            if (resolvedProductId == null && ci.getProductId() != null) {
+                resolvedProductId = ci.getProductId();
+            }
+
+            // 3-1) 프론트가 productId 자리에 listingId를 보낸 케이스 보정
+            SpecialtyProduct sp = (resolvedProductId != null) ? specialtyProductRepository.findById(resolvedProductId).orElse(null) : null;
+            if (sp == null && listing == null && resolvedProductId != null) {
+                Optional<ProductListing> maybeListing = productListingRepository.findById(resolvedProductId);
+                if (maybeListing.isPresent()) {
+                    listing = maybeListing.get();
+                    Integer candidate = listing.getProductId();
+                    log.warn("[createOrder] productId={} 가 listingId로 들어옴 → listingId={}, listing.productId={}",
+                            ci.getProductId(), listing.getListingId(), candidate);
+                    if (candidate != null) {
+                        resolvedProductId = candidate;
+                        sp = specialtyProductRepository.findById(candidate).orElse(null);
+                    }
+                }
+            }
+
+            // 4) 판매사(company_id) 확정
+            Integer sellerCompanyId = null;
+            if (listing != null) {
+                sellerCompanyId = listing.getSellerId();
+            } else {
+                Optional<ProductListing> activeOpt =
+                        productListingRepository.findFirstByProductIdAndStatusOrderByListingIdAsc(
+                                resolvedProductId, ProductListing.Status.ACTIVE);
+                ProductListing sellerSrc = activeOpt.isPresent()
+                        ? activeOpt.get()
+                        : productListingRepository
+                        .findFirstByProductIdOrderByListingIdAsc(resolvedProductId)
+                        .orElse(null);
+                if (sellerSrc != null) {
+                    listing = sellerSrc;
+                    sellerCompanyId = sellerSrc.getSellerId();
+                }
+            }
+            if (sellerCompanyId == null) {
+                throw new IllegalArgumentException("판매자 정보를 찾을 수 없습니다. (productId=" + resolvedProductId + ")");
+            }
+
+            // 5) 단가 확정: option → 요청값 → listing.price_value → (보조) 옵션 최저가
+            BigDecimal unitPrice = null;
+            if (option != null && option.getPrice() != null) unitPrice = toBigDecimal(option.getPrice());
+            if (unitPrice == null && ci.getUnitPrice() != null) unitPrice = ci.getUnitPrice();
+            if (unitPrice == null && listing != null && listing.getPriceValue() != null) {
+                unitPrice = listing.getPriceValue();
+            }
+            if (unitPrice == null && resolvedProductId != null) {
+                Integer min = productPriceOptionRepository.findMinActivePriceByProductId(resolvedProductId);
+                if (min != null) unitPrice = BigDecimal.valueOf(min.longValue());
+            }
+            if (unitPrice == null) {
+                throw new IllegalArgumentException("단가를 결정할 수 없습니다. (listingId=" +
+                        (listing != null ? listing.getListingId() : "null") + ", productId=" + resolvedProductId + ")");
             }
 
             BigDecimal lineAmount = unitPrice.multiply(BigDecimal.valueOf(count));
 
-            // 상품명 스냅샷
-            String itemName = StringUtils.hasText(ci.getItemName()) ? ci.getItemName() : null;
-            if (!StringUtils.hasText(itemName)) {
-                SpecialtyProduct sp = specialtyProductRepository.findById(ci.getProductId()).orElse(null);
-                itemName = (sp != null ? sp.getProductName() : "상품");
-            }
+            // 6) 스냅샷 텍스트/단위: 요청명 → SpecialtyProduct → listing.title
+            String itemName = null;
+            if (StringUtils.hasText(ci.getItemName())) itemName = ci.getItemName();
+            else if (sp != null && StringUtils.hasText(sp.getProductName())) itemName = sp.getProductName();
+            else if (listing != null && StringUtils.hasText(listing.getTitle())) itemName = listing.getTitle();
+            else itemName = "상품";
 
-            // 판매자(company_id) 결정
-            Integer sellerCompanyId = null;
-            if (ci.getListingId() != null) {
-                sellerCompanyId = productListingRepository.findById(ci.getListingId())
-                        .map(ProductListing::getSellerId)
-                        .orElse(null);
-            }
-            if (sellerCompanyId == null) {
-                sellerCompanyId = productListingRepository
-                        .findFirstByProductIdAndStatusOrderByListingIdAsc(
-                                ci.getProductId(), ProductListing.Status.ACTIVE)
-                        .map(ProductListing::getSellerId)
-                        .orElse(null);
-            }
-            if (sellerCompanyId == null) {
-                throw new IllegalArgumentException("판매자 정보를 찾을 수 없습니다. (company_id=null, productId="
-                        + ci.getProductId() + ", listingId=" + ci.getListingId() + ")");
-            }
+            String unitSnap = null;
+            if (option != null && StringUtils.hasText(option.getUnit())) unitSnap = option.getUnit();
+            else if (listing != null && StringUtils.hasText(listing.getUnitCode())) unitSnap = listing.getUnitCode();
 
+            // 7) 라인 생성 (product_id는 스냅샷 용 — FK 없음 가정)
             OrderItem item = new OrderItem();
             item.setOrder(order);
-            item.setProductId(ci.getProductId());
-            item.setListingId(ci.getListingId());
+            item.setProductId(resolvedProductId);                // 없어도 됨 (NULL 가능)
+            item.setListingId(listing != null ? listing.getListingId() : null); // 가능하면 반드시 세팅
             item.setOptionId(option != null ? option.getOptionId() : ci.getOptionId());
             item.setCompanyId(sellerCompanyId);
             item.setProductNameSnap(itemName);
             item.setOptionLabelSnap(option != null ? option.getOptionLabel() : ci.getOptionLabel());
-            item.setUnitCodeSnap(option != null ? option.getUnit() : null);
+            item.setUnitCodeSnap(unitSnap);
             item.setUnitPriceSnap(unitPrice);
             item.setQuantity(BigDecimal.valueOf(count));
             item.setLineAmount(lineAmount);
@@ -153,9 +202,11 @@ public class OrderServiceImpl implements OrderService {
         order.setTotalAmount(subtotal.add(shipping));
         order.setIsDeleted(false);
 
-        // 저장
         orderRepository.save(order);
         orderItemRepository.saveAll(toSaveItems);
+
+        log.info("[createOrder] userId={}, orderNo={}, items={}, total={}",
+                userId, order.getOrderNumber(), toSaveItems.size(), order.getTotalAmount());
 
         return new OrderCreatedResponse(order.getOrderId(), "/orderhistory");
     }
@@ -163,8 +214,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public List<OrderSummaryDto> findMyOrders(Integer userId) {
         if (userId == null) throw new IllegalStateException("로그인이 필요합니다.");
-
-        var orders = orderRepository.findActiveByUser(userId); // ✅ 유지
+        var orders = orderRepository.findActiveByUser(userId);
         if (orders.isEmpty()) return List.of();
 
         var orderIds = orders.stream().map(Order::getOrderId).toList();
@@ -188,7 +238,6 @@ public class OrderServiceImpl implements OrderService {
                 .stream().collect(Collectors.toMap(SpecialtyProduct::getProductId, x -> x));
 
         List<OrderSummaryDto> result = new ArrayList<>();
-
         for (var o : orders) {
             var rows = itemsByOrderId.getOrDefault(o.getOrderId(), List.of());
             List<OrderSummaryDto.Item> dtoItems = new ArrayList<>();
@@ -209,7 +258,9 @@ public class OrderServiceImpl implements OrderService {
                         ? r.productNameSnap()
                         : (r.productId() != null && productMap.get(r.productId()) != null
                         ? productMap.get(r.productId()).getProductName()
-                        : "상품");
+                        : (r.listingId() != null && listingMap.get(r.listingId()) != null
+                        ? Optional.ofNullable(listingMap.get(r.listingId()).getTitle()).orElse("상품")
+                        : "상품"));
 
                 dtoItems.add(OrderSummaryDto.Item.builder()
                         .name(name)
@@ -234,7 +285,8 @@ public class OrderServiceImpl implements OrderService {
         return result;
     }
 
-    /** DB 상태 → 프론트에서 쓰는 축약 상태 */
+    // ===== 내부 유틸/조회 =====
+
     private String mapUiStatus(String db) {
         if (db == null) return "preparing";
         switch (db.toUpperCase()) {
@@ -244,7 +296,7 @@ public class OrderServiceImpl implements OrderService {
             case "CANCEL_REQUESTED":
             case "REFUND_REQUESTED":
             case "REFUNDED": return "cancelled";
-            default: return "preparing"; // PENDING, PAID, PREPARING 등
+            default: return "preparing";
         }
     }
 
@@ -263,9 +315,18 @@ public class OrderServiceImpl implements OrderService {
         };
     }
 
-    // ====== order_item 조회 전용 유틸 ======
+    private BigDecimal toBigDecimal(Number n) {
+        if (n == null) return null;
+        if (n instanceof BigDecimal) return (BigDecimal) n;
+        if (n instanceof Long || n instanceof Integer || n instanceof Short || n instanceof Byte) {
+            return BigDecimal.valueOf(n.longValue());
+        }
+        if (n instanceof Double || n instanceof Float) {
+            return new BigDecimal(n.toString());
+        }
+        return new BigDecimal(n.toString());
+    }
 
-    // order_item 컬럼 스냅샷
     private record ItemRow(
             Integer orderId,
             Integer productId,
@@ -281,19 +342,18 @@ public class OrderServiceImpl implements OrderService {
     private Map<Integer, List<ItemRow>> loadItemsByOrderIds(List<Integer> orderIds) {
         if (orderIds == null || orderIds.isEmpty()) return Map.of();
 
-        String sql = """
-            SELECT order_id,
-                   product_id,
-                   listing_id,
-                   product_name_snap,
-                   option_label_snap,
-                   unit_code_snap,
-                   unit_price_snap,
-                   quantity,
-                   line_amount
-              FROM order_item
-             WHERE order_id IN (:ids)
-        """;
+        String sql =
+                "SELECT order_id,\n" +
+                        "       product_id,\n" +
+                        "       listing_id,\n" +
+                        "       product_name_snap,\n" +
+                        "       option_label_snap,\n" +
+                        "       unit_code_snap,\n" +
+                        "       unit_price_snap,\n" +
+                        "       quantity,\n" +
+                        "       line_amount\n" +
+                        "  FROM order_item\n" +
+                        " WHERE order_id IN (:ids)";
 
         var params = new MapSqlParameterSource("ids", orderIds);
 
@@ -312,8 +372,6 @@ public class OrderServiceImpl implements OrderService {
         return rows.stream().collect(Collectors.groupingBy(ItemRow::orderId));
     }
 
-    // ====== ⬇️ 주문 상세 ======
-
     @Override
     @Transactional
     public OrderDetailDto findMyOrderDetail(String idOrNumber, Integer userId) {
@@ -327,11 +385,9 @@ public class OrderServiceImpl implements OrderService {
             throw new IllegalArgumentException("본인 주문만 조회할 수 있습니다.");
         }
 
-        // 아이템 로드
         Map<Integer, List<ItemRow>> itemsByOrder = loadItemsByOrderIds(List.of(order.getOrderId()));
         List<ItemRow> rows = itemsByOrder.getOrDefault(order.getOrderId(), List.of());
 
-        // 이미지 보강용 listing/product 미리 로딩
         Set<Integer> listingIds = rows.stream().map(ItemRow::listingId).filter(Objects::nonNull).collect(Collectors.toSet());
         Set<Integer> productIds = rows.stream().map(ItemRow::productId).filter(Objects::nonNull).collect(Collectors.toSet());
 
@@ -345,7 +401,6 @@ public class OrderServiceImpl implements OrderService {
                 : specialtyProductRepository.findAllById(productIds)
                 .stream().collect(Collectors.toMap(SpecialtyProduct::getProductId, x -> x));
 
-        // DTO 아이템 변환
         List<OrderDetailDto.Item> items = rows.stream().map(r -> {
             String image = null;
             if (r.listingId() != null) {
@@ -362,7 +417,9 @@ public class OrderServiceImpl implements OrderService {
                     ? r.productNameSnap()
                     : (r.productId() != null && productMap.get(r.productId()) != null
                     ? productMap.get(r.productId()).getProductName()
-                    : "상품");
+                    : (r.listingId() != null && listingMap.get(r.listingId()) != null
+                    ? Optional.ofNullable(listingMap.get(r.listingId()).getTitle()).orElse("상품")
+                    : "상품"));
 
             return OrderDetailDto.Item.builder()
                     .productId(r.productId())
@@ -374,14 +431,12 @@ public class OrderServiceImpl implements OrderService {
                     .optionText(r.optionLabelSnap())
                     .unitPrice(r.unitPriceSnap() == null ? BigDecimal.ZERO : r.unitPriceSnap())
                     .lineAmount(r.lineAmount() == null ? BigDecimal.ZERO : r.lineAmount())
-                    // 아래 3개는 현재 소스에 컬럼 매핑이 없어 null (확장 시 채움)
                     .itemStatus(null)
                     .courierName(null)
                     .trackingNumber(null)
                     .build();
         }).toList();
 
-        // 수령인
         OrderDetailDto.Recipient rcpt = OrderDetailDto.Recipient.builder()
                 .name(order.getReceiverName())
                 .phone(order.getReceiverPhone())
@@ -391,7 +446,6 @@ public class OrderServiceImpl implements OrderService {
                 .memo(order.getOrderMemo())
                 .build();
 
-        // 조립
         return OrderDetailDto.builder()
                 .id(order.getOrderNumber() != null ? order.getOrderNumber() : String.valueOf(order.getOrderId()))
                 .date(order.getCreatedAt())
@@ -406,31 +460,22 @@ public class OrderServiceImpl implements OrderService {
                 .build();
     }
 
-    /**
-     * order_number 또는 PK로 주문을 해석한다.
-     * 레포지토리를 변경하지 않기 위해 order_number 조회는 JDBC로 처리하고,
-     * 조회된 order_id로 JPA findById를 수행한다.
-     */
     private Optional<Order> resolveOrderByIdOrNumber(String idOrNumber) {
         if (!StringUtils.hasText(idOrNumber)) return Optional.empty();
 
-        // 1) 숫자로 파싱 가능한 경우: PK로 시도
         try {
             Integer pk = Integer.valueOf(idOrNumber);
             return orderRepository.findById(pk);
-        } catch (NumberFormatException ignore) {
-            // 숫자가 아니면 order_number로 조회
-        }
+        } catch (NumberFormatException ignore) {}
 
-        // 2) order_number로 조회 (is_deleted = false or null 조건 포함)
-        String sql = """
-            SELECT order_id
-              FROM orders
-             WHERE order_number = :no
-               AND (is_deleted = false OR is_deleted IS NULL)
-             ORDER BY order_id DESC
-             LIMIT 1
-        """;
+        String sql =
+                "SELECT order_id\n" +
+                        "  FROM orders\n" +
+                        " WHERE order_number = :no\n" +
+                        "   AND (is_deleted = false OR is_deleted IS NULL)\n" +
+                        " ORDER BY order_id DESC\n" +
+                        " LIMIT 1";
+
         var params = new MapSqlParameterSource("no", idOrNumber);
 
         List<Integer> ids = jdbc.query(sql, params, (rs, i) -> (Integer) rs.getObject("order_id"));

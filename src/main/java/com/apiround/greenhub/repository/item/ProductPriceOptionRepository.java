@@ -1,4 +1,3 @@
-// src/main/java/com/apiround/greenhub/repository/item/ProductPriceOptionRepository.java
 package com.apiround.greenhub.repository.item;
 
 import java.util.List;
@@ -6,6 +5,7 @@ import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import com.apiround.greenhub.entity.item.ProductPriceOption;
 
@@ -16,8 +16,7 @@ public interface ProductPriceOptionRepository extends JpaRepository<ProductPrice
     List<ProductPriceOption> findByProductIdOrderBySortOrderAscOptionIdAsc(Integer productId);
 
     @Query("SELECT MIN(o.price) FROM ProductPriceOption o WHERE o.productId = :productId AND o.isActive = true")
-    Integer findMinActivePriceByProductId(Integer productId);
-
+    Integer findMinActivePriceByProductId(@Param("productId") Integer productId);
 
     // ✅ sortOrder 우선 → optionId 보조 정렬, 단일건
     Optional<ProductPriceOption>
@@ -35,7 +34,8 @@ public interface ProductPriceOptionRepository extends JpaRepository<ProductPrice
     List<ProductPriceOption>
     findByProductIdAndIsActiveTrueOrderByPriceAscOptionIdAsc(Integer productId);
 
-    ProductPriceOption findFirstByProductIdAndOptionLabelIgnoreCase(Integer productId, String trim);
+    // ✅ 옵션 라벨(대소문자 무시)로 단일 옵션 검색
+    ProductPriceOption findFirstByProductIdAndOptionLabelIgnoreCase(Integer productId, String optionLabel);
 
     // (디버깅용으로 쓰던 메서드라면 유지 가능) product_id가 null인 옵션 조회
     List<ProductPriceOption> findByProductIdIsNull();
