@@ -9,9 +9,11 @@ public interface ListingService {
     Integer createListingFromSpecialty(
             Integer productId,
             Integer sellerId,
+            String productType,
             String title,
             String description,
             String thumbnailUrl,
+            String regionText,
             String harvestSeason
     );
 

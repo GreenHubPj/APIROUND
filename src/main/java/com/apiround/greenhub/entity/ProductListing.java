@@ -3,8 +3,20 @@ package com.apiround.greenhub.entity;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
+import jakarta.persistence.Table;
 import lombok.Data;
 
 @Entity
@@ -19,6 +31,9 @@ public class ProductListing {
 
     @Column(name = "product_id", nullable = false)
     private Integer productId;
+
+    @Column(name = "product_type", length = 20)
+    private String productType;
 
     @Column(name = "seller_id", nullable = false)
     private Integer sellerId;
@@ -47,7 +62,7 @@ public class ProductListing {
     @Column(name = "stock_qty", precision = 12, scale = 2)
     private BigDecimal stockQty;
 
-    public enum Status { ACTIVE, PAUSED, SOLDOUT }
+    public enum Status { ACTIVE, INACTIVE, STOPPED }
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20)
@@ -55,6 +70,9 @@ public class ProductListing {
 
     @Column(name = "harvest_season", length = 60)
     private String harvestSeason;
+
+    @Column(name = "region_text", length = 120)
+    private String regionText;
 
     @Column(name = "is_deleted", nullable = false, columnDefinition = "CHAR(1) DEFAULT 'N'")
     private String isDeleted = "N";
@@ -64,6 +82,11 @@ public class ProductListing {
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    // ProductPriceOption과의 관계 매핑 (product_id = product_id)
+    @OneToMany
+    @JoinColumn(name = "product_id", referencedColumnName = "product_id")
+    private List<com.apiround.greenhub.entity.item.ProductPriceOption> priceOptions;
 
     @PrePersist
     public void prePersist() {

@@ -70,4 +70,11 @@ public class Region {
     
     @Transient
     private String companyPhone;
+
+    @Transient
+    private String title;   // product_listing.title or specialty_product.product_name
+
+    @Transient
+    private String status;  // ACTIVE or '' (빈 값)
+
 }

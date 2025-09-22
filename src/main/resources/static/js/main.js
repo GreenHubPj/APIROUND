@@ -93,7 +93,6 @@ document.addEventListener('DOMContentLoaded', function() {
     productItems.forEach(item => {
         item.addEventListener('click', function() {
             const productName = this.querySelector('.product-name').textContent;
-            alert(`${productName} 상세 페이지로 이동합니다.`);
         });
     });
 
@@ -102,7 +101,6 @@ document.addEventListener('DOMContentLoaded', function() {
     recipeItems.forEach(item => {
         item.addEventListener('click', function() {
             const recipeName = this.querySelector('.recipe-name').textContent;
-            alert(`${recipeName} 요리법 페이지로 이동합니다.`);
         });
     });
 
@@ -110,7 +108,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const recommendedRecipe = document.querySelector('.recommended-recipe');
     if (recommendedRecipe) {
         recommendedRecipe.addEventListener('click', function() {
-            alert('추천 요리 상세 페이지로 이동합니다.');
         });
     }
 

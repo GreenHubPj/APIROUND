@@ -1,6 +1,7 @@
 package com.apiround.greenhub.service.item;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,7 +25,8 @@ public class RegionService {
         if (regionText == null || regionText.isBlank() || limit <= 0) {
             return List.of();
         }
-        return regionRepository.findRandomByRegionText(regionText, excludeId, limit);
+        List<Object[]> results = regionRepository.findRandomByRegionText(regionText, excludeId, limit);
+        return convertObjectArrayToRegion(results);
     }
 
     // 모든 특산품 조회 (내림차순 정렬)
@@ -49,11 +51,6 @@ public class RegionService {
         }
         
         return products;
-    }
-
-    // 중지 상태인 상품만 조회 (내림차순 정렬)
-    public List<Region> getStoppedProductsOrderByProductIdDesc() {
-        return regionRepository.findStoppedProductsOrderByProductIdDesc();
     }
 
     // region 페이지에 표시할 상품 조회 (ACTIVE 상태이면서 삭제되지 않은 상품만)
@@ -94,7 +91,8 @@ public class RegionService {
 
     // 타입별 조회 (내림차순 정렬)
     public List<Region> getProductsByTypeOrderByProductIdDesc(String productType) {
-        return regionRepository.findByProductTypeOrderByProductIdDesc(productType);
+        List<Object[]> results = regionRepository.findByProductTypeOrderByProductIdDesc(productType);
+        return convertObjectArrayToRegion(results);
     }
 
     // 지역별 조회
@@ -110,42 +108,61 @@ public class RegionService {
     // 지역별 조회 (다양한 형태의 지역명 지원)
     public List<Region> getProductsByRegionCode(String regionCode) {
         // 지역 코드에 따른 다양한 형태의 지역명 매핑
+        List<Region> results;
         switch (regionCode) {
             case "seoul":
-                return regionRepository.findByRegionVariations("서울", "서울특별시", "서울시");
+                results = regionRepository.findByRegionVariations("서울", "서울특별시", "서울시");
+                break;
             case "gyeonggi":
-                return regionRepository.findByRegionVariations("경기", "경기도", "경기시");
+                results = regionRepository.findByRegionVariations("경기", "경기도", "경기시");
+                break;
             case "incheon":
-                return regionRepository.findByRegionVariations("인천", "인천광역시", "인천시");
+                results = regionRepository.findByRegionVariations("인천", "인천광역시", "인천시");
+                break;
             case "gangwon":
-                return regionRepository.findByRegionVariations("강원", "강원도", "강원시");
+                results = regionRepository.findByRegionVariations("강원", "강원도", "강원시");
+                break;
             case "chungbuk":
-                return regionRepository.findByRegionVariations("충북", "충청북도", "충북시");
+                results = regionRepository.findByRegionVariations("충북", "충청북도", "충북시");
+                break;
             case "chungnam":
-                return regionRepository.findByRegionVariations("충남", "충청남도", "충남시");
+                results = regionRepository.findByRegionVariations("충남", "충청남도", "충남시");
+                break;
             case "daejeon":
-                return regionRepository.findByRegionVariations("대전", "대전광역시", "대전시");
+                results = regionRepository.findByRegionVariations("대전", "대전광역시", "대전시");
+                break;
             case "jeonbuk":
-                return regionRepository.findByRegionVariations("전북", "전라북도", "전북시");
+                results = regionRepository.findByRegionVariations("전북", "전라북도", "전북시");
+                break;
             case "jeonnam":
-                return regionRepository.findByRegionVariations("전남", "전라남도", "전남시");
+                results = regionRepository.findByRegionVariations("전남", "전라남도", "전남시");
+                break;
             case "gwangju":
-                return regionRepository.findByRegionVariations("광주", "광주광역시", "광주시");
+                results = regionRepository.findByRegionVariations("광주", "광주광역시", "광주시");
+                break;
             case "gyeongbuk":
-                return regionRepository.findByRegionVariations("경북", "경상북도", "경북시");
+                results = regionRepository.findByRegionVariations("경북", "경상북도", "경북시");
+                break;
             case "gyeongnam":
-                return regionRepository.findByRegionVariations("경남", "경상남도", "경남시");
+                results = regionRepository.findByRegionVariations("경남", "경상남도", "경남시");
+                break;
             case "daegu":
-                return regionRepository.findByRegionVariations("대구", "대구광역시", "대구시");
+                results = regionRepository.findByRegionVariations("대구", "대구광역시", "대구시");
+                break;
             case "ulsan":
-                return regionRepository.findByRegionVariations("울산", "울산광역시", "울산시");
+                results = regionRepository.findByRegionVariations("울산", "울산광역시", "울산시");
+                break;
             case "busan":
-                return regionRepository.findByRegionVariations("부산", "부산광역시", "부산시");
+                results = regionRepository.findByRegionVariations("부산", "부산광역시", "부산시");
+                break;
             case "jeju":
-                return regionRepository.findByRegionVariations("제주", "제주도", "제주특별자치도");
+                results = regionRepository.findByRegionVariations("제주", "제주도", "제주특별자치도");
+                break;
             default:
-                return regionRepository.findByRegionLike(regionCode);
+                results = regionRepository.findByRegionLike(regionCode);
+                break;
         }
+        return results;
     }
 
     // ID로 상품 조회 (모든 상품 조회)
@@ -162,5 +179,35 @@ public class RegionService {
     public List<Region> getCurrentMonthProducts(int month) {
         // 월별 특산품 조회 (harvestSeason에 해당 월이 포함된 상품들)
         return regionRepository.findByHarvestSeasonContaining(String.valueOf(month));
+    }
+
+
+    // Object[] 배열을 Region 객체로 변환하는 헬퍼 메서드
+    private List<Region> convertObjectArrayToRegion(List<Object[]> results) {
+        System.out.println("🔥 쿼리 결과 수: " + results.size());
+        if (!results.isEmpty()) {
+            System.out.println("🔥 첫 번째 결과: " + java.util.Arrays.toString(results.get(0)));
+        }
+        
+        return results.stream()
+            .map(row -> {
+                System.out.println("🔥 변환 중: " + java.util.Arrays.toString(row));
+                Region region = Region.builder()
+                    .productId((Integer) row[0])     // product_id
+                    .productName((String) row[1])    // title을 productName으로 매핑
+                    .productType((String) row[2])    // product_type
+                    .regionText((String) row[3])     // region_text
+                    .harvestSeason((String) row[4])  // harvest_season
+                    .isDeleted((String) row[5])      // is_deleted
+                    .build();
+                
+                // @Transient 필드들 설정
+                region.setTitle((String) row[1]);    // title 필드
+                region.setStatus((String) row[6]);   // status 필드
+                
+                System.out.println("🔥 생성된 Region: ID=" + region.getProductId() + ", Name=" + region.getProductName());
+                return region;
+            })
+            .collect(Collectors.toList());
     }
 }

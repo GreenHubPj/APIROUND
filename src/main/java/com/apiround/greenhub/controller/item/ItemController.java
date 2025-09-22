@@ -36,11 +36,9 @@ import com.apiround.greenhub.dto.ListingDto;
 import com.apiround.greenhub.entity.Company;
 import com.apiround.greenhub.entity.ProductListing;
 import com.apiround.greenhub.entity.item.ProductPriceOption;
-import com.apiround.greenhub.entity.item.SpecialtyProduct;
 import com.apiround.greenhub.repository.CompanyRepository;
 import com.apiround.greenhub.repository.ProductListingRepository;
 import com.apiround.greenhub.repository.item.ProductPriceOptionRepository;
-import com.apiround.greenhub.repository.item.SpecialtyProductRepository;
 import com.apiround.greenhub.service.item.ItemService;
 import com.apiround.greenhub.service.item.ListingService;
 
@@ -60,7 +58,6 @@ public class ItemController {
     private final ListingService listingService;           // product_listing
     private final CompanyRepository companyRepository;
     private final ProductListingRepository listingRepo;
-    private final SpecialtyProductRepository productRepo;
     private final ProductPriceOptionRepository optionRepo;
 
     /** 상품관리 페이지 */
@@ -78,31 +75,21 @@ public class ItemController {
         List<ProductListing> listings = (loginCompany == null)
                 ? Collections.emptyList()
                 : listingRepo.findBySellerIdAndIsDeletedOrderByListingIdAsc(loginCompany.getCompanyId(), "N");
-
+        
         log.info("조회된 listings 수: {}", listings.size());
         for (ProductListing listing : listings) {
-            log.info("Listing ID: {}, Title: {}, Status: {}",
+            log.info("Listing ID: {}, Title: {}, Status: {}", 
                     listing.getListingId(), listing.getTitle(), listing.getStatus());
         }
-
-        // listings와 관련된 SpecialtyProduct 정보를 매핑
-        Map<Integer, SpecialtyProduct> productMap = new HashMap<>();
-        for (ProductListing listing : listings) {
-            if (listing.getProductId() != null) {
-                productRepo.findById(listing.getProductId())
-                        .ifPresent(product -> productMap.put(listing.getListingId(), product));
-            }
-        }
-
+        
         model.addAttribute("listings", listings);
-        model.addAttribute("productMap", productMap);
         model.addAttribute("loginCompany", loginCompany);
         model.addAttribute("listingStatuses", ProductListing.Status.values());
         model.addAttribute("listingForm", new ListingDto());
         return "item-management";
     }
 
-    /** 상품 등록: specialty_product + option 저장 후 product_listing 자동 생성 */
+    /** 상품 등록: product_listing에만 직접 저장 */
     @PostMapping("/item-management")
     public String saveSpecialty(
             @RequestParam(required = false) Integer productId,
@@ -112,7 +99,6 @@ public class ItemController {
             @RequestParam String description,
             @RequestParam(required = false) String thumbnailUrl,
             @RequestParam(required = false) MultipartFile imageFile,
-            @RequestParam(name = "months", required = false) List<Integer> months,
             @RequestParam(name = "optionLabel", required = false) List<String> optionLabels,
             @RequestParam(name = "quantity",    required = false) List<BigDecimal> quantities,
             @RequestParam(name = "unit",        required = false) List<String> units,
@@ -124,61 +110,95 @@ public class ItemController {
     ) {
         log.info("상품 등록 요청 시작 - productName: {}, productType: {}, regionText: {}",
                 productName, productType, regionText);
-        log.info("세션 정보 - company: {}, loginCompanyId: {}, sellerId 파라미터: {}",
-                session.getAttribute("company"), session.getAttribute("loginCompanyId"), sellerId);
 
         try {
             // 0) 로그인 회사 확인
             Company seller = (Company) session.getAttribute("company");
             if (seller == null) {
                 Integer companyId = (Integer) session.getAttribute("loginCompanyId");
-                if (companyId == null) companyId = sellerId; // 폼 hidden 백업
+                if (companyId == null) companyId = sellerId;
                 if (companyId == null) throw new IllegalStateException("로그인 후 이용해 주세요.");
                 seller = companyRepository.findById(companyId)
                         .orElseThrow(() -> new IllegalStateException("회사 정보를 찾을 수 없습니다."));
             }
-            log.info("최종 판매자 정보: companyId={}, companyName={}",
-                    seller.getCompanyId(), seller.getCompanyName());
 
-            // ✅ 1) 이미지 파일/데이터URL 저장
+            // 1) 썸네일 저장
             String finalThumbnailUrl = saveThumbnail(imageFile, thumbnailUrl);
-
-            // thumbnail_url 길이 제한 (5000자)
             if (finalThumbnailUrl != null && finalThumbnailUrl.length() > 5000) {
                 finalThumbnailUrl = finalThumbnailUrl.substring(0, 5000);
             }
 
-            // ✅ 2) 널 가드
-            months       = (months != null)       ? months       : Collections.emptyList();
+            // 2) 널 가드
             optionLabels = (optionLabels != null) ? optionLabels : Collections.emptyList();
             quantities   = (quantities != null)   ? quantities   : Collections.emptyList();
             units        = (units != null)        ? units        : Collections.emptyList();
             prices       = (prices != null)       ? prices       : Collections.emptyList();
 
-            // ✅ 3) 상품 + 옵션 저장
-            Integer savedProductId = itemService.saveProductWithOptions(
-                    productId,
-                    productName, productType, regionText, description,
-                    finalThumbnailUrl, null,
-                    months, optionLabels, quantities, units, prices
-            );
-            if (savedProductId == null) {
-                throw new RuntimeException("상품 저장 실패: productId가 null입니다.");
+            // 3) product_listing에만 직접 저장
+            ProductListing listing = new ProductListing();
+            // product_id는 시퀀스로 자동 생성됨
+            listing.setSellerId(seller.getCompanyId());
+            listing.setTitle(productName);
+            listing.setProductType(productType);
+            listing.setRegionText(regionText);
+            listing.setDescription(description);
+            listing.setThumbnailUrl(finalThumbnailUrl);
+            listing.setHarvestSeason(harvestSeason);
+            listing.setStatus(ProductListing.Status.ACTIVE);
+            listing.setIsDeleted("N");
+            
+            // 가격 옵션 데이터가 있으면 첫 번째 옵션의 가격을 사용
+            if (prices != null && !prices.isEmpty() && prices.get(0) != null) {
+                listing.setPriceValue(java.math.BigDecimal.valueOf(prices.get(0)));
+            } else {
+                listing.setPriceValue(java.math.BigDecimal.ZERO);
+            }
+            
+            // 기타 필드 설정 - unit_code는 외래키 제약조건 때문에 null로 설정
+            listing.setUnitCode(null);
+            if (quantities != null && !quantities.isEmpty()) {
+                listing.setPackSize(quantities.get(0).stripTrailingZeros().toPlainString());
+            }
+            listing.setCurrency("KRW");
+            listing.setStockQty(java.math.BigDecimal.ZERO);
+            
+            // 시간 설정
+            java.time.LocalDateTime now = java.time.LocalDateTime.now();
+            listing.setCreatedAt(now);
+            listing.setUpdatedAt(now);
+            
+            ProductListing savedListing = listingRepo.save(listing);
+            Integer listingId = savedListing.getListingId();
+            
+            // product_id를 listing_id와 같은 값으로 설정 (시퀀스 값이므로 null 방지)
+            savedListing.setProductId(listingId);
+            savedListing = listingRepo.save(savedListing);
+            Integer generatedProductId = savedListing.getProductId();
+
+            // 4) 가격 옵션들을 product_price_option 테이블에 저장
+            if (prices != null && !prices.isEmpty()) {
+                for (int i = 0; i < prices.size(); i++) {
+                    if (prices.get(i) != null) {
+                        ProductPriceOption priceOption = new ProductPriceOption();
+                        priceOption.setProductId(generatedProductId); // 시퀀스로 자동 생성된 product_id 사용
+                        priceOption.setOptionLabel(optionLabels != null && i < optionLabels.size() ? optionLabels.get(i) : "기본");
+                        priceOption.setQuantity(quantities != null && i < quantities.size() ? quantities.get(i) : java.math.BigDecimal.ONE);
+                        priceOption.setUnit(units != null && i < units.size() ? units.get(i) : "개");
+                        priceOption.setPrice(prices.get(i));
+                        priceOption.setSortOrder(i + 1);
+                        priceOption.setIsActive(true);
+                        priceOption.setCreatedAt(now);
+                        priceOption.setUpdatedAt(now);
+                        
+                        optionRepo.save(priceOption);
+                    }
+                }
+                log.info("가격 옵션 저장 완료 - {}개 옵션", prices.size());
             }
 
-            // ✅ 4) 리스팅 생성
-            Integer listingId = listingService.createListingFromSpecialty(
-                    savedProductId,
-                    seller.getCompanyId(),
-                    productName,
-                    description,
-                    finalThumbnailUrl,
-                    harvestSeason
-            );
-
-            log.info("상품 저장 성공 - productId: {}, listingId: {}", savedProductId, listingId);
+            log.info("상품 저장 성공 - listingId: {}", listingId);
             ra.addFlashAttribute("msg", "상품이 저장되었습니다.");
-            return "redirect:/item-management#id=" + savedProductId;
+            return "redirect:/item-management#listing=" + listingId;
 
         } catch (org.springframework.dao.DataIntegrityViolationException e) {
             log.error("중복 상품명/지역 오류 발생", e);
@@ -253,7 +273,7 @@ public class ItemController {
         return "redirect:/item-management#listing=" + id;
     }
 
-    /** specialty_product 단건 조회 (수정용) */
+    /** 상품 단건 조회 (수정용) */
     @GetMapping("/api/products/{id}")
     @ResponseBody
     public Map<String, Object> getOne(@PathVariable Integer id) {
@@ -261,15 +281,14 @@ public class ItemController {
         return Map.of("product", detail.product(), "options", detail.options());
     }
 
-    /** specialty_product 삭제 */
+    /** 상품 삭제 */
     @DeleteMapping("/api/products/{id}")
     @ResponseBody
     public Map<String, Object> delete(@PathVariable Integer id) {
         itemService.deleteProduct(id);
         return Map.of("ok", true);
     }
-
-    /** 상품 상태 변경 (활성화/일시중지/품절) */
+    /** 상품 상태 변경 (ACTIVE / PAUSED) */
     @PostMapping("/api/listings/{id}/status")
     @ResponseBody
     public Map<String, Object> updateListingStatus(@PathVariable Integer id,
@@ -278,23 +297,27 @@ public class ItemController {
             ProductListing listing = listingRepo.findById(id)
                     .orElseThrow(() -> new IllegalArgumentException("상품을 찾을 수 없습니다: " + id));
 
-            // 들어오는 문자열을 안전하게 매핑
-            String s = status == null ? "" : status.trim().toUpperCase(Locale.ROOT);
+            String s = (status == null ? "" : status.trim().toUpperCase(Locale.ROOT));
+
+            // 허용 값: ACTIVE, PAUSED (INACTIVE는 과거 호환 → PAUSED)
             ProductListing.Status mapped = switch (s) {
-                case "INACTIVE" -> ProductListing.Status.PAUSED;
-                case "STOPPED"  -> ProductListing.Status.SOLDOUT;
-                default         -> ProductListing.Status.valueOf(s); // ACTIVE, PAUSED, SOLDOUT
+                case "ACTIVE"   -> ProductListing.Status.ACTIVE;
+                case "PAUSED"   -> ProductListing.Status.INACTIVE;
+                case "INACTIVE" -> ProductListing.Status.INACTIVE; // 과거 호환
+                default -> throw new IllegalArgumentException("허용되지 않는 상태 값입니다: " + s);
             };
 
             listing.setStatus(mapped);
             listing.setUpdatedAt(java.time.LocalDateTime.now());
             listingRepo.save(listing);
 
-            log.info("상품 상태 변경 완료 - listingId: {}, status: {}", id, mapped);
             return Map.of("success", true, "status", listing.getStatus().name());
         } catch (Exception e) {
-            log.error("상품 상태 변경 실패", e);
-            return Map.of("success", false, "error", e.getMessage());
+            // 현재 상태를 클라이언트 롤백용으로 같이 내려줌
+            String current = listingRepo.findById(id)
+                    .map(l -> l.getStatus() != null ? l.getStatus().name() : "ACTIVE")
+                    .orElse("ACTIVE");
+            return Map.of("success", false, "error", e.getMessage(), "currentStatus", current);
         }
     }
 
@@ -302,27 +325,34 @@ public class ItemController {
     @PostMapping(value = "/api/listings/{id}/edit", produces = "application/json")
     @ResponseBody
     public Map<String, Object> editListing(@PathVariable Integer id,
-                                           @RequestParam String productName,
-                                           @RequestParam String productType,
-                                           @RequestParam String regionText,
-                                           @RequestParam String description,
-                                           @RequestParam(required = false) String thumbnailUrl,
-                                           @RequestParam(required = false) MultipartFile imageFile,
-                                           @RequestParam(required = false) String harvestSeason,
-                                           @RequestParam(name = "optionLabel", required = false) List<String> optionLabels,
-                                           @RequestParam(name = "quantity", required = false) List<BigDecimal> quantities,
-                                           @RequestParam(name = "unit", required = false) List<String> units,
-                                           @RequestParam(name = "price", required = false) List<Integer> prices) {
+                                          @RequestParam String productName,
+                                          @RequestParam String productType,
+                                          @RequestParam String regionText,
+                                          @RequestParam String description,
+                                          @RequestParam(required = false) String thumbnailUrl,
+                                          @RequestParam(required = false) MultipartFile imageFile,
+                                          @RequestParam(required = false) String harvestSeason,
+                                          @RequestParam(name = "optionLabel", required = false) List<String> optionLabels,
+                                          @RequestParam(name = "quantity", required = false) List<BigDecimal> quantities,
+                                          @RequestParam(name = "unit", required = false) List<String> units,
+                                          @RequestParam(name = "price", required = false) List<Integer> prices) {
         try {
-            log.info("상품 수정 요청 - listingId: {}, productName: {}, productType: {}",
+            log.info("상품 수정 요청 - listingId: {}, productName: {}, productType: {}", 
                     id, productName, productType);
-
+            
             ProductListing listing = listingRepo.findById(id)
                     .orElseThrow(() -> new IllegalArgumentException("상품을 찾을 수 없습니다: " + id));
 
+            // product_id가 null인 경우 listing_id로 설정 (기존 데이터 호환성)
+            if (listing.getProductId() == null) {
+                listing.setProductId(listing.getListingId());
+                listing = listingRepo.save(listing);
+                log.info("기존 데이터 호환성: product_id를 listing_id({})로 설정", listing.getListingId());
+            }
+
             // ✅ 이미지 처리 (수정 시에는 기존 이미지 유지)
             String finalThumbnailUrl = null;
-
+            
             // 1) 파일 업로드가 있으면 파일 우선 저장
             if (imageFile != null && !imageFile.isEmpty()) {
                 finalThumbnailUrl = saveThumbnail(imageFile, null);
@@ -336,96 +366,73 @@ public class ItemController {
                 finalThumbnailUrl = thumbnailUrl;
             }
             // 4) 아무것도 없으면 기존 이미지 유지 (finalThumbnailUrl = null)
-
+            
             // thumbnail_url 길이 제한 (5000자)
             if (finalThumbnailUrl != null && finalThumbnailUrl.length() > 5000) {
                 finalThumbnailUrl = finalThumbnailUrl.substring(0, 5000);
             }
 
-            // 상품 정보 수정: listing의 productId 기반으로 SpecialtyProduct 조회
-            if (listing.getProductId() != null) {
-                Integer specialtyProductId = listing.getProductId();
-                SpecialtyProduct product = productRepo.findById(specialtyProductId).orElse(null);
-                if (product != null) {
-                    product.setProductName(productName);
-                    product.setProductType(productType);
-                    product.setRegionText(regionText);
-                    product.setDescription(description);
-                    if (finalThumbnailUrl != null && !finalThumbnailUrl.trim().isEmpty()) {
-                        product.setThumbnailUrl(finalThumbnailUrl);
-                    }
-                    productRepo.save(product);
-                    log.info("SpecialtyProduct 수정 완료 - productId: {}", product.getProductId());
-
-                    // 가격 옵션 수정
-                    log.info("가격 옵션 수정 시작 - optionLabels: {}, quantities: {}, units: {}, prices: {}",
-                            optionLabels, quantities, units, prices);
-
-                    if (optionLabels != null && !optionLabels.isEmpty()) {
-                        // 기존 가격 옵션 조회
-                        var existingOptions = optionRepo.findByProductIdOrderBySortOrderAscOptionIdAsc(specialtyProductId);
-                        log.info("기존 가격 옵션 조회 - productId: {}, 기존 옵션 수: {}", specialtyProductId, existingOptions.size());
-
-                        // 가격 옵션 수정 (기존 옵션 업데이트 또는 새로 생성)
-                        for (int i = 0; i < optionLabels.size(); i++) {
-                            if (i < existingOptions.size()) {
-                                // 기존 옵션 업데이트
-                                var existingOption = existingOptions.get(i);
-                                existingOption.setOptionLabel(optionLabels.get(i));
-                                existingOption.setQuantity(quantities != null && i < quantities.size() ? quantities.get(i) : BigDecimal.ONE);
-                                existingOption.setUnit(units != null && i < units.size() ? units.get(i) : "개");
-                                existingOption.setPrice(prices != null && i < prices.size() ? prices.get(i) : 0);
-                                existingOption.setSortOrder(i + 1);
-                                existingOption.setIsActive(true);
-                                existingOption.setUpdatedAt(java.time.LocalDateTime.now());
-                                optionRepo.save(existingOption);
-                                log.info("가격 옵션 업데이트 - optionId: {}, optionLabel: {}, quantity: {}, unit: {}, price: {}",
-                                        existingOption.getOptionId(), existingOption.getOptionLabel(), existingOption.getQuantity(), existingOption.getUnit(), existingOption.getPrice());
-                            } else {
-                                // 새로운 옵션 생성
-                                ProductPriceOption option = new ProductPriceOption();
-                                option.setProductId(specialtyProductId);
-                                option.setOptionLabel(optionLabels.get(i));
-                                option.setQuantity(quantities != null && i < quantities.size() ? quantities.get(i) : BigDecimal.ONE);
-                                option.setUnit(units != null && i < units.size() ? units.get(i) : "개");
-                                option.setPrice(prices != null && i < prices.size() ? prices.get(i) : 0);
-                                option.setSortOrder(i + 1);
-                                option.setIsActive(true);
-                                option.setCreatedAt(java.time.LocalDateTime.now());
-                                option.setUpdatedAt(java.time.LocalDateTime.now());
-                                optionRepo.save(option);
-                                log.info("가격 옵션 생성 - optionLabel: {}, quantity: {}, unit: {}, price: {}",
-                                        option.getOptionLabel(), option.getQuantity(), option.getUnit(), option.getPrice());
-                            }
-                        }
-
-                        // 기존 옵션 중 사용하지 않는 것들을 비활성화
-                        for (int i = optionLabels.size(); i < existingOptions.size(); i++) {
-                            var existingOption = existingOptions.get(i);
-                            existingOption.setIsActive(false);
-                            existingOption.setUpdatedAt(java.time.LocalDateTime.now());
-                            optionRepo.save(existingOption);
-                            log.info("가격 옵션 비활성화 - optionId: {}, optionLabel: {}",
-                                    existingOption.getOptionId(), existingOption.getOptionLabel());
-                        }
-                        log.info("가격 옵션 수정 완료 - productId: {}, 옵션 수: {}", specialtyProductId, optionLabels.size());
-                    } else {
-                        log.info("가격 옵션 데이터가 없어서 수정하지 않음");
-                    }
-                }
-            }
-
-            // 리스팅 정보 수정
+            // ✅ ProductListing 정보 수정
             listing.setTitle(productName);
+            listing.setProductType(productType);
+            listing.setRegionText(regionText);
             listing.setDescription(description);
             if (finalThumbnailUrl != null && !finalThumbnailUrl.trim().isEmpty()) {
                 listing.setThumbnailUrl(finalThumbnailUrl);
             }
-            if (harvestSeason != null) {
                 listing.setHarvestSeason(harvestSeason);
-            }
             listing.setUpdatedAt(java.time.LocalDateTime.now());
-            listingRepo.save(listing);
+            
+            // 가격 옵션 데이터가 있으면 첫 번째 옵션의 가격을 사용
+            if (prices != null && !prices.isEmpty() && prices.get(0) != null) {
+                listing.setPriceValue(java.math.BigDecimal.valueOf(prices.get(0)));
+            }
+            
+            // 기타 필드 설정
+            if (units != null && !units.isEmpty()) {
+                listing.setUnitCode(null); // 외래키 제약조건 때문에 null로 설정
+            }
+            if (quantities != null && !quantities.isEmpty()) {
+                listing.setPackSize(quantities.get(0).stripTrailingZeros().toPlainString());
+            }
+            listing.setCurrency("KRW");
+            
+            ProductListing savedListing = listingRepo.save(listing);
+            log.info("ProductListing 수정 완료 - listingId: {}", savedListing.getListingId());
+
+            // ✅ 가격 옵션 수정 (product_price_option 테이블)
+            log.info("가격 옵션 수정 시작 - optionLabels: {}, quantities: {}, units: {}, prices: {}",
+                    optionLabels, quantities, units, prices);
+
+            if (prices != null && !prices.isEmpty()) {
+                // 기존 가격 옵션들을 삭제 (해당 listing의 product_id와 일치하는 옵션들)
+                var existingOptions = optionRepo.findByProductIdOrderBySortOrderAscOptionIdAsc(listing.getProductId());
+                for (var option : existingOptions) {
+                    optionRepo.delete(option);
+                }
+                log.info("기존 가격 옵션 삭제 완료 - 삭제된 옵션 수: {}", existingOptions.size());
+
+                // 새로운 가격 옵션들 생성
+                for (int i = 0; i < prices.size(); i++) {
+                    if (prices.get(i) != null) {
+                        ProductPriceOption priceOption = new ProductPriceOption();
+                        priceOption.setProductId(listing.getProductId()); // product_listing의 product_id 사용
+                        priceOption.setOptionLabel(optionLabels != null && i < optionLabels.size() ? optionLabels.get(i) : "기본");
+                        priceOption.setQuantity(quantities != null && i < quantities.size() ? quantities.get(i) : java.math.BigDecimal.ONE);
+                        priceOption.setUnit(units != null && i < units.size() ? units.get(i) : "개");
+                        priceOption.setPrice(prices.get(i));
+                        priceOption.setSortOrder(i + 1);
+                        priceOption.setIsActive(true);
+                        priceOption.setCreatedAt(java.time.LocalDateTime.now());
+                        priceOption.setUpdatedAt(java.time.LocalDateTime.now());
+                        
+                        optionRepo.save(priceOption);
+                        log.info("가격 옵션 생성 - optionLabel: {}, quantity: {}, unit: {}, price: {}",
+                                priceOption.getOptionLabel(), priceOption.getQuantity(), priceOption.getUnit(), priceOption.getPrice());
+                    }
+                }
+                log.info("가격 옵션 수정 완료 - {}개 옵션", prices.size());
+            }
 
             log.info("상품 수정 완료 - listingId: {}", id);
             return Map.of("success", true);
@@ -447,18 +454,12 @@ public class ItemController {
             }
             ProductListing listing = listingOpt.get();
 
-            // listing의 productId로 SpecialtyProduct 조회 (없어도 진행)
-            SpecialtyProduct product = null;
-            if (listing.getProductId() != null) {
-                product = productRepo.findById(listing.getProductId()).orElse(null);
-            }
+            // listing의 productId로 SpecialtyProduct 조회는 더 이상 필요하지 않음
 
-            // 가격 옵션 정보도 함께 조회 (활성화된 것만). product 엔티티가 없어도 product_id만 있으면 조회한다.
+            // 가격 옵션 정보도 함께 조회 (활성화된 것만)
             List<Map<String, Object>> options = new ArrayList<>();
-            Integer pidForOption = (listing.getProductId() != null) ? listing.getProductId() : null;
-            if (pidForOption != null) {
-                var priceOptions = optionRepo.findByProductIdOrderBySortOrderAscOptionIdAsc(pidForOption);
-                for (var option : priceOptions) {
+            if (listing.getPriceOptions() != null) {
+                for (var option : listing.getPriceOptions()) {
                     if (option.getIsActive() == null || !option.getIsActive()) continue;
                     Map<String, Object> optionData = new HashMap<>();
                     optionData.put("optionLabel", option.getOptionLabel());
@@ -469,25 +470,35 @@ public class ItemController {
                 }
             }
 
-            // product가 없어도 listing 정보로 최대한 채워서 내려준다.
-            Map<String, Object> listingBrief = Map.of(
-                    "listingId", listing.getListingId(),
-                    "productId", listing.getProductId(),
-                    "title", safe(listing.getTitle()),
-                    "thumbnailUrl", safe(listing.getThumbnailUrl()),
-                    "unitCode", safe(listing.getUnitCode()),
-                    "priceValue", listing.getPriceValue(),
-                    "status", listing.getStatus() != null ? listing.getStatus().name() : null,
-                    "harvestSeason", safe(listing.getHarvestSeason())
-            );
+            // ProductListing 데이터를 product 형태로 구성 (JavaScript 호환성을 위해)
+            Map<String, Object> productData = new HashMap<>();
+            productData.put("productName", listing.getTitle());
+            productData.put("productType", listing.getProductType());
+            productData.put("regionText", listing.getRegionText());
+            productData.put("description", listing.getDescription());
+            productData.put("thumbnailUrl", listing.getThumbnailUrl());
+            productData.put("harvestSeason", listing.getHarvestSeason());
 
-            return Map.of(
-                    "success", true,
-                    "product", product,     // 없을 수 있음
-                    "listing", listingBrief, // 프런트에서 대체 렌더 용
-                    "options", options,
-                    "harvestSeason", listing.getHarvestSeason() != null ? listing.getHarvestSeason() : ""
-            );
+            // product가 없어도 listing 정보로 최대한 채워서 내려준다.
+            Map<String, Object> listingBrief = new HashMap<>();
+            listingBrief.put("listingId", listing.getListingId());
+            listingBrief.put("productId", listing.getProductId());
+            listingBrief.put("title", safe(listing.getTitle()));
+            listingBrief.put("productType", safe(listing.getProductType()));
+            listingBrief.put("regionText", safe(listing.getRegionText()));
+            listingBrief.put("thumbnailUrl", safe(listing.getThumbnailUrl()));
+            listingBrief.put("unitCode", safe(listing.getUnitCode()));
+            listingBrief.put("priceValue", listing.getPriceValue());
+            listingBrief.put("status", listing.getStatus() != null ? listing.getStatus().name() : "ACTIVE");
+            listingBrief.put("harvestSeason", safe(listing.getHarvestSeason()));
+
+            Map<String, Object> result = new HashMap<>();
+            result.put("success", true);
+            result.put("product", productData);     // ProductListing 데이터를 product 형태로 구성
+            result.put("listing", listingBrief);    // 프런트에서 대체 렌더 용
+            result.put("options", options);
+            result.put("harvestSeason", listing.getHarvestSeason() != null ? listing.getHarvestSeason() : "");
+            return result;
         } catch (Exception e) {
             log.error("상품 정보 조회 실패", e);
             return Map.of("success", false, "error", e.getMessage());
@@ -520,15 +531,25 @@ public class ItemController {
     @ResponseBody
     public Map<String, Object> testSave() {
         try {
-            SpecialtyProduct product = new SpecialtyProduct();
-            product.setProductName("테스트 상품");
-            product.setProductType("농산물");
-            product.setRegionText("서울");
-            product.setDescription("테스트 설명");
-            product.setThumbnailUrl("/images/농산물.png");
-            product.setHarvestSeason("1,2,3");
-            SpecialtyProduct saved = productRepo.save(product);
-            return Map.of("success", true, "productId", saved.getProductId());
+            ProductListing listing = new ProductListing();
+            // product_id는 시퀀스로 자동 생성됨
+            listing.setSellerId(1); // 테스트용
+            listing.setTitle("테스트 상품");
+            listing.setProductType("농산물");
+            listing.setRegionText("서울");
+            listing.setDescription("테스트 설명");
+            listing.setThumbnailUrl("/images/농산물.png");
+            listing.setHarvestSeason("1,2,3");
+            listing.setStatus(ProductListing.Status.ACTIVE);
+            listing.setIsDeleted("N");
+            listing.setPriceValue(java.math.BigDecimal.valueOf(10000));
+            listing.setCurrency("KRW");
+            listing.setStockQty(java.math.BigDecimal.ZERO);
+            listing.setCreatedAt(java.time.LocalDateTime.now());
+            listing.setUpdatedAt(java.time.LocalDateTime.now());
+            
+            ProductListing saved = listingRepo.save(listing);
+            return Map.of("success", true, "listingId", saved.getListingId());
         } catch (Exception e) {
             return Map.of("success", false, "error", e.getMessage());
         }
