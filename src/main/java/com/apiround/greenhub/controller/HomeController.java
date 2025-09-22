@@ -38,17 +38,17 @@ public class HomeController {
             System.out.println("랜덤 레시피 API 호출됨");
             Recipe recipe = recipeService.getRandomRecipeForRecommendation();
             System.out.println("레시피 조회 결과: " + (recipe != null ? recipe.getTitle() : "null"));
-            
+
             if (recipe == null) {
                 System.out.println("레시피가 null입니다. 기본 데이터 반환");
                 // 기본 레시피 데이터 반환
                 Map<String, Object> defaultResponse = Map.of(
-                    "name", "김치찌개",
-                    "region", "전국 지역 특산품",
-                    "ingredients", List.of("김치", "돼지고기", "두부", "대파"),
-                    "description", "맛있는 김치찌개입니다.",
-                    "recipeId", 1,
-                    "imageUrl", "/images/kimchi.jpg"
+                        "name", "김치찌개",
+                        "region", "전국 지역 특산품",
+                        "ingredients", List.of("김치", "돼지고기", "두부", "대파"),
+                        "description", "맛있는 김치찌개입니다.",
+                        "recipeId", 1,
+                        "imageUrl", "/images/kimchi.jpg"
                 );
                 return ResponseEntity.ok(defaultResponse);
             }
@@ -56,7 +56,7 @@ public class HomeController {
             // 응답 데이터 구성
             List<String> ingredients = getRecipeIngredients(recipe.getRecipeId());
             System.out.println("재료 목록: " + ingredients);
-            
+
             Map<String, Object> response = Map.of(
                     "name", recipe.getTitle() != null ? recipe.getTitle() : "맛있는 요리",
                     "region", "전국 지역 특산품",
@@ -141,11 +141,11 @@ public class HomeController {
             if (user == null) {
                 return "redirect:/login";
             }
-            
+
             // 장바구니 데이터 가져오기
             List<CartDto.Response> cartItems = cartService.getCartItems(user);
             model.addAttribute("cartItems", cartItems);
-            
+
             return "shoppinglist";
         } catch (Exception e) {
             // 에러 발생 시 빈 장바구니로 처리

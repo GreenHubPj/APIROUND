@@ -13,10 +13,9 @@
 </head>
 <body>
 <!-- 헤더 include -->
-<div th:replace="common/header :: header"></div>
+<div th:replace="~{common/header :: header}"></div>
 
 <!-- ✅ productId를 data 속성으로 ‘정확히’ 내려줌 -->
-<!-- 컨트롤러에서 model.addAttribute("productId", productId) 하고 있으므로 이 값만 쓰는 게 가장 안전 -->
 <main class="main-content" th:attr="data-product-id=${productId}">
     <div class="container">
         <!-- 뒤로가기 버튼 -->
@@ -36,16 +35,8 @@
                 </div>
             </div>
             <div class="product-image">
-                <img th:if="${product != null}"
-                     id="productImage"
-                     class="product-thumbnail"
-                     th:src="${product.thumbnailUrl}"
-                     th:alt="${product.productName}">
-                <img th:if="${product == null}"
-                     id="productImage"
-                     class="product-thumbnail"
-                     src=""
-                     alt="상품 이미지">
+                <img th:if="${product != null}" id="productImage" class="product-thumbnail" th:src="${product.thumbnailUrl}" th:alt="${product.productName}">
+                <img th:if="${product == null}" id="productImage" class="product-thumbnail" src="" alt="상품 이미지">
             </div>
         </div>
 
@@ -82,7 +73,7 @@
 </main>
 
 <!-- 푸터 include -->
-<div th:replace="common/footer :: footer"></div>
+<div th:replace="~{common/footer :: footer}"></div>
 
 <!-- JS -->
 <script th:src="@{/js/reviewlist.js}"></script>
