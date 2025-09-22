@@ -3,13 +3,9 @@ package com.apiround.greenhub.controller;
 import com.apiround.greenhub.entity.Recipe;
 import com.apiround.greenhub.service.RecipeService;
 import jakarta.servlet.http.HttpSession;
-import org.springframework.beans.factory.annotation.Autowired;
-import com.apiround.greenhub.entity.Recipe;
 import com.apiround.greenhub.entity.item.Region;
-import com.apiround.greenhub.service.RecipeService;
 import com.apiround.greenhub.service.item.SeasonalService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,19 +15,20 @@ import org.springframework.http.ResponseEntity;
 import java.util.Map;
 
 import java.util.List;
+import java.util.ArrayList;
 
-import com.apiround.greenhub.service.item.RegionService;
-
-import java.util.List;
+import com.apiround.greenhub.cart.service.CartService;
+import com.apiround.greenhub.cart.dto.CartDto;
+import com.apiround.greenhub.entity.User;
 
 @Controller
 @RequiredArgsConstructor
 public class HomeController {
 
-    @Autowired
-    private RecipeService recipeService;
+    private final RecipeService recipeService;
 
     private final SeasonalService seasonalService;
+    private final CartService cartService;
 
     /** API: 오늘 뭐먹지 랜덤 레시피 추천 */
     @GetMapping("/api/random-recipe")
@@ -138,7 +135,24 @@ public class HomeController {
     }
 
     @GetMapping("/shoppinglist")
-    public String shoppinglist() { return "shoppinglist"; }
+    public String shoppinglist(HttpSession session, Model model) {
+        try {
+            User user = (User) session.getAttribute("user");
+            if (user == null) {
+                return "redirect:/login";
+            }
+            
+            // 장바구니 데이터 가져오기
+            List<CartDto.Response> cartItems = cartService.getCartItems(user);
+            model.addAttribute("cartItems", cartItems);
+            
+            return "shoppinglist";
+        } catch (Exception e) {
+            // 에러 발생 시 빈 장바구니로 처리
+            model.addAttribute("cartItems", new ArrayList<>());
+            return "shoppinglist";
+        }
+    }
 
     @GetMapping("/orderdetails")
     public String orderdetails(@RequestParam(required = false) String id) { return "orderdetails"; }

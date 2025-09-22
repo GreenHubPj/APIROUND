@@ -597,7 +597,8 @@ async function addToCart(event) {
         throw new Error(errorMessage);
       }
 
-      showMessageAtPosition('장바구니에 담았습니다!', 'success', event.target);
+      // 모달 표시
+      showCartSuccessModal();
     } catch (error) {
       console.error('장바구니 추가 실패:', error);
       showMessageAtPosition(`추가 실패: ${error.message}`, 'error', event.target);
@@ -727,4 +728,65 @@ function showMessageAtPosition(message, type, targetElement = null) {
 
   document.body.appendChild(messageDiv);
   setTimeout(() => { messageDiv.remove(); }, 3000);
+}
+
+// 장바구니 성공 모달 표시
+function showCartSuccessModal() {
+  const modal = document.getElementById('cartSuccessModal');
+  if (modal) {
+    modal.style.display = 'flex';
+    
+    // 모달 이벤트 리스너 설정
+    setupModalEventListeners();
+  }
+}
+
+// 모달 이벤트 리스너 설정
+function setupModalEventListeners() {
+  const modal = document.getElementById('cartSuccessModal');
+  const closeBtn = document.getElementById('modalCloseBtn');
+  const stayBtn = document.getElementById('stayOnPageBtn');
+  const goToCartBtn = document.getElementById('goToCartBtn');
+
+  // 모달 닫기 (X 버튼)
+  if (closeBtn) {
+    closeBtn.addEventListener('click', hideCartSuccessModal);
+  }
+
+  // 현재 페이지에 머물기
+  if (stayBtn) {
+    stayBtn.addEventListener('click', hideCartSuccessModal);
+  }
+
+  // 장바구니로 이동
+  if (goToCartBtn) {
+    goToCartBtn.addEventListener('click', () => {
+      hideCartSuccessModal();
+      window.location.href = '/shoppinglist';
+    });
+  }
+
+  // 모달 배경 클릭 시 닫기
+  if (modal) {
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        hideCartSuccessModal();
+      }
+    });
+  }
+
+  // ESC 키로 모달 닫기
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modal && modal.style.display === 'flex') {
+      hideCartSuccessModal();
+    }
+  });
+}
+
+// 모달 숨기기
+function hideCartSuccessModal() {
+  const modal = document.getElementById('cartSuccessModal');
+  if (modal) {
+    modal.style.display = 'none';
+  }
 }

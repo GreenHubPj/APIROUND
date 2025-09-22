@@ -13,6 +13,7 @@ public class CartDto {
     @AllArgsConstructor
     public static class Request {
         private Integer optionId;
+        private String title;
         private BigDecimal quantity;
         private String unit;
     }
@@ -34,6 +35,7 @@ public class CartDto {
         private Integer optionId;
         private String optionName;
         private BigDecimal quantity;
+        private String title;
         private String unit;
         private BigDecimal unitPrice;
         private BigDecimal totalPrice;
