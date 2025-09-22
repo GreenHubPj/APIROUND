@@ -87,6 +87,31 @@ function loadProductDetail() {
 
 // 서버에서 전달된 상품 데이터 가져오기
 function getProductFromServer() {
+  // 서버에서 전달된 데이터가 있으면 우선 사용
+  if (window.serverData && window.serverData.product) {
+    const serverProduct = window.serverData.product;
+    const serverPriceOptions = window.serverData.priceOptions || [];
+    
+    return {
+      id: serverProduct.productId,
+      name: serverProduct.productName,
+      category: serverProduct.productType,
+      region: serverProduct.regionText,
+      description: serverProduct.description,
+      thumbnailUrl: serverProduct.thumbnailUrl,
+      harvestSeason: serverProduct.harvestSeason,
+      priceOptions: serverPriceOptions.map(opt => ({
+        id: opt.optionId,
+        quantity: opt.quantity,
+        unit: opt.unit,
+        price: opt.price
+      })),
+      companyInfo: generateRandomCompany(serverProduct.regionText),
+      images: [{ id: 1, src: serverProduct.thumbnailUrl, alt: serverProduct.productName }]
+    };
+  }
+
+  // 서버 데이터가 없으면 DOM에서 파싱
   const productName = document.getElementById('productTitle')?.textContent || '';
   const productTags = document.querySelectorAll('.product-tag');
   const productType = productTags[0]?.textContent || '';
@@ -97,10 +122,11 @@ function getProductFromServer() {
   const harvestSeason = document.getElementById('seasonInfo')?.textContent || '';
   const productId = parseInt(getProductIdFromUrl());
 
-  // DOM의 가격 옵션을 dataset으로 파싱
+  // 실제 데이터베이스에서 옵션 ID를 가져오기 위해 DOM에서 파싱
   const priceOptions = Array.from(
     document.querySelectorAll('#priceOptions .price-option')
   ).map(el => ({
+    id: Number(el.dataset.optionId) || Number(el.dataset.id),
     quantity: Number(el.dataset.quantity),
     unit: el.dataset.unit,
     price: Number(el.dataset.price)
@@ -196,15 +222,43 @@ function renderPriceOptions() {
     // 카드
     const optionElement = document.createElement('div');
     optionElement.className = 'price-option';
+    optionElement.dataset.optionId = option.id; // option_id를 dataset에 저장
+    
     optionElement.innerHTML = `
       <span class="price-option-info">${option.quantity}${option.unit}</span>
       <span class="price-option-amount">${option.price.toLocaleString()}원</span>
     `;
+    
+    // 카드 클릭 이벤트 추가
+    optionElement.addEventListener('click', () => {
+      // 다른 카드들의 active 클래스 제거
+      document.querySelectorAll('.price-option').forEach(el => el.classList.remove('active'));
+      // 현재 카드에 active 클래스 추가
+      optionElement.classList.add('active');
+      // selectedPriceOption 설정
+      selectedPriceOption = option;
+      // 셀렉트 박스도 동기화
+      priceSelect.value = option.id;
+      updateTotalPrice();
+    });
+
+    //옵션이 1개면 자동선택 처리
+    if ((currentProduct.priceOptions || []).length === 1) {
+    const onlyOption = currentProduct.priceOptions[0];
+    selectedPriceOption = onlyOption;
+    // 카드와 select도 동기화
+    const card = document. querySelector (`[data-option-id="${onlyOption.id}"]`);
+    if (card) card.classList.add('active');
+    const priceSelect = document.getElementById('priceOptionSelect');
+    if (priceSelect) priceSelect.value = onlyOption.id;
+    updateTotalPrice();
+    }
+
     priceOptionsContainer.appendChild(optionElement);
 
     // 셀렉트
     const optionSelect = document.createElement('option');
-    optionSelect.value = index;
+    optionSelect.value = option.id; // 실제 option_id 사용
     optionSelect.textContent = `${option.quantity}${option.unit} - ${option.price.toLocaleString()}원`;
     priceSelect.appendChild(optionSelect);
   });
@@ -442,12 +496,18 @@ function setupEventListeners() {
 
   const priceSelect = document.getElementById('priceOptionSelect');
   priceSelect && priceSelect.addEventListener('change', (e) => {
-    const optionIndex = parseInt(e.target.value);
-    if (currentProduct.priceOptions && optionIndex >= 0 && optionIndex < currentProduct.priceOptions.length) {
-      selectedPriceOption = currentProduct.priceOptions[optionIndex];
+    const optionId = parseInt(e.target.value);
+    if (currentProduct.priceOptions && optionId) {
+      // option_id로 해당 옵션 찾기
+      selectedPriceOption = currentProduct.priceOptions.find(option => option.id === optionId);
+      // 카드도 동기화
+      document.querySelectorAll('.price-option').forEach(el => el.classList.remove('active'));
+      const selectedCard = document.querySelector(`[data-option-id="${optionId}"]`);
+      if (selectedCard) selectedCard.classList.add('active');
       updateTotalPrice();
     } else {
       selectedPriceOption = null;
+      document.querySelectorAll('.price-option').forEach(el => el.classList.remove('active'));
       updateTotalPrice();
     }
   });
@@ -471,35 +531,61 @@ function updateTotalPrice() {
   }
 }
 
+
 // 장바구니 담기
-function addToCart(event) {
-  if (!selectedPriceOption) {
-    showMessageAtPosition('가격 옵션을 선택해주세요.', 'error', event.target);
-    return;
-  }
+async function addToCart(event) {
+   if (!selectedPriceOption) {
+      showMessageAtPosition('가격 옵션을 선택해주세요.', 'error', event.target);
+      return;
+    }
 
-  let cart = JSON.parse(localStorage.getItem('cart') || '[]');
+    const productId = currentProduct.id;
+    const optionId = selectedPriceOption.id;
 
-  const existingItemIndex = cart.findIndex(item =>
-    item.productId === currentProduct.id &&
-    item.priceOptionIndex === currentProduct.priceOptions.indexOf(selectedPriceOption)
-  );
+    if (!optionId) {
+      showMessageAtPosition('옵션 ID가 없습니다.', 'error', event.target);
+      return;
+    }
 
-  if (existingItemIndex >= 0) {
-    cart[existingItemIndex].quantity += quantity;
-  } else {
-    cart.push({
-      productId: currentProduct.id,
-      productName: currentProduct.name,
-      priceOptionIndex: currentProduct.priceOptions.indexOf(selectedPriceOption),
-      priceOption: selectedPriceOption,
+    const cartPayload = {
+      optionId: optionId,
       quantity: quantity,
-      image: (currentProduct.images && currentProduct.images[0] && currentProduct.images[0].src) || ''
-    });
-  }
+      unit: selectedPriceOption.unit
+    };
 
-  localStorage.setItem('cart', JSON.stringify(cart));
-  showMessageAtPosition('장바구니에 상품이 추가되었습니다.', 'success', event.target);
+    try {
+      const response = await fetch('/api/cart', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(cartPayload),
+        credentials: 'include' // 브라우저가 세션 쿠키를 보냄
+      });
+
+      if (!response.ok) {
+        let errorMessage = '서버 오류';
+
+        try {
+          const contentType = response.headers.get('Content-Type');
+
+          if (contentType && contentType.includes('application/json')) {
+            const errorJson = await response.json();
+            errorMessage = errorJson.message || JSON.stringify(errorJson);
+          } else {
+            errorMessage = await response.text();
+          }
+        } catch (e) {
+          // 파싱 중 에러가 나면 기본 메시지 유지
+        }
+        throw new Error(errorMessage);
+      }
+
+      showMessageAtPosition('장바구니에 담았습니다!', 'success', event.target);
+    } catch (error) {
+      console.error('장바구니 추가 실패:', error);
+      showMessageAtPosition(`추가 실패: ${error.message}`, 'error', event.target);
+    }
 }
 
 // 바로 구매

@@ -199,17 +199,24 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addResourceHandler("/css/**").addResourceLocations("classpath:/static/css/");
         registry.addResourceHandler("/js/**").addResourceLocations("classpath:/static/js/");
         registry.addResourceHandler("/images/**").addResourceLocations("classpath:/static/images/");
-        registry.addResourceHandler("/uploads/**").addResourceLocations("file:/var/greenhub/uploads/");
-        registry.addResourceHandler("/upload-dir/**").addResourceLocations("file:upload-dir/");
+        
+        // 업로드된 파일들 - 여러 경로 지원
         registry.addResourceHandler("/uploads/**")
-                .addResourceLocations("file:" + System.getProperty("user.home") + "/greenhub-uploads/");
+                .addResourceLocations(
+                    "file:upload-dir/", 
+                    "file:" + System.getProperty("user.home") + "/greenhub-uploads/",
+                    "file:./upload-dir/"
+                );
+        registry.addResourceHandler("/upload-dir/**").addResourceLocations("file:upload-dir/");
     }
 
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/api/**")
+                .allowedOrigins("http://localhost:8000") // 또는 프론트 주소 명확하게
                 .allowedMethods("*")
-                .allowedOrigins("*")
-                .allowedHeaders("*");
+                .allowedHeaders("*")
+                .allowCredentials(true); // ✅ 핵심
     }
+
 }
