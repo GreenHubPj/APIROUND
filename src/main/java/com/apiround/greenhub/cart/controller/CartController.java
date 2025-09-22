@@ -21,7 +21,7 @@ public class CartController {
     }
 
     private User getLoginUser(HttpSession session){
-        User user = (User)session.getAttribute("loginUser");
+        User user = (User)session.getAttribute("user");
         if(user == null){
             throw new RuntimeException("로그인된 사용자가 없습니다.");
         }
@@ -42,17 +42,17 @@ public class CartController {
 
     //장바구니에 상품 추가
     @PostMapping
-    public ResponseEntity<CartDto.Response> addToCart(
+    public ResponseEntity<?> addToCart(
             HttpSession session,
             @Valid @RequestBody CartDto.Request requestDto){
 
-        try {
-            User user = getLoginUser(session);
-            CartDto.Response responseDto = cartService.addToCart(user, requestDto);
-            return ResponseEntity.ok(responseDto);
-        }catch(RuntimeException e){
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        User user = (User) session.getAttribute("user"); // 또는 "LOGIN_USER"
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인이 필요합니다.");
         }
+
+        CartDto.Response responseDto = cartService.addToCart(user, requestDto);
+        return ResponseEntity.ok(responseDto);
     }
 
     // 장바구니 수량 수정

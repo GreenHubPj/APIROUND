@@ -31,6 +31,9 @@ public class CartEntity {
 
     private String unit;
 
+    @Column(name = "title", length = 255)
+    private String title;
+
     private BigDecimal unitPrice;
 
     private BigDecimal totalPrice;

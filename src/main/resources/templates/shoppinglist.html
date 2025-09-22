@@ -11,13 +11,13 @@
 </head>
 <body>
 <!-- 헤더 include -->
-<div th:replace="common/header :: header"></div>
+<div th:replace="~{common/header :: header}"></div>
 
 <!-- 장바구니 메인 컨텐츠 -->
 <section class="shoppinglist-section">
     <div class="container">
-        <!-- 장바구니 제어 버튼 -->
-        <div class="cart-controls">
+        <!-- 장바구니 제어 버튼 (장바구니에 상품이 있을 때만 표시) -->
+        <div class="cart-controls" th:if="${!#lists.isEmpty(cartItems)}">
             <div class="select-all">
                 <input type="checkbox" id="selectAll" class="select-all-checkbox">
                 <label for="selectAll" class="select-all-label">전체선택</label>
@@ -29,62 +29,36 @@
 
         <!-- 장바구니 상품 목록 -->
         <div class="cart-items">
-            <!-- 상품 1: 제철 당근 -->
-            <div class="cart-item" data-product-id="1">
-                <div class="item-checkbox">
-                    <input type="checkbox" class="item-check" data-product-id="1">
-                </div>
-                <div class="item-info">
-                    <div class="seller-info">
-                        <span class="seller-icon">🏠</span>
-                        <span class="seller-name">Yoyo Farm</span>
-                    </div>
-                    <div class="product-details">
-                        <img src="/images/제철 당근.jpg" alt="제철 당근" class="product-image">
-                        <div class="product-info">
-                            <h3 class="product-name">제철 당근</h3>
-                            <p class="product-description">가을철 영양의 보고! 비타민A가 풍부한 당근으로 면역력 강화에 도움을 줍니다.</p>
-                            <div class="product-price">6000원/kg</div>
-                            <div class="product-origin">
-                                <span class="origin-badge">제주 구좌읍</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="item-quantity">
-                    <div class="quantity-info">
-                        <span class="quantity-label">상품 주문수량 :</span>
-                        <span class="quantity-value">5kg</span>
-                    </div>
-                    <button class="modify-order-btn">주문수정</button>
-                </div>
-                <div class="item-total">
-                    <div class="total-price">
-                        <span class="price-label">상품 금액</span>
-                        <span class="price-value">30000원</span>
-                    </div>
-                    <button class="order-btn">주문하기</button>
+            <!-- 장바구니가 비어있을 때 -->
+            <div class="empty-cart" th:if="${#lists.isEmpty(cartItems)}">
+                <div class="empty-cart-content">
+                    <img src="/images/따봉 트럭.png" alt="빈 장바구니" class="empty-cart-icon">
+                    <h3>장바구니가 비어있습니다</h3>
+                    <p>원하는 상품을 장바구니에 담아보세요!</p>
+                    <a href="/region" class="go-shopping-btn">쇼핑하러 가기</a>
                 </div>
             </div>
 
-            <!-- 상품 2: 문경 사과 -->
-            <div class="cart-item" data-product-id="2">
+            <!-- 장바구니 상품 목록 (DB 데이터) -->
+            <div class="cart-item" th:each="cartItem : ${cartItems}" 
+                 th:data-cart-id="${cartItem.cartId}"
+                 th:data-option-id="${cartItem.optionId}">
                 <div class="item-checkbox">
-                    <input type="checkbox" class="item-check" data-product-id="2">
+                    <input type="checkbox" class="item-check" th:data-cart-id="${cartItem.cartId}">
                 </div>
                 <div class="item-info">
                     <div class="seller-info">
                         <span class="seller-icon">🏠</span>
-                        <span class="seller-name">말랑 소매</span>
+                        <span class="seller-name">농가</span>
                     </div>
                     <div class="product-details">
-                        <img src="/images/제철 사과.jpg" alt="문경 사과" class="product-image">
+                        <img src="/images/따봉 트럭.png" alt="상품 이미지" class="product-image">
                         <div class="product-info">
-                            <h3 class="product-name">문경 사과</h3>
-                            <p class="product-description">문경에서 유명한 사과로 달콤하고 아삭한 맛이 일품입니다.</p>
-                            <div class="product-price">12000원/kg</div>
+                            <h3 class="product-name" th:text="${cartItem.optionName}">상품명</h3>
+                            <p class="product-description">신선한 농산물입니다.</p>
+                            <div class="product-price" th:text="${#numbers.formatInteger(cartItem.unitPrice, 0)} + '원/' + ${cartItem.unit}">가격</div>
                             <div class="product-origin">
-                                <span class="origin-badge">경북 문경</span>
+                                <span class="origin-badge">농가 직거래</span>
                             </div>
                         </div>
                     </div>
@@ -92,54 +66,16 @@
                 <div class="item-quantity">
                     <div class="quantity-info">
                         <span class="quantity-label">상품 주문수량 :</span>
-                        <span class="quantity-value">1kg</span>
+                        <span class="quantity-value" th:text="${cartItem.quantity} + ${cartItem.unit}">수량</span>
                     </div>
-                    <button class="modify-order-btn">주문수정</button>
+                    <button class="modify-order-btn" th:data-cart-id="${cartItem.cartId}">주문수정</button>
                 </div>
                 <div class="item-total">
                     <div class="total-price">
                         <span class="price-label">상품 금액</span>
-                        <span class="price-value">12000원</span>
+                        <span class="price-value" th:text="${#numbers.formatInteger(cartItem.totalPrice, 0)} + '원'">총액</span>
                     </div>
-                    <button class="order-btn">주문하기</button>
-                </div>
-            </div>
-
-            <!-- 상품 3: 포도잼 -->
-            <div class="cart-item" data-product-id="3">
-                <div class="item-checkbox">
-                    <input type="checkbox" class="item-check" data-product-id="3">
-                </div>
-                <div class="item-info">
-                    <div class="seller-info">
-                        <span class="seller-icon">🏠</span>
-                        <span class="seller-name">현아네마켓</span>
-                    </div>
-                    <div class="product-details">
-                        <img src="/images/포도잼.jpg" alt="포도잼" class="product-image">
-                        <div class="product-info">
-                            <h3 class="product-name">포도잼</h3>
-                            <p class="product-description">신선한 포도로 만든 수제 잼으로 빵과 함께 드시면 최고입니다.</p>
-                            <div class="product-price">8000원/개</div>
-                            <div class="product-origin">
-                                <span class="origin-badge">경기도 포도농장</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="item-quantity">
-                    <div class="quantity-info">
-                        <span class="quantity-label">상품 주문수량 :</span>
-                        <span class="quantity-value">2개</span>
-                    </div>
-                    <button class="modify-order-btn">주문수정</button>
-                </div>
-                <div class="item-total">
-                    <div class="total-price">
-                        <span class="price-label">상품 금액</span>
-                        <span class="price-value">16000원</span>
-                    </div>
-                    <button class="order-btn">주문하기</button>
+                    <button class="order-btn" th:data-cart-id="${cartItem.cartId}">주문하기</button>
                 </div>
             </div>
         </div>
