@@ -65,10 +65,7 @@ function goBackToList() {
 // 상품 상세 정보 로드
 function loadProductDetail() {
   const productId = getProductIdFromUrl();
-  if (!productId) {
-    showMessage('상품 정보를 찾을 수 없습니다.', 'error');
-    return;
-  }
+
 
   // 서버에서 렌더된 DOM을 읽어서 객체화
   currentProduct = getProductFromServer();
