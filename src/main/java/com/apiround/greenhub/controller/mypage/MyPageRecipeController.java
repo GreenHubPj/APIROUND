@@ -4,6 +4,7 @@ import com.apiround.greenhub.dto.mypage.MyPageRecipeRequestDto;
 import com.apiround.greenhub.dto.mypage.MyPageRecipeResponseDto;
 import com.apiround.greenhub.service.mypage.MyPageRecipeService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -37,8 +38,19 @@ public class MyPageRecipeController {
     // 레시피 생성
     @PostMapping
     public ResponseEntity<Integer> createRecipe(
-            @RequestParam Long userId, // 보통 인증에서 뽑아내지만 우선 이렇게 받는 걸로
+            HttpSession session,
             @RequestBody MyPageRecipeRequestDto requestDto) {
+
+        Object userIdObj = session.getAttribute("loginUserId");
+
+        if (userIdObj == null) {
+            return ResponseEntity.status(401).build(); // 로그인 안 된 상태
+        }
+
+        Long userId = (userIdObj instanceof Integer)
+                ? ((Integer) userIdObj).longValue()
+                : (Long) userIdObj;
+
         Integer recipeId = myPageRecipeService.createRecipe(userId, requestDto);
         return ResponseEntity.ok(recipeId);
     }

@@ -116,7 +116,7 @@
                     <!-- 옵션 있음: 카드 렌더 + dataset 부착 -->
                     <div id="priceOptions" th:if="${options != null and !#lists.isEmpty(options)}">
                         <div th:each="opt : ${options}" class="price-option"
-                             th:attr="data-quantity=${opt.quantity},data-unit=${opt.unit},data-price=${opt.price}">
+                             th:attr="data-quantity=${opt.quantity},data-unit=${opt.unit},data-price=${opt.price},data-option-id=${opt.optionId}">
                             <span class="price-option-info" th:text="|${opt.quantity}${opt.unit}|"></span>
                             <span class="price-option-amount" th:text="|${#numbers.formatInteger(opt.price, 0)}원|"></span>
                         </div>
