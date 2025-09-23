@@ -1,16 +1,12 @@
+// src/main/java/com/apiround/greenhub/cart/dto/CartDto.java
 package com.apiround.greenhub.cart.dto;
 
 import lombok.*;
-
 import java.math.BigDecimal;
 
 public class CartDto {
 
-    // 🟢 장바구니 추가 요청 DTO
-    @Getter
-    @Setter
-    @NoArgsConstructor
-    @AllArgsConstructor
+    @Getter @Setter @NoArgsConstructor @AllArgsConstructor
     public static class Request {
         private Integer optionId;
         private String title;
@@ -18,25 +14,24 @@ public class CartDto {
         private String unit;
     }
 
-    // 🟡 장바구니 수량 수정 DTO
-    @Getter
-    @Setter
-    @NoArgsConstructor
-    @AllArgsConstructor
+    @Getter @Setter @NoArgsConstructor @AllArgsConstructor
     public static class Update {
         private BigDecimal quantity;
     }
 
-    // 🔵 장바구니 응답 DTO
     @Getter
     @Builder
     public static class Response {
         private Integer cartId;
         private Integer optionId;
-        private String optionName;
+        private String optionName;  // 옵션 라벨 (예: 소/대/기본)
         private BigDecimal quantity;
-        private String title;
         private String unit;
+
+        private String title;       // 상품 제목 (listing.title)
+        private Integer listingId;  // 이미지 URL 만들 때 사용
+        private String imageUrl;    // /api/listings/{id}/thumbnail
+
         private BigDecimal unitPrice;
         private BigDecimal totalPrice;
     }

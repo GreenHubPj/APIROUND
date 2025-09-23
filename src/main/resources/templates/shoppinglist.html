@@ -75,7 +75,7 @@
                         <span class="price-label">상품 금액</span>
                         <span class="price-value" th:text="${#numbers.formatInteger(cartItem.totalPrice, 0)} + '원'">총액</span>
                     </div>
-                    <button class="order-btn" th:data-cart-id="${cartItem.cartId}">주문하기</button>
+                    <button class="order-btn" onclick="window.orderItem('${item.cartId}')">주문하기</button>
                 </div>
             </div>
         </div>
