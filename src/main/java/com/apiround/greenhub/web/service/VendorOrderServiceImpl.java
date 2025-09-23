@@ -75,6 +75,8 @@ public class VendorOrderServiceImpl implements VendorOrderService {
             BigDecimal vendorSubtotal = BigDecimal.ZERO;
             List<VendorOrderSummaryDto.Item> dtoItems = new ArrayList<>();
 
+            // ... 생략 (상단 동일)
+
             for (OrderItem r : vendorItems) {
                 String image = null;
                 if (r.getListingId() != null) {
@@ -97,6 +99,8 @@ public class VendorOrderServiceImpl implements VendorOrderService {
                 vendorSubtotal = vendorSubtotal.add(line);
 
                 dtoItems.add(VendorOrderSummaryDto.Item.builder()
+                        .orderItemId(r.getOrderItemId())            // ✅ 추가
+                        .itemStatus(r.getItemStatus())              // ✅ 추가 (예: PREPARING/SHIPPED/DELIVERED)
                         .name(name)
                         .image(image)
                         .quantity(r.getQuantity() == null ? 0 : r.getQuantity().intValue())
@@ -105,6 +109,7 @@ public class VendorOrderServiceImpl implements VendorOrderService {
                         .price(line)
                         .build());
             }
+
 
             result.add(VendorOrderSummaryDto.builder()
                     .id(o.getOrderNumber() != null ? o.getOrderNumber() : String.valueOf(o.getOrderId()))
@@ -172,6 +177,7 @@ public class VendorOrderServiceImpl implements VendorOrderService {
             vendorSubtotal = vendorSubtotal.add(line);
 
             items.add(VendorOrderDetailDto.Item.builder()
+                    .orderItemId(r.getOrderItemId())      // 🔹 추가
                     .productId(r.getProductId())
                     .listingId(r.getListingId())
                     .name(name)
@@ -181,9 +187,9 @@ public class VendorOrderServiceImpl implements VendorOrderService {
                     .optionText(r.getOptionLabelSnap())
                     .unitPrice(unit)
                     .lineAmount(line)
-                    .itemStatus(r.getItemStatus())
-                    .courierName(null)
-                    .trackingNumber(null)
+                    .itemStatus(r.getItemStatus())        // 🔹 추가
+                    .courierName(r.getCourierName())
+                    .trackingNumber(r.getTrackingNumber())
                     .build());
         }
 

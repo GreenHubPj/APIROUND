@@ -30,7 +30,8 @@ public class WebConfig implements WebMvcConfigurer {
             "/profile-edit-company",
             "/mypage-company",
             "/user/profile/**",
-            "/company/profile/**"
+            "/company/profile/**",
+            "/seller/**"
     };
 
     private static final String[] STATIC_OPEN_PATHS = {

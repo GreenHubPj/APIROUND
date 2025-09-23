@@ -19,14 +19,17 @@ public class VendorOrderRestController {
 
     private final VendorOrderService vendorOrderService;
 
-    /** 벤더별 주문 요약 목록 */
+    /**
+     * 현재 로그인한 업체 기준의 주문 요약 목록
+     */
     @GetMapping("/my")
     public ResponseEntity<?> myOrders(HttpSession session) {
         Integer companyId = (Integer) session.getAttribute("loginCompanyId");
         if (companyId == null) {
             return ResponseEntity.status(401).body(Map.of(
                     "success", false,
-                    "message", "판매사 로그인 필요"
+                    "message", "판매사 로그인이 필요합니다.",
+                    "redirectUrl", "/login?redirectURL=/seller/delivery"
             ));
         }
         List<VendorOrderSummaryDto> list = vendorOrderService.findMyOrders(companyId);
@@ -36,7 +39,9 @@ public class VendorOrderRestController {
         ));
     }
 
-    /** 벤더 관점 주문 상세 */
+    /**
+     * 특정 주문(번호/PK)에 대한 벤더 관점 상세
+     */
     @GetMapping("/my/{id}")
     public ResponseEntity<?> myOrderDetail(@PathVariable("id") String idOrNumber,
                                            HttpSession session) {
@@ -44,7 +49,8 @@ public class VendorOrderRestController {
         if (companyId == null) {
             return ResponseEntity.status(401).body(Map.of(
                     "success", false,
-                    "message", "판매사 로그인 필요"
+                    "message", "판매사 로그인이 필요합니다.",
+                    "redirectUrl", "/login?redirectURL=/seller/delivery"
             ));
         }
         VendorOrderDetailDto detail = vendorOrderService.findMyOrderDetail(idOrNumber, companyId);
