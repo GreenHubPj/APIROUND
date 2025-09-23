@@ -20,6 +20,17 @@ public interface RegionRepository extends JpaRepository<Region, Integer> {
     // 수확철 검색
     List<Region> findByHarvestSeasonContaining(String harvestSeason);
 
+    // harvest_season을 기반으로 해당 월의 상품 조회 (product_listing 테이블)
+    @Query(value = """
+        SELECT product_id, title, product_type, region_text, harvest_season, is_deleted, status, thumbnail_url, description, thumbnail_data, thumbnail_mime 
+        FROM product_listing 
+        WHERE status = 'ACTIVE' 
+          AND is_deleted = 'N' 
+          AND harvest_season LIKE CONCAT('%', :month, '%')
+        ORDER BY product_id DESC
+        """, nativeQuery = true)
+    List<Object[]> findProductsByHarvestSeason(@Param("month") int month);
+
     // 지역별 검색 (다양한 형태의 지역명 지원)
     @Query("""
         SELECT r FROM Region r
@@ -47,6 +58,24 @@ public interface RegionRepository extends JpaRepository<Region, Integer> {
          ORDER BY r.productId DESC
     """)
     List<Region> findAllOrderByProductIdDesc();
+
+    // 페이징된 상품 조회
+    @Query(value = """
+        SELECT r FROM Region r
+         WHERE (r.isDeleted IS NULL OR r.isDeleted <> 'Y')
+         ORDER BY r.productId DESC
+    """, countQuery = """
+        SELECT COUNT(r) FROM Region r
+         WHERE (r.isDeleted IS NULL OR r.isDeleted <> 'Y')
+    """)
+    List<Region> findAllOrderByProductIdDesc(int page, int size);
+
+    // 전체 상품 수 조회
+    @Query("""
+        SELECT COUNT(r) FROM Region r
+         WHERE (r.isDeleted IS NULL OR r.isDeleted <> 'Y')
+    """)
+    int getTotalProductsCount();
 
     // 활성 상품만 조회 (동일: 미삭제 조건)
     @Query("""
@@ -278,7 +307,7 @@ public interface RegionRepository extends JpaRepository<Region, Integer> {
         ORDER BY random_order ASC
         LIMIT :limit
         """, nativeQuery = true)
-    List<Object[]> findCombinedProductsByRegionFlexible(@Param("regionText") String regionText, 
-                                                        @Param("excludeId") Integer excludeId, 
+    List<Object[]> findCombinedProductsByRegionFlexible(@Param("regionText") String regionText,
+                                                        @Param("excludeId") Integer excludeId,
                                                         @Param("limit") int limit);
 }

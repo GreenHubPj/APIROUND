@@ -5,30 +5,250 @@ document.addEventListener('DOMContentLoaded', function() {
     // URL 파라미터에서 지역 및 카테고리 정보 가져오기
     const urlParams = new URLSearchParams(window.location.search);
     const regionFromUrl = urlParams.get('region');
-    const categoryFromUrl = urlParams.get('category');
-
-    // 지역 필터링 관련 변수
-    let currentRegion = regionFromUrl || 'all'; // URL에서 지역 정보가 있으면 사용, 없으면 'all'
-    let currentCategory = categoryFromUrl || 'all'; // URL에서 카테고리 정보가 있으면 사용, 없으면 'all'
-    const itemsPerPage = 5; // 한 페이지에 표시할 상품 수
-    let displayedCount = 0; // 현재 표시된 상품 수
+    const categoryFromUrl = urlParams.get('type'); // 서버에서는 'type' 파라미터 사용
+    
+    console.log('URL 파라미터 - region:', regionFromUrl, 'type:', categoryFromUrl);
 
     // DOM 요소들
     const productCards = document.querySelectorAll('.product-card');
-    const productsSection = document.getElementById('productsSection');
+    const searchInput = document.getElementById('searchInput');
     const regionLabels = document.querySelectorAll('.region-label');
-    const categoryButtons = document.querySelectorAll('.category-btn');
+    const categoryLabels = document.querySelectorAll('.category-btn');
     
-    // 선택된 지역 표시 관련 요소들
+    // 가격 정보 로드 (서버에서 이미 페이징된 상품들만)
+    loadProductPrices();
+    
+    // 가격 정보 로드 함수 (서버에서 페이징된 상품들만)
+    async function loadProductPrices() {
+        
+        // 모든 상품에 대해 가격 정보 로드 (서버에서 이미 페이징됨)
+        productCards.forEach(async (card) => {
+            const productId = card.getAttribute('data-product-id');
+            if (!productId) return;
+            
+            try {
+                const response = await fetch(`/api/product-prices/${productId}`);
+                if (response.ok) {
+                    const prices = await response.json();
+                    const priceContainer = card.querySelector('.product-prices');
+                    if (priceContainer && prices.length > 0) {
+                        // 최저가 표시
+                        const minPrice = Math.min(...prices.map(p => p.price));
+                        priceContainer.innerHTML = `
+                            <div class="price-display">
+                                <span class="price-amount">${minPrice.toLocaleString()}원~</span>
+                            </div>
+                        `;
+                    } else if (priceContainer) {
+                        // 가격 정보가 없는 경우
+                        priceContainer.innerHTML = `
+                            <div class="price-display">
+                                <span class="price-amount">업체 문의</span>
+                            </div>
+                        `;
+                    }
+                }
+            } catch (error) {
+                const priceContainer = card.querySelector('.product-prices');
+                if (priceContainer) {
+                    priceContainer.innerHTML = `
+                        <div class="price-display">
+                            <span class="price-amount">업체 문의</span>
+                        </div>
+                    `;
+                }
+            }
+        });
+    }
+    
+    // 지역 필터링
+    regionLabels.forEach(label => {
+        label.addEventListener('click', function() {
+            const regionCode = this.getAttribute('data-region');
+            const regionName = this.textContent.trim();
+            
+            // 부드러운 전환 시작
+            startSmoothTransition();
+            
+            // 모든 지역 라벨에서 active 클래스 제거
+            regionLabels.forEach(l => l.classList.remove('active'));
+            // 클릭한 라벨에 active 클래스 추가
+            this.classList.add('active');
+            
+            // URL 파라미터로 지역 필터링
+            const url = new URL(window.location);
+            if (regionCode === 'all') {
+                url.searchParams.delete('region');
+            } else {
+                url.searchParams.set('region', regionCode);
+            }
+            url.searchParams.delete('page'); // 페이지를 0으로 리셋
+            
+            // 부드러운 전환 시작
+            startSmoothTransition();
+            setTimeout(() => {
+                window.location.href = url.toString();
+            }, 200);
+        });
+    });
+
+    // 카테고리 필터링
+    categoryLabels.forEach(label => {
+        label.addEventListener('click', function() {
+            const categoryCode = this.getAttribute('data-category');
+            
+            // 모든 카테고리 라벨에서 active 클래스 제거
+            categoryLabels.forEach(l => l.classList.remove('active'));
+            // 클릭한 라벨에 active 클래스 추가
+            this.classList.add('active');
+            
+            // 부드러운 전환 시작
+            startSmoothTransition();
+            
+            // URL 파라미터로 카테고리 필터링
+            const url = new URL(window.location);
+            if (categoryCode === 'all') {
+                url.searchParams.delete('type');
+            } else {
+                url.searchParams.set('type', categoryCode);
+            }
+            url.searchParams.delete('page'); // 페이지를 0으로 리셋
+            
+            // 부드러운 전환 시작
+            startSmoothTransition();
+            setTimeout(() => {
+                window.location.href = url.toString();
+            }, 200);
+        });
+    });
+
+    // 검색 기능
+    if (searchInput) {
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                performSearch();
+            }
+        });
+    }
+
+    function performSearch() {
+        const searchTerm = searchInput.value.trim();
+        
+        // 부드러운 전환 시작
+        startSmoothTransition();
+        
+        if (searchTerm === '') {
+            // 검색어가 없으면 필터 제거
+            const url = new URL(window.location);
+            url.searchParams.delete('search');
+            url.searchParams.delete('page');
+            startSmoothTransition();
+            setTimeout(() => {
+                window.location.href = url.toString();
+            }, 200);
+            return;
+        }
+        
+        // URL 파라미터로 검색어 전달
+        const url = new URL(window.location);
+        url.searchParams.set('search', searchTerm);
+        url.searchParams.delete('page');
+        startSmoothTransition();
+        setTimeout(() => {
+            window.location.href = url.toString();
+        }, 200);
+    }
+    
+    // 검색 버튼 이벤트
+    const searchBtn = document.querySelector('.search-btn');
+    if (searchBtn) {
+        searchBtn.addEventListener('click', performSearch);
+    }
+    
+        // 현재 선택된 지역/카테고리 표시
+        const currentRegion = regionFromUrl || 'all';
+        const currentCategory = categoryFromUrl || 'all';
+        
+        // 지역 라벨 활성화
+        regionLabels.forEach(label => {
+            const regionCode = label.getAttribute('data-region');
+            if (regionCode === currentRegion) {
+                label.classList.add('active');
+            } else {
+                label.classList.remove('active');
+            }
+        });
+        
+        // 카테고리 라벨 활성화
+        categoryLabels.forEach(label => {
+            const categoryCode = label.getAttribute('data-category');
+            if (categoryCode === currentCategory) {
+                label.classList.add('active');
+        } else {
+                label.classList.remove('active');
+            }
+        });
+        
+        // 선택된 지역 섹션 표시
+        updateSelectedRegionSection(currentRegion);
+    
+        // 검색어 표시
+        const searchTerm = urlParams.get('search');
+        if (searchInput && searchTerm) {
+            searchInput.value = searchTerm;
+        }
+        
+        // 페이지 로드 시 페이드 인 효과
+        startPageLoadAnimation();
+        
+        // 모든 링크 클릭에 부드러운 전환 적용
+        document.addEventListener('click', function(e) {
+            // 페이징 링크 클릭 감지
+            if (e.target.closest('.page-btn, .page-number')) {
+                e.preventDefault();
+                const link = e.target.closest('a');
+                if (link && link.href) {
+                    // 부드러운 전환 시작
+                    startSmoothTransition();
+                    // 200ms 후 페이지 이동 (간단하고 빠른 방식)
+                    setTimeout(() => {
+                        window.location.href = link.href;
+                    }, 200);
+                }
+            }
+        });
+    });
+    
+    // 선택된 지역 섹션 업데이트 함수
+    function updateSelectedRegionSection(regionCode) {
     const selectedRegionSection = document.getElementById('selectedRegionSection');
     const selectedRegionName = document.getElementById('selectedRegionName');
     const clearSelectionBtn = document.getElementById('clearSelectionBtn');
 
-    // 검색 기능
-    const searchInput = document.querySelector('.search-input');
-    const searchBtn = document.querySelector('.search-btn');
-
-    // 지역명을 한글로 변환하는 함수
+        if (!selectedRegionSection || !selectedRegionName || !clearSelectionBtn) {
+            console.log('선택된 지역 섹션 요소를 찾을 수 없습니다.');
+            return;
+        }
+        
+        if (regionCode && regionCode !== 'all') {
+            // 지역 코드를 한글 지역명으로 변환
+            const regionName = getKoreanRegionName(regionCode);
+            selectedRegionName.textContent = regionName;
+            selectedRegionSection.style.display = 'block';
+            
+            // 선택 해제 버튼 이벤트
+            clearSelectionBtn.onclick = function() {
+                const url = new URL(window.location);
+                url.searchParams.delete('region');
+                url.searchParams.delete('page');
+                window.location.href = url.toString();
+            };
+        } else {
+            selectedRegionSection.style.display = 'none';
+        }
+    }
+    
+    // 지역 코드를 한글 지역명으로 변환하는 함수
     function getKoreanRegionName(regionCode) {
         const regionMap = {
             'seoul': '서울',
@@ -44,731 +264,38 @@ document.addEventListener('DOMContentLoaded', function() {
             'gyeongbuk': '경상북도',
             'gyeongnam': '경상남도',
             'daegu': '대구',
-            'ulsan': '울산',
             'busan': '부산',
+            'ulsan': '울산',
             'jeju': '제주도'
         };
         return regionMap[regionCode] || regionCode;
     }
 
-    // 지역명 매칭 함수 (다양한 형태의 지역명을 매칭)
-    function isRegionMatch(regionCode, regionText) {
-        if (!regionText) return false;
-        
-        const regionTextLower = regionText.toLowerCase();
-        
-        // 지역 코드에 따른 매칭 패턴
-        const regionPatterns = {
-            'seoul': ['서울', '서울특별시', '서울시'],
-            'gyeonggi': ['경기', '경기도', '경기시'],
-            'incheon': ['인천', '인천광역시', '인천시'],
-            'gangwon': ['강원', '강원도', '강원시'],
-            'chungbuk': ['충북', '충청북도', '충북시'],
-            'chungnam': ['충남', '충청남도', '충남시'],
-            'daejeon': ['대전', '대전광역시', '대전시'],
-            'jeonbuk': ['전북', '전라북도', '전북시'],
-            'jeonnam': ['전남', '전라남도', '전남시'],
-            'gwangju': ['광주', '광주광역시', '광주시'],
-            'gyeongbuk': ['경북', '경상북도', '경북시'],
-            'gyeongnam': ['경남', '경상남도', '경남시'],
-            'daegu': ['대구', '대구광역시', '대구시'],
-            'ulsan': ['울산', '울산광역시', '울산시'],
-            'busan': ['부산', '부산광역시', '부산시'],
-            'jeju': ['제주', '제주도', '제주특별자치도']
-        };
-        
-        const patterns = regionPatterns[regionCode];
-        if (!patterns) return false;
-        
-        // 패턴 중 하나라도 매칭되면 true
-        return patterns.some(pattern => 
-            regionTextLower.includes(pattern.toLowerCase())
-        );
-    }
-
-    // 선택된 지역 표시 함수
-    function showSelectedRegion(regionName) {
-        if (selectedRegionSection && selectedRegionName) {
-            const koreanName = getKoreanRegionName(regionName);
-            selectedRegionName.textContent = koreanName;
-            selectedRegionSection.style.display = 'block';
-        }
-    }
-
-    // 선택된 지역 숨기기 함수
-    function hideSelectedRegion() {
-        if (selectedRegionSection) {
-            selectedRegionSection.style.display = 'none';
-        }
-    }
-
-    // 선택 취소 함수
-    function clearRegionSelection() {
-        currentRegion = 'all';
-        hideSelectedRegion();
-        
-        // 모든 지역 라벨에서 active 클래스 제거
-        regionLabels.forEach(label => {
-            label.classList.remove('active');
-        });
-        
-        // 상품 필터링 다시 실행
-        filterProducts();
-    }
-
-    // 상품 카드 클릭 이벤트
-    productCards.forEach(card => {
-        card.addEventListener('click', function() {
-            const productId = this.getAttribute('data-product-id');
-            const region = this.getAttribute('data-region');
-            if (productId) {
-                window.location.href = `/region-detail?id=${productId}&region=${region}`;
-            }
-        });
-    });
-
-    // 선택 취소 버튼 이벤트 리스너
-    if (clearSelectionBtn) {
-        clearSelectionBtn.addEventListener('click', function() {
-            clearRegionSelection();
-        });
-    }
-
-    // 카테고리 버튼 클릭 이벤트
-    categoryButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            // 모든 카테고리 버튼에서 active 클래스 제거
-            categoryButtons.forEach(btn => btn.classList.remove('active'));
-            
-            // 클릭한 버튼에 active 클래스 추가
-            this.classList.add('active');
-            
-            // 현재 카테고리 업데이트
-            currentCategory = this.getAttribute('data-category');
-            
-            // 상품 필터링
-            filterProducts();
-        });
-    });
-
-    // 검색 버튼 클릭 이벤트
-    if (searchBtn) {
-        searchBtn.addEventListener('click', function() {
-            performSearch();
-        });
-    }
-    
-    // 엔터키로 검색
-    if (searchInput) {
-        searchInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                performSearch();
-            }
-        });
-    }
-
-    // 검색 실행 함수
-    function performSearch() {
-        const searchTerm = searchInput.value.trim();
-        // 통합 필터링 함수 사용
-        filterProducts();
-    }
-
-    // 통합 상품 필터링 (지역 + 카테고리 + 검색)
-    function filterProducts() {
-        displayedCount = 0; // 표시된 상품 수 초기화
-        
-        // 먼저 모든 상품을 숨김
-        productCards.forEach(card => {
-            card.classList.add('hidden');
-        });
-        
-        // 필터링된 상품들을 처음 5개만 표시
-        showNextProducts();
-        
-        // 더보기 버튼 상태 업데이트
-        updateLoadMoreButton();
-        animateVisibleCards();
-    }
-
-    // 페이지네이션 적용 함수
-    function applyPagination() {
-        // 현재 표시된 상품 수를 초기화하고 처음 5개만 표시
-        displayedCount = 0;
-        showNextProducts();
-    }
-
-    // 검색어로 상품 필터링
-    function filterProductsBySearch(searchTerm) {
-        displayedCount = 0; // 표시된 상품 수 초기화
-        
-        // 모든 상품을 숨김
-        productCards.forEach(card => {
-            card.classList.add('hidden');
-        });
-        
-        // 검색어에 맞는 상품만 처음 5개 표시
-        showNextProductsBySearch(searchTerm);
-        
-        // 더보기 버튼 상태 업데이트
-        updateLoadMoreButtonBySearch(searchTerm);
-        
-        // 애니메이션 적용
-        animateVisibleCards();
-    }
-    
-    // 검색 결과에서 다음 상품들을 표시하는 함수
-    function showNextProductsBySearch(searchTerm) {
-        const searchLower = searchTerm.toLowerCase();
-        const visibleCards = [];
-        
-        productCards.forEach(card => {
-            const title = card.querySelector('.product-title').textContent.toLowerCase();
-            const description = card.querySelector('.product-description').textContent.toLowerCase();
-            const place = card.querySelector('.product-place').textContent.toLowerCase();
-            
-            if (title.includes(searchLower) || 
-                description.includes(searchLower) || 
-                place.includes(searchLower)) {
-                visibleCards.push(card);
-            }
-        });
-        
-        // 현재 표시된 수부터 itemsPerPage만큼 더 표시
-        const endIndex = Math.min(displayedCount + itemsPerPage, visibleCards.length);
-        
-        for (let i = displayedCount; i < endIndex; i++) {
-            visibleCards[i].classList.remove('hidden');
-        }
-        
-        displayedCount = endIndex;
-        
-        // 더 표시할 상품이 있는지 반환
-        return displayedCount < visibleCards.length;
-    }
-    
-    // 검색 결과에 대한 더보기 버튼 상태 업데이트
-    function updateLoadMoreButtonBySearch(searchTerm) {
-        const loadMoreBtn = document.getElementById('loadMoreBtn');
-        if (!loadMoreBtn) return;
-        
-        const searchLower = searchTerm.toLowerCase();
-        const visibleCards = [];
-        
-        productCards.forEach(card => {
-            const title = card.querySelector('.product-title').textContent.toLowerCase();
-            const description = card.querySelector('.product-description').textContent.toLowerCase();
-            const place = card.querySelector('.product-place').textContent.toLowerCase();
-            
-            if (title.includes(searchLower) || 
-                description.includes(searchLower) || 
-                place.includes(searchLower)) {
-                visibleCards.push(card);
-            }
-        });
-        
-        // 모든 상품이 표시되었으면 더보기 버튼 숨김
-        if (displayedCount >= visibleCards.length) {
-            loadMoreBtn.style.display = 'none';
-        } else {
-            loadMoreBtn.style.display = 'block';
-        }
-    }
-
-    // 지역별 필터링 함수
-    function filterProductsByRegion(region) {
-        currentRegion = region;
-        displayedCount = 0; // 표시된 상품 수 초기화
-        
-        // 모든 상품을 숨김
-        productCards.forEach(card => {
-            card.classList.add('hidden');
-        });
-        
-        // 선택된 지역의 상품만 처음 5개 표시
-        showNextProducts();
-        
-        // 더보기 버튼 상태 업데이트
-        updateLoadMoreButton();
-        
-        // 애니메이션 적용
-        animateVisibleCards();
-    }
-
-    // 다음 상품들을 표시하는 함수
-    function showNextProducts() {
-        const visibleCards = [];
-
-        productCards.forEach(card => {
-            const cardRegion = card.getAttribute('data-region');
-            const cardCategory = card.getAttribute('data-category');
-            const cardTitle = card.querySelector('.product-title').textContent.toLowerCase();
-            const searchTerm = searchInput ? searchInput.value.trim().toLowerCase() : '';
-            
-            let shouldShow = true;
-            
-            // 지역 필터링
-            if (currentRegion !== 'all') {
-                const regionTextElement = card.querySelector('.product-place');
-                const regionText = regionTextElement ? regionTextElement.textContent : '';
-                
-                if (!isRegionMatch(currentRegion, regionText) && cardRegion !== currentRegion) {
-                    shouldShow = false;
-                }
-            }
-            
-            // 카테고리 필터링
-            if (currentCategory !== 'all' && cardCategory !== currentCategory) {
-                shouldShow = false;
-            }
-            
-            // 검색어 필터링
-            if (searchTerm && !cardTitle.includes(searchTerm)) {
-                shouldShow = false;
-            }
-            
-            if (shouldShow) {
-                visibleCards.push(card);
-            }
-        });
-        
-
-        // 현재 표시된 수부터 itemsPerPage만큼 더 표시
-        const endIndex = Math.min(displayedCount + itemsPerPage, visibleCards.length);
-
-        for (let i = displayedCount; i < endIndex; i++) {
-            visibleCards[i].classList.remove('hidden');
-        }
-        
-        displayedCount = endIndex;
-
-        // 더 표시할 상품이 있는지 반환
-        const hasMore = displayedCount < visibleCards.length;
-
-        return hasMore;
-    }
-    
-    // 더보기 버튼 상태 업데이트
-    function updateLoadMoreButton() {
-        const loadMoreBtn = document.getElementById('loadMoreBtn');
-        if (!loadMoreBtn) return;
-        
-        const visibleCards = [];
-        
-        productCards.forEach(card => {
-            const cardRegion = card.getAttribute('data-region');
-            const cardCategory = card.getAttribute('data-category');
-            const cardTitle = card.querySelector('.product-title').textContent.toLowerCase();
-            const searchTerm = searchInput ? searchInput.value.trim().toLowerCase() : '';
-            
-            let shouldShow = true;
-            
-            // 지역 필터링
-            if (currentRegion !== 'all') {
-                const regionTextElement = card.querySelector('.product-place');
-                const regionText = regionTextElement ? regionTextElement.textContent : '';
-                
-                if (!isRegionMatch(currentRegion, regionText) && cardRegion !== currentRegion) {
-                    shouldShow = false;
-                }
-            }
-            
-            // 카테고리 필터링
-            if (currentCategory !== 'all' && cardCategory !== currentCategory) {
-                shouldShow = false;
-            }
-            
-            // 검색어 필터링
-            if (searchTerm && !cardTitle.includes(searchTerm)) {
-                shouldShow = false;
-            }
-            
-            if (shouldShow) {
-                visibleCards.push(card);
-            }
-        });
-        
-        // 모든 상품이 표시되었으면 더보기 버튼 숨김
-        if (displayedCount >= visibleCards.length) {
-            loadMoreBtn.style.display = 'none';
-        } else {
-            loadMoreBtn.style.display = 'block';
-        }
-    }
-
-    // 보이는 카드들에 애니메이션 적용
-    function animateVisibleCards() {
-        const visibleCards = document.querySelectorAll('.product-card:not(.hidden)');
-        visibleCards.forEach((card, index) => {
-            card.style.opacity = '0';
-            card.style.transform = 'translateY(20px)';
-            
+    // 부드러운 전환 효과 시작
+    function startSmoothTransition() {
+        // 상품 카드들에 페이드 아웃 효과
+        const productCards = document.querySelectorAll('.product-card');
+        productCards.forEach((card, index) => {
             setTimeout(() => {
-                card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
-                card.style.opacity = '1';
-                card.style.transform = 'translateY(0)';
-            }, index * 100);
+                card.classList.add('fade-out');
+            }, index * 20); // 순차적으로 페이드 아웃
         });
     }
-
-    // 지역 라벨 클릭 이벤트
-    regionLabels.forEach(label => {
-        label.addEventListener('click', function() {
-            const regionName = this.getAttribute('data-region');
-
-            // 지역 라벨 활성화 상태 업데이트
-            regionLabels.forEach(l => l.classList.remove('active'));
-            this.classList.add('active');
-            
-            // 현재 지역 업데이트
-            currentRegion = regionName;
-            
-            // 선택된 지역 표시
-            showSelectedRegion(regionName);
-            
-            // 통합 필터링 함수 사용
-            filterProducts();
-        });
-    });
-
-    // 더보기 버튼 클릭 이벤트
-    const loadMoreBtn = document.getElementById('loadMoreBtn');
-
-    if (loadMoreBtn) {
-        loadMoreBtn.addEventListener('click', function() {
-            loadMoreProducts();
-        });
-    } else {
-        console.error('더보기 버튼을 찾을 수 없습니다!');
-    }
-
-    // 더 많은 상품 로드 (클라이언트 사이드)
-    function loadMoreProducts() {
-        const visibleCards = [];
-        
-        productCards.forEach(card => {
-            const cardRegion = card.getAttribute('data-region');
-            const cardCategory = card.getAttribute('data-category');
-            const cardTitle = card.querySelector('.product-title').textContent.toLowerCase();
-            const searchTerm = searchInput ? searchInput.value.trim().toLowerCase() : '';
-            
-            let shouldShow = true;
-            
-            // 지역 필터링
-            if (currentRegion !== 'all') {
-                const regionTextElement = card.querySelector('.product-place');
-                const regionText = regionTextElement ? regionTextElement.textContent : '';
-                
-                if (!isRegionMatch(currentRegion, regionText) && cardRegion !== currentRegion) {
-                    shouldShow = false;
-                }
-            }
-            
-            // 카테고리 필터링
-            if (currentCategory !== 'all' && cardCategory !== currentCategory) {
-                shouldShow = false;
-            }
-            
-            // 검색어 필터링
-            if (searchTerm && !cardTitle.includes(searchTerm)) {
-                shouldShow = false;
-            }
-            
-            if (shouldShow) {
-                visibleCards.push(card);
-            }
-        });
-        
-        if (displayedCount < visibleCards.length) {
-            const nextBatch = visibleCards.slice(displayedCount, displayedCount + 5);
-            nextBatch.forEach((card, index) => {
-                // hidden 클래스 제거하여 카드 표시
-                card.classList.remove('hidden');
-                
-                // 애니메이션을 위한 초기 설정
+    
+    // 페이지 로드 시 페이드 인 애니메이션
+    function startPageLoadAnimation() {
+        const productCards = document.querySelectorAll('.product-card');
+        productCards.forEach((card, index) => {
+            // 초기 상태 설정
                 card.style.opacity = '0';
                 card.style.transform = 'translateY(20px)';
                 
-                // 애니메이션을 위한 지연
+            // 순차적으로 페이드 인
                 setTimeout(() => {
-                    card.style.transition = 'all 0.3s ease';
+                card.style.transition = 'all 0.4s ease-out';
                     card.style.opacity = '1';
                     card.style.transform = 'translateY(0)';
-                    
-                    // 애니메이션 완료 후 인라인 스타일 제거
-                    setTimeout(() => {
-                        card.style.opacity = '';
-                        card.style.transform = '';
-                        card.style.transition = '';
-                    }, 300);
-                }, index * 100); // 각 카드마다 100ms씩 지연
-            });
-            
-            displayedCount += nextBatch.length;
-            updateLoadMoreButton();
-        }
-    }
-
-    // 더 이상 상품이 없을 때 메시지 표시
-    function showNoMoreProductsMessage() {
-        const loadMoreContainer = document.querySelector('.load-more-container');
-        if (loadMoreContainer) {
-            loadMoreContainer.innerHTML = `
-                <div class="no-more-products-message">
-                    <p>더 이상 표시할 상품이 없습니다.</p>
-                    <p>새로운 상품을 추가해주세요!</p>
-                </div>
-            `;
-        }
-    }
-
-    // 상품 카드 호버 효과
-    productCards.forEach(card => {
-        card.addEventListener('mouseenter', function() {
-            this.style.transform = 'translateY(-5px)';
+            }, index * 50); // 50ms 간격으로 순차 애니메이션
         });
-        
-        card.addEventListener('mouseleave', function() {
-            this.style.transform = 'translateY(0)';
-        });
-    });
-
-    // 지도 관련 변수들
-    const koreaMap = document.querySelector('#koreaMap');
-    
-    
-    // 스크롤 시 헤더 고정 효과
-    let lastScrollTop = 0;
-    const header = document.querySelector('.header');
-    
-    window.addEventListener('scroll', function() {
-        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-        
-        if (scrollTop > lastScrollTop && scrollTop > 100) {
-            // 스크롤 다운
-            if (header) {
-                header.style.transform = 'translateY(-100%)';
-            }
-        } else {
-            // 스크롤 업
-            if (header) {
-                header.style.transform = 'translateY(0)';
-            }
-        }
-        
-        lastScrollTop = scrollTop;
-    });
-    
-    // 이미지 로드 에러 처리
-    const images = document.querySelectorAll('img');
-    images.forEach(img => {
-        img.addEventListener('error', function() {
-            // 기본 이미지로 대체하거나 에러 메시지 표시
-            this.style.display = 'none';
-        });
-    });
-
-    // URL에서 지역 정보가 있으면 해당 지역 자동 선택
-    if (regionFromUrl) {
-        console.log('URL에서 지역 정보 감지:', regionFromUrl);
-        
-        // 해당 지역 라벨 찾기 및 활성화
-        const targetRegionLabel = document.querySelector(`[data-region="${regionFromUrl}"]`);
-        if (targetRegionLabel) {
-            // 모든 지역 라벨에서 active 클래스 제거
-            regionLabels.forEach(label => label.classList.remove('active'));
-            
-            // 해당 지역 라벨에 active 클래스 추가
-            targetRegionLabel.classList.add('active');
-            
-            // 선택된 지역 표시
-            showSelectedRegion(regionFromUrl);
-            
-            console.log('지역 자동 선택 완료:', regionFromUrl);
-        }
-    }
-
-    // URL에서 카테고리 정보가 있으면 해당 카테고리 자동 선택
-    if (categoryFromUrl) {
-        console.log('URL에서 카테고리 정보 감지:', categoryFromUrl);
-        
-        // 해당 카테고리 버튼 찾기 및 활성화
-        const targetCategoryButton = document.querySelector(`[data-category="${categoryFromUrl}"]`);
-        if (targetCategoryButton) {
-            // 모든 카테고리 버튼에서 active 클래스 제거
-            categoryButtons.forEach(button => button.classList.remove('active'));
-            
-            // 해당 카테고리 버튼에 active 클래스 추가
-            targetCategoryButton.classList.add('active');
-            
-            console.log('카테고리 자동 선택 완료:', categoryFromUrl);
-        }
     }
     
-    // 윈도우 리사이즈 이벤트
-    window.addEventListener('resize', function() {
-        // 반응형 처리
-        filterProducts();
-    });
-
-// 상품 가격 정보를 API로 가져와서 렌더링
-async function renderProductPrices() {
-
-  for (const card of productCards) {
-    const priceContainer = card.querySelector('.product-prices');
-    const productId = card.getAttribute('data-product-id');
-    
-    if (!priceContainer || !productId) {
-      continue;
-    }
-    
-    priceContainer.innerHTML = '<div class="price-loading">가격 정보 로딩중...</div>';
-    
-    try {
-      
-      // 가격 정보 API 호출
-      const response = await fetch(`/api/product-prices/${productId}`);
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      const priceOptions = await response.json();
-      
-      // 가격 정보 렌더링 (최대 2개까지)
-      if (priceOptions && priceOptions.length > 0) {
-        let priceHtml = '';
-        
-        // 최대 2개까지만 표시
-        const displayPrices = priceOptions.slice(0, 2);
-        
-        displayPrices.forEach((price, index) => {
-          const formattedPrice = price.price ? price.price.toLocaleString() + '원' : '문의';
-          const label = price.quantity && price.unit ? 
-            `${price.quantity}${price.unit}` : 
-            `가격 ${index + 1}`;
-          
-          priceHtml += `
-            <div class="price-item">
-              <span class="price-label">${label}</span>
-              <span class="price-value">${formattedPrice}</span>
-            </div>
-          `;
-        });
-        
-        // 2개 이상의 가격이 있으면 "더보기" 표시
-        if (priceOptions.length > 2) {
-          priceHtml += `
-            <div class="price-more">
-              <span class="more-text">+${priceOptions.length - 2}개 더</span>
-            </div>
-          `;
-        }
-        
-        priceContainer.innerHTML = priceHtml;
-      } else {
-        // 가격 정보가 없는 경우
-        priceContainer.innerHTML = `
-          <div class="price-item">
-            <span class="price-label">가격</span>
-            <span class="price-value">업체 문의</span>
-          </div>
-        `;
-      }
-      
-    } catch (error) {      
-      // 에러 시 기본 가격 정보 표시
-      priceContainer.innerHTML = `
-        <div class="price-item">
-          <span class="price-label">가격</span>
-          <span class="price-value">업체 문의</span>
-        </div>
-      `;
-    }
-    
-    // API 호출이 너무 빠르면 서버에 부하가 갈 수 있으므로 약간의 지연 추가
-    await new Promise(resolve => setTimeout(resolve, 100));
-  }
-  
-}
-
-// 상품 카드 클릭 이벤트 설정
-function setupProductCardClickEvents() {
-    const productCards = document.querySelectorAll('.product-card');
-    
-    productCards.forEach(card => {
-        card.addEventListener('click', function(e) {
-            e.preventDefault();
-            
-            const productId = this.getAttribute('data-product-id');
-            const regionText = this.getAttribute('data-region');
-            
-            if (productId && regionText) {
-                // region-detail 페이지로 이동
-                const url = `/region-detail?id=${productId}&region=${encodeURIComponent(regionText)}`;
-                window.location.href = url;
-            } else {
-                console.error('상품 ID 또는 지역 정보가 없습니다:', {productId, regionText});
-            }
-        });
-    });
-}
-
-    // 가격 렌더링
-    renderProductPrices();
-    
-    // 상품 카드 클릭 이벤트 추가
-    setupProductCardClickEvents();
-    
-    filterProducts();
-    
-
-});
-
-(function () {
-  const PLACEHOLDER = '/images/따봉 트럭.png';
-
-  function arm(img) {
-    if (!img || img.dataset.fallbackArmed === '1') return;
-    img.dataset.fallbackArmed = '1';
-
-    // 404 등 깨질 때
-    img.onerror = () => {
-      img.onerror = null;
-      img.src = PLACEHOLDER;
-    };
-
-    // 초기 값이 비었거나 'null' 등일 때
-    const raw = (img.getAttribute('src') || '').trim();
-    if (!raw || raw.toLowerCase() === 'null' || raw === '#') {
-      img.src = PLACEHOLDER;
-    }
-  }
-
-  function armAll(root = document) {
-    root.querySelectorAll(
-      // region, region-detail 전부 커버
-      '.product-image img, img.product-image, img.related-product-image, img.thumbnail, #mainImage'
-    ).forEach(arm);
-  }
-
-  document.addEventListener('DOMContentLoaded', () => {
-    armAll();
-
-    // 동적 IMG도 자동 무장
-    const mo = new MutationObserver(muts => {
-      muts.forEach(m => {
-        m.addedNodes.forEach(n => {
-          if (n.nodeType !== 1) return;
-          if (n.tagName === 'IMG') arm(n);
-          else armAll(n);
-        });
-      });
-    });
-    mo.observe(document.body, { childList: true, subtree: true });
-  });
-
-  // 필요시 수동 호출용
-  window.__armImageFallback = arm;
-  window.__armAllImageFallbacks = armAll;
-})();

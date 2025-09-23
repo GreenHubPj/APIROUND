@@ -23,15 +23,15 @@ public class RegionService {
     @Transactional(readOnly = true)
     public List<Region> getRandomRelatedByRegion(String regionText, Integer excludeId, int limit) {
         // 관련 상품 조회 시작
-        
+
         if (regionText == null || regionText.isBlank() || limit <= 0) {
             return List.of();
         }
-        
+
         try {
             List<Object[]> results = regionRepository.findCombinedProductsByRegionFlexible(regionText, excludeId, limit);
             List<Region> converted = convertObjectArrayToRegion(results);
-            
+
             return converted;
         } catch (Exception e) {
             System.err.println("쿼리 실행 오류: " + e.getMessage());
@@ -43,36 +43,73 @@ public class RegionService {
     // 모든 특산품 조회 (내림차순 정렬)
     public List<Region> getAllProductsOrderByProductIdDesc() {
         List<Region> products = regionRepository.findAllOrderByProductIdDesc();
-        
+
         // 각 상품에 업체 정보 설정
         for (Region product : products) {
             setCompanyInfoForProduct(product);
         }
-        
+
         return products;
+    }
+
+    /** harvest_season을 기반으로 해당 월의 상품 조회 */
+    @Transactional(readOnly = true)
+    public List<Region> getProductsByHarvestSeason(int month) {
+        try {
+            List<Object[]> results = regionRepository.findProductsByHarvestSeason(month);
+            List<Region> converted = convertObjectArrayToRegion(results);
+            
+            // 각 상품에 업체 정보 설정
+            for (Region product : converted) {
+                setCompanyInfoForProduct(product);
+            }
+            
+            return converted;
+        } catch (Exception e) {
+            System.err.println("harvest_season 조회 오류: " + e.getMessage());
+            e.printStackTrace();
+            return List.of();
+        }
+    }
+
+    // 페이징된 특산품 조회
+    public List<Region> getAllProductsOrderByProductIdDesc(int page, int size) {
+        List<Region> products = regionRepository.findAllOrderByProductIdDesc(page, size);
+
+        // 각 상품에 업체 정보 설정
+        for (Region product : products) {
+            setCompanyInfoForProduct(product);
+        }
+
+        return products;
+    }
+
+    // 전체 상품 수 조회
+    public int getTotalProductsCount() {
+        return regionRepository.getTotalProductsCount();
     }
 
     // 활성 상태인 상품만 조회 (내림차순 정렬)
     public List<Region> getActiveProductsOrderByProductIdDesc() {
         List<Region> products = regionRepository.findActiveProductsOrderByProductIdDesc();
-        
+
         // 각 상품에 업체 정보 설정
         for (Region product : products) {
             setCompanyInfoForProduct(product);
         }
-        
+
         return products;
     }
 
     // region 페이지에 표시할 상품 조회 (ACTIVE 상태이면서 삭제되지 않은 상품만)
     public List<Region> getRegionDisplayProductsOrderByProductIdDesc() {
         List<Region> products = regionRepository.findRegionDisplayProductsOrderByProductIdDesc();
-        
+
         // 각 상품에 업체 정보 설정
         for (Region product : products) {
             setCompanyInfoForProduct(product);
         }
-        
+
         return products;
     }
 
@@ -81,13 +118,13 @@ public class RegionService {
         int offset = page * size;
         List<Object[]> results = regionRepository.findCombinedProductsWithUnionPaged(offset, size);
         List<Region> products = convertObjectArrayToRegion(results);
-        
+
         // 각 상품에 업체 정보와 가격 옵션 설정
         for (Region product : products) {
             setCompanyInfoForProduct(product);
             setPriceOptionsForProduct(product);
         }
-        
+
         return products;
     }
 
@@ -95,13 +132,13 @@ public class RegionService {
     public List<Region> getCombinedProductsWithUnion() {
         List<Object[]> results = regionRepository.findCombinedProductsWithUnion();
         List<Region> products = convertObjectArrayToRegion(results);
-        
+
         // 각 상품에 업체 정보와 가격 옵션 설정
         for (Region product : products) {
             setCompanyInfoForProduct(product);
             setPriceOptionsForProduct(product);
         }
-        
+
         return products;
     }
 
@@ -109,13 +146,13 @@ public class RegionService {
     public List<Region> getCombinedProductsByTypeWithUnion(String productType) {
         List<Object[]> results = regionRepository.findCombinedProductsByTypeWithUnion(productType);
         List<Region> products = convertObjectArrayToRegion(results);
-        
+
         // 각 상품에 업체 정보와 가격 옵션 설정
         for (Region product : products) {
             setCompanyInfoForProduct(product);
             setPriceOptionsForProduct(product);
         }
-        
+
         return products;
     }
 
@@ -123,13 +160,13 @@ public class RegionService {
     public List<Region> getCombinedProductsByRegionWithUnion(String regionText) {
         List<Object[]> results = regionRepository.findCombinedProductsByRegionWithUnion(regionText);
         List<Region> products = convertObjectArrayToRegion(results);
-        
+
         // 각 상품에 업체 정보와 가격 옵션 설정
         for (Region product : products) {
             setCompanyInfoForProduct(product);
             setPriceOptionsForProduct(product);
         }
-        
+
         return products;
     }
 
@@ -139,12 +176,12 @@ public class RegionService {
         if (results.isEmpty()) {
             return null;
         }
-        
+
         List<Region> products = convertObjectArrayToRegion(results);
         if (products.isEmpty()) {
             return null;
         }
-        
+
         Region product = products.get(0);
         setCompanyInfoForProduct(product);
         setPriceOptionsForProduct(product);
@@ -156,12 +193,12 @@ public class RegionService {
     // 임시: 모든 상품 조회 (테스트용)
     public List<Region> getAllProductsForTest() {
         List<Region> products = regionRepository.findAllProductsForTest();
-        
+
         // 각 상품에 업체 정보 설정
         for (Region product : products) {
             setCompanyInfoForProduct(product);
         }
-        
+
         return products;
     }
 
@@ -172,7 +209,7 @@ public class RegionService {
             // product_listing에서 온 상품인 경우에만 실제 업체 정보 조회
             if ("ACTIVE".equals(product.getStatus()) || "INACTIVE".equals(product.getStatus())) {
                 com.apiround.greenhub.entity.Company company = regionRepository.findCompanyByProductId(product.getProductId());
-                
+
                 if (company != null) {
                     product.setCompanyName(company.getCompanyName());
                     product.setCompanyEmail(company.getEmail());
@@ -205,7 +242,7 @@ public class RegionService {
             if ("ACTIVE".equals(product.getStatus()) || "INACTIVE".equals(product.getStatus())) {
                 // ProductPriceOption을 별도로 조회하여 설정
                 List<com.apiround.greenhub.entity.item.ProductPriceOption> priceOptions =
-                    regionRepository.findPriceOptionsByProductId(product.getProductId());
+                        regionRepository.findPriceOptionsByProductId(product.getProductId());
                 product.setPriceOptions(priceOptions);
             } else {
                 // specialty_product에서 온 상품은 priceOptions를 null로 설정 (업체 문의 메시지 표시)
@@ -312,56 +349,56 @@ public class RegionService {
     // Object[] 배열을 Region 객체로 변환하는 헬퍼 메서드
     private List<Region> convertObjectArrayToRegion(List<Object[]> results) {
         return results.stream()
-            .map(row -> {
-                // is_deleted 필드가 Character 타입일 수 있으므로 String으로 변환
-                String isDeleted = null;
-                if (row[5] != null) {
-                    isDeleted = row[5].toString();
-                }
-
-                Region region = Region.builder()
-                    .productId((Integer) row[0])     // product_id
-                    .productName((String) row[1])    // title을 productName으로 매핑
-                    .productType((String) row[2])    // product_type
-                    .regionText((String) row[3])     // region_text
-                    .harvestSeason((String) row[4])  // harvest_season
-                    .isDeleted(isDeleted)            // is_deleted (String으로 변환)
-                    .thumbnailUrl((String) row[7])    // thumbnail_url
-                    .description((String) row[8])    // description
-                    .build();
-                
-                // thumbnail_data와 thumbnail_mime 설정 (안전한 타입 체크)
-                if (row.length > 9 && row[9] != null && row[9] instanceof byte[]) {
-                    region.setThumbnailData((byte[]) row[9]);
-                }
-                if (row.length > 10 && row[10] != null && row[10] instanceof String) {
-                    region.setThumbnailMime((String) row[10]);
-                }
-                
-                // thumbnailUrl 처리 - Base64와 URL 모두 지원
-                String thumbnailUrl = region.getThumbnailUrl();
-                if (thumbnailUrl != null && !thumbnailUrl.trim().isEmpty()) {
-                    if (thumbnailUrl.startsWith("data:image/")) {
-                        // Base64 데이터는 그대로 사용
-                    } else if (thumbnailUrl.startsWith("http")) {
-                        // 외부 URL은 그대로 사용
-                    } else if (thumbnailUrl.startsWith("/")) {
-                        // 절대 경로는 그대로 사용
-                    } else if (thumbnailUrl.startsWith("uploads/")) {
-                        // uploads/로 시작하는 경우 / 추가
-                        region.setThumbnailUrl("/" + thumbnailUrl);
-                    } else {
-                        // 상대 경로인 경우 /uploads/ 추가
-                        region.setThumbnailUrl("/uploads/" + thumbnailUrl);
+                .map(row -> {
+                    // is_deleted 필드가 Character 타입일 수 있으므로 String으로 변환
+                    String isDeleted = null;
+                    if (row[5] != null) {
+                        isDeleted = row[5].toString();
                     }
-                }
 
-                // @Transient 필드들 설정
-                region.setTitle((String) row[1]);    // title 필드
-                region.setStatus((String) row[6]);   // status 필드
+                    Region region = Region.builder()
+                            .productId((Integer) row[0])     // product_id
+                            .productName((String) row[1])    // title을 productName으로 매핑
+                            .productType((String) row[2])    // product_type
+                            .regionText((String) row[3])     // region_text
+                            .harvestSeason((String) row[4])  // harvest_season
+                            .isDeleted(isDeleted)            // is_deleted (String으로 변환)
+                            .thumbnailUrl((String) row[7])    // thumbnail_url
+                            .description((String) row[8])    // description
+                            .build();
 
-                return region;
-            })
-            .collect(Collectors.toList());
+                    // thumbnail_data와 thumbnail_mime 설정 (안전한 타입 체크)
+                    if (row.length > 9 && row[9] != null && row[9] instanceof byte[]) {
+                        region.setThumbnailData((byte[]) row[9]);
+                    }
+                    if (row.length > 10 && row[10] != null && row[10] instanceof String) {
+                        region.setThumbnailMime((String) row[10]);
+                    }
+
+                    // thumbnailUrl 처리 - Base64와 URL 모두 지원
+                    String thumbnailUrl = region.getThumbnailUrl();
+                    if (thumbnailUrl != null && !thumbnailUrl.trim().isEmpty()) {
+                        if (thumbnailUrl.startsWith("data:image/")) {
+                            // Base64 데이터는 그대로 사용
+                        } else if (thumbnailUrl.startsWith("http")) {
+                            // 외부 URL은 그대로 사용
+                        } else if (thumbnailUrl.startsWith("/")) {
+                            // 절대 경로는 그대로 사용
+                        } else if (thumbnailUrl.startsWith("uploads/")) {
+                            // uploads/로 시작하는 경우 / 추가
+                            region.setThumbnailUrl("/" + thumbnailUrl);
+                        } else {
+                            // 상대 경로인 경우 /uploads/ 추가
+                            region.setThumbnailUrl("/uploads/" + thumbnailUrl);
+                        }
+                    }
+
+                    // @Transient 필드들 설정
+                    region.setTitle((String) row[1]);    // title 필드
+                    region.setStatus((String) row[6]);   // status 필드
+
+                    return region;
+                })
+                .collect(Collectors.toList());
     }
 }

@@ -1,14 +1,15 @@
 package com.apiround.greenhub.service.item;
 
-import com.apiround.greenhub.entity.item.Region;
-import com.apiround.greenhub.repository.item.SeasonalRepository;
-import org.springframework.stereotype.Service;
-
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import org.springframework.stereotype.Service;
+
+import com.apiround.greenhub.entity.item.Region;
+import com.apiround.greenhub.repository.item.SeasonalRepository;
 
 @Service
 public class SeasonalService {
@@ -30,10 +31,35 @@ public class SeasonalService {
         System.out.println("=== SeasonalService.getMonthlySpecialties ===");
         System.out.println("조회할 월: " + m);
 
-        List<Region> regions = seasonalRepository.findRegionsByMonth(m);
-        System.out.println("조회된 상품 수: " + (regions != null ? regions.size() : 0));
+        // 1. 기존 specialty_product 데이터 (Seasonal 테이블 기반)
+        List<Region> specialtyRegions = seasonalRepository.findRegionsByMonth(m);
+        System.out.println("specialty_product 상품 수: " + (specialtyRegions != null ? specialtyRegions.size() : 0));
 
-        return regions;
+        // 2. product_listing의 harvest_season 데이터 추가
+        List<Region> harvestRegions = regionService.getProductsByHarvestSeason(m);
+        System.out.println("harvest_season 상품 수: " + (harvestRegions != null ? harvestRegions.size() : 0));
+
+        // 3. 두 리스트를 합치기
+        List<Region> allRegions = new ArrayList<>();
+        if (specialtyRegions != null) {
+            allRegions.addAll(specialtyRegions);
+        }
+        if (harvestRegions != null) {
+            allRegions.addAll(harvestRegions);
+        }
+
+        // 4. productId 기준으로 내림차순 정렬 (최신순)
+        allRegions.sort((r1, r2) -> {
+            Integer id1 = r1.getProductId();
+            Integer id2 = r2.getProductId();
+            if (id1 == null && id2 == null) return 0;
+            if (id1 == null) return 1;
+            if (id2 == null) return -1;
+            return id2.compareTo(id1); // 내림차순
+        });
+
+        System.out.println("총 조회된 상품 수: " + allRegions.size());
+        return allRegions;
     }
 
     public int countMonthlySpecialties(Integer month) {

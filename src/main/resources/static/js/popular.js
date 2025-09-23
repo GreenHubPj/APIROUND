@@ -117,10 +117,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const recipeName = this.textContent;
             const productCard = this.closest('.product-card');
             const productTitle = productCard.querySelector('.product-title').textContent;
-            
-            console.log(`${productTitle}의 ${recipeName} 요리법을 확인합니다.`);
-            alert(`${productTitle}의 ${recipeName} 요리법을 보여드립니다!`);
-            
+
             // 요리법 페이지로 이동하거나 모달 표시
             // window.location.href = `/recipes?product=${encodeURIComponent(productTitle)}&recipe=${encodeURIComponent(recipeName)}`;
         });
@@ -226,56 +223,8 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // 장바구니 버튼 클릭 이벤트
-    const cartButtons = document.querySelectorAll('.btn-cart');
-    cartButtons.forEach(button => {
-        button.addEventListener('click', function(event) {
-            event.stopPropagation();
-            const productId = this.getAttribute('data-product-id');
-            const productName = this.getAttribute('data-product-name');
-            
-            // 가격 옵션 선택 확인
-            const productCard = this.closest('.product-card');
-            const selectedOption = productCard.querySelector('.price-option.selected');
-            
-            if (!selectedOption) {
-                showMessage('가격 옵션을 선택해주세요.', 'warning', this);
-                return;
-            }
-            
-            const priceLabel = selectedOption.querySelector('.price-label').textContent;
-            const priceAmount = selectedOption.querySelector('.price-amount').textContent;
-            
-            // 장바구니에 추가
-            addToCart(productId, productName, priceLabel, priceAmount);
-            showMessage(`${productName}이 장바구니에 추가되었습니다!`, 'success', this);
-        });
-    });
-
-    // 구매하기 버튼 클릭 이벤트
-    const buyButtons = document.querySelectorAll('.btn-buy');
-    buyButtons.forEach(button => {
-        button.addEventListener('click', function(event) {
-            event.stopPropagation();
-            const productId = this.getAttribute('data-product-id');
-            const productName = this.getAttribute('data-product-name');
-            
-            // 가격 옵션 선택 확인
-            const productCard = this.closest('.product-card');
-            const selectedOption = productCard.querySelector('.price-option.selected');
-            
-            if (!selectedOption) {
-                showMessage('가격 옵션을 선택해주세요.', 'warning', this);
-                return;
-            }
-            
-            const priceLabel = selectedOption.querySelector('.price-label').textContent;
-            const priceAmount = selectedOption.querySelector('.price-amount').textContent;
-            
-            // 구매 페이지로 이동
-            buyNow(productId, productName, priceLabel, priceAmount);
-        });
-    });
+    // 기존 버튼들에 이벤트 리스너 등록
+    attachButtonEvents();
 
     // 장바구니에 상품 추가 함수
     function addToCart(productId, productName, priceLabel, priceAmount) {
@@ -381,11 +330,112 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
 
+    // 누락된 상품에 버튼 추가
+    function addMissingButtons() {
+        productCards.forEach((card, index) => {
+            const existingActions = card.querySelector('.product-actions');
+            if (!existingActions) {
+                // 버튼이 없는 상품에 버튼 추가
+                const productId = index + 1;
+                const productName = card.querySelector('.product-title').textContent;
+                
+                const actionsDiv = document.createElement('div');
+                actionsDiv.className = 'product-actions';
+                actionsDiv.innerHTML = `
+                    <button class="btn-cart" data-product-id="${productId}" data-product-name="${productName}">
+                        <span class="btn-icon">🛒</span>
+                        장바구니
+                    </button>
+                    <button class="btn-buy" data-product-id="${productId}" data-product-name="${productName}">
+                        <span class="btn-icon">💳</span>
+                        구매하기
+                    </button>
+                `;
+                
+                // company-info 다음에 추가
+                const companyInfo = card.querySelector('.company-info');
+                if (companyInfo) {
+                    companyInfo.insertAdjacentElement('afterend', actionsDiv);
+                }
+            }
+        });
+        
+        // 새로 추가된 버튼들에 이벤트 리스너 등록
+        attachButtonEvents();
+    }
+    
+    // 버튼 이벤트 리스너 등록 함수
+    function attachButtonEvents() {
+        // 장바구니 버튼 이벤트
+        const cartButtons = document.querySelectorAll('.btn-cart');
+        cartButtons.forEach(button => {
+            // 기존 이벤트 리스너 제거 후 새로 등록
+            button.removeEventListener('click', handleCartClick);
+            button.addEventListener('click', handleCartClick);
+        });
+
+        // 구매하기 버튼 이벤트
+        const buyButtons = document.querySelectorAll('.btn-buy');
+        buyButtons.forEach(button => {
+            // 기존 이벤트 리스너 제거 후 새로 등록
+            button.removeEventListener('click', handleBuyClick);
+            button.addEventListener('click', handleBuyClick);
+        });
+    }
+    
+    // 장바구니 버튼 클릭 핸들러
+    function handleCartClick(event) {
+        event.stopPropagation();
+        const productId = this.getAttribute('data-product-id');
+        const productName = this.getAttribute('data-product-name');
+        
+        // 가격 옵션 선택 확인
+        const productCard = this.closest('.product-card');
+        const selectedOption = productCard.querySelector('.price-option.selected');
+        
+        if (!selectedOption) {
+            showMessage('가격 옵션을 선택해주세요.', 'warning', this);
+            return;
+        }
+        
+        const priceLabel = selectedOption.querySelector('.price-label').textContent;
+        const priceAmount = selectedOption.querySelector('.price-amount').textContent;
+        
+        // 장바구니에 추가
+        addToCart(productId, productName, priceLabel, priceAmount);
+        showMessage(`${productName}이 장바구니에 추가되었습니다!`, 'success', this);
+    }
+    
+    // 구매하기 버튼 클릭 핸들러
+    function handleBuyClick(event) {
+        event.stopPropagation();
+        const productId = this.getAttribute('data-product-id');
+        const productName = this.getAttribute('data-product-name');
+        
+        // 가격 옵션 선택 확인
+        const productCard = this.closest('.product-card');
+        const selectedOption = productCard.querySelector('.price-option.selected');
+        
+        if (!selectedOption) {
+            showMessage('가격 옵션을 선택해주세요.', 'warning', this);
+            return;
+        }
+        
+        const priceLabel = selectedOption.querySelector('.price-label').textContent;
+        const priceAmount = selectedOption.querySelector('.price-amount').textContent;
+        
+        // 구매 페이지로 이동
+        buyNow(productId, productName, priceLabel, priceAmount);
+    }
+
     // 초기 로드 시 페이징 적용
     // 모든 상품을 숨김
     productCards.forEach(card => {
         card.classList.add('hidden');
     });
+    
+    // 누락된 버튼 추가
+    addMissingButtons();
     
     // 처음 5개 상품만 표시
     showNextProducts();
