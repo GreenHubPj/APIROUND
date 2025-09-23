@@ -14,18 +14,51 @@
 /* 마이페이지 타이틀 */
 .mypage-title {
     margin-bottom: 40px;
+    text-align: left;
+    position: relative;
+}
+
+.mypage-title::after {
+    content: '';
+    position: absolute;
+    bottom: -15px;
+    left: 0;
+    width: 50px;
+    height: 3px;
+    background: linear-gradient(90deg, #ff6b35 0%, transparent 100%);
+    border-radius: 2px;
 }
 
 .page-title {
-    font-size: 2rem;
+    font-size: 2.5rem;
     font-weight: 700;
+    color: #ff6b35;
     margin: 0;
-    display: inline-block;
-    background-color: #ff6b35;
-    color: white;
-    padding: 15px 30px;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(255, 107, 53, 0.3);
+    letter-spacing: -0.01em;
+}
+
+.page-title-container {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.page-icon {
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    animation: float 3s ease-in-out infinite;
+}
+
+.user-icon {
+    font-size: 3.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: pulse 2s ease-in-out infinite;
 }
 
 /* 사용자 정보 섹션 */

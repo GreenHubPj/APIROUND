@@ -11,6 +11,7 @@ body {
     max-width: 1200px;
     margin: 0 auto;
     padding: 2rem 1rem;
+    margin-top: 60px;
 }
 
 /* 페이지 타이틀 섹션 */
@@ -133,9 +134,8 @@ body {
     border-radius: 0;
 }
 
-.recipe-info {
+.recipe-content {
     padding: 20px;
-    padding-bottom: 60px; /* 액션 버튼 공간 확보 */
 }
 
 .recipe-name {
@@ -145,21 +145,21 @@ body {
     margin-bottom: 10px;
 }
 
-.recipe-description {
+.recipe-summary {
     color: #666;
     font-size: 14px;
     line-height: 1.5;
     margin-bottom: 15px;
 }
 
-.recipe-time {
+.recipe-badge {
     color: #ff6b35;
     font-size: 14px;
     font-weight: bold;
     margin-bottom: 5px;
 }
 
-.recipe-servings {
+.recipe-meta {
     color: #666;
     font-size: 14px;
     font-weight: 500;

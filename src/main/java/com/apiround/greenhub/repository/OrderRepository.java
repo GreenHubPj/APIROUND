@@ -25,4 +25,5 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
 
     // ✅ 추가: 주문번호로 단건 조회 (VendorOrderServiceImpl, OrderServiceImpl에서 사용)
     Optional<Order> findByOrderNumber(String orderNumber);
+
 }

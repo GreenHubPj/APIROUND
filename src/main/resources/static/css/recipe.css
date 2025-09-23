@@ -1,4 +1,8 @@
 /* 기본 스타일 */
+a {
+    text-decoration: none;
+}
+
 body {
     font-family: 'Noto Sans KR', sans-serif;
     line-height: 1.6;

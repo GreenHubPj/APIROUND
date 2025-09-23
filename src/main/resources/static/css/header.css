@@ -108,6 +108,7 @@ body {
     align-items: center;
 }
 
+.btn-mypage,
 .btn-login {
     background: linear-gradient(135deg, #ff6b35 0%, #e55a2b 100%);
     color: white;
@@ -121,17 +122,20 @@ body {
     box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3);
     position: relative;
     overflow: hidden;
+    text-decoration: none;
 }
 
+.btn-mypage,
 .btn-login:hover {
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(255, 107, 53, 0.4);
 }
 
+.btn-mypage,
 .btn-login:active {
     transform: translateY(0);
 }
-
+.btn-logout,
 .btn-signup {
     background-color: transparent;
     color: #ff6b35;
@@ -144,8 +148,10 @@ body {
     transition: all 0.3s ease;
     position: relative;
     overflow: hidden;
+    text-decoration: none;
 }
 
+.btn-logout:hover,
 .btn-signup:hover {
     background: linear-gradient(135deg, #ff6b35 0%, #e55a2b 100%);
     color: white;
@@ -153,9 +159,11 @@ body {
     box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3);
 }
 
+.btn-logout:active,
 .btn-signup:active {
     transform: translateY(0);
 }
+
 
 /* 헤더 반응형 디자인 */
 @media (max-width: 768px) {
@@ -181,6 +189,8 @@ body {
         font-size: 14px;
     }
 
+    .btn-logout,
+    .btn-mypage,
     .btn-login,
     .btn-signup {
         padding: 8px 16px;
@@ -207,6 +217,8 @@ body {
         font-size: 14px;
     }
 
+    .btn-logout,
+    .btn-mypage,
     .btn-login,
     .btn-signup {
         padding: 8px 16px;
