@@ -27,7 +27,7 @@
             <section class="search-section">
                 <div class="search-container">
                     <div class="search-bar">
-                        <input type="text" placeholder="검색어를 입력하세요" class="search-input">
+                        <input type="text" id="searchInput" placeholder="검색어를 입력하세요" class="search-input">
                         <button class="search-btn">
                             <img src="/images/돋보기 아이콘.png" alt="검색" class="search-icon">
                         </button>
@@ -95,9 +95,9 @@
                 </div>
             </section>
 
-            <!-- 더보기 버튼 -->
-            <div class="load-more-container">
-                <button class="load-more-btn" id="loadMoreBtn">더보기</button>
+            <!-- 페이징 UI -->
+            <div class="pagination-container" id="paginationContainer">
+                <!-- JavaScript에서 동적으로 생성 -->
             </div>
         </div>
 
@@ -140,6 +140,43 @@
         </aside>
     </section>
 </main>
+
+<!-- 서버 사이드 페이징 UI -->
+<div class="pagination-container" th:if="${totalPages > 1}">
+    <div class="pagination-info">
+        <span th:text="'총 ' + ${totalElements} + '개 상품 (' + ${currentPage + 1} + '/' + ${totalPages} + ' 페이지)'"></span>
+    </div>
+    <div class="pagination">
+        <!-- 이전 버튼 -->
+        <a th:if="${currentPage > 0}" 
+           th:href="@{/region(page=${currentPage - 1}, size=${pageSize}, type=${selectedType}, region=${selectedRegion}, search=${searchTerm})}"
+           class="page-btn prev-btn">
+            <span>← 이전</span>
+        </a>
+        <span th:unless="${currentPage > 0}" class="page-btn prev-btn disabled">
+            <span>← 이전</span>
+        </span>
+        
+        <!-- 페이지 번호들 -->
+        <div class="page-numbers">
+            <a th:each="pageNum : ${#numbers.sequence(0, totalPages - 1)}"
+               th:if="${pageNum >= currentPage - 2 and pageNum <= currentPage + 2}"
+               th:href="@{/region(page=${pageNum}, size=${pageSize}, type=${selectedType}, region=${selectedRegion}, search=${searchTerm})}"
+               th:text="${pageNum + 1}"
+               th:class="${pageNum == currentPage} ? 'page-number active' : 'page-number'"></a>
+        </div>
+        
+        <!-- 다음 버튼 -->
+        <a th:if="${currentPage < totalPages - 1}" 
+           th:href="@{/region(page=${currentPage + 1}, size=${pageSize}, type=${selectedType}, region=${selectedRegion}, search=${searchTerm})}"
+           class="page-btn next-btn">
+            <span>다음 →</span>
+        </a>
+        <span th:unless="${currentPage < totalPages - 1}" class="page-btn next-btn disabled">
+            <span>다음 →</span>
+        </span>
+    </div>
+</div>
 
 <!-- 푸터 include -->
 <div th:replace="common/footer :: footer"></div>

@@ -22,21 +22,41 @@ public class SeasonalController {
     @GetMapping("/specialties/monthly")
     public String monthly(
             @RequestParam(required = false) Integer month,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "12") int size,
             Model model) {
 
         System.out.println("=== SeasonalController.monthly ===");
         System.out.println("요청된 월: " + month);
-        
-        List<Region> regions = seasonalService.getMonthlySpecialties(month);
-        
+        System.out.println("페이지: " + page + ", 크기: " + size);
+
         int currentMonth = (month != null) ? month : java.time.LocalDate.now().getMonthValue();
-        System.out.println("현재 월: " + currentMonth);
-        System.out.println("전달할 상품 수: " + regions.size());
+        
+        // 모든 데이터 조회
+        List<Region> allRegions = seasonalService.getMonthlySpecialties(currentMonth);
+        
+        // 서버 사이드 페이징 적용
+        long totalElements = allRegions.size();
+        int totalPages = (int) Math.ceil((double) totalElements / size);
+        
+        int startIndex = page * size;
+        int endIndex = Math.min(startIndex + size, allRegions.size());
+        
+        List<Region> regions;
+        if (startIndex < allRegions.size()) {
+            regions = allRegions.subList(startIndex, endIndex);
+        } else {
+            regions = new java.util.ArrayList<>();
+        }
+
 
         model.addAttribute("month", currentMonth);
         model.addAttribute("regions", regions);
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", totalPages);
+        model.addAttribute("totalElements", totalElements);
+        model.addAttribute("pageSize", size);
 
         return "seasonal"; // → templates/seasonal.html
     }
 }
-

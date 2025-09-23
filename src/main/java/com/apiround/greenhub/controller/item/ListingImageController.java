@@ -1,5 +1,5 @@
 // src/main/java/com/apiround/greenhub/controller/image/ListingImageController.java
-package com.apiround.greenhub.controller.image;
+package com.apiround.greenhub.controller.item;
 
 import com.apiround.greenhub.repository.ProductListingRepository;
 import lombok.RequiredArgsConstructor;

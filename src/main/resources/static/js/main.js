@@ -62,7 +62,8 @@ document.addEventListener('DOMContentLoaded', function() {
         searchBtn.addEventListener('click', function() {
             const searchTerm = searchInput.value.trim();
             if (searchTerm) {
-                alert(`"${searchTerm}" 검색 기능은 준비 중입니다.`);
+                // region 페이지로 검색어와 함께 이동
+                window.location.href = `/region?search=${encodeURIComponent(searchTerm)}`;
             }
         });
     }
@@ -83,8 +84,12 @@ document.addEventListener('DOMContentLoaded', function() {
     categoryItems.forEach(item => {
         item.addEventListener('click', function() {
             const categoryName = this.querySelector('.category-label').textContent;
-            // region 페이지로 이동하면서 해당 카테고리 선택
-            window.location.href = `/region?category=${encodeURIComponent(categoryName)}`;
+            console.log('카테고리 클릭:', categoryName);
+            
+            // region 페이지로 이동하면서 해당 카테고리 선택 (한글 이름 그대로 전달)
+            const url = `/region?type=${encodeURIComponent(categoryName)}`;
+            console.log('이동할 URL:', url);
+            window.location.href = url;
         });
     });
 

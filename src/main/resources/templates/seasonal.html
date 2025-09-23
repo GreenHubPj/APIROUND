@@ -27,8 +27,10 @@
              th:data-product-id="${region.productId}" 
              th:onclick="'goToProductDetail(' + ${region.productId} + ')'">
             <!-- 썸네일 -->
-            <img th:src="${region.thumbnailUrl != null ? region.thumbnailUrl : '/images/default.png'}"
-                 th:alt="${region.productName}" class="product-image">
+            <img th:src="${region.thumbnailUrl != null ? region.thumbnailUrl : '/images/따봉 트럭.png'}"
+                 th:alt="${region.productName}" 
+                 class="product-image"
+                 th:onerror="|this.onerror=null;this.src='@{/images/따봉 트럭.png}'|">
 
             <div class="product-info">
                 <!-- 상품명 -->
@@ -43,9 +45,41 @@
         </div>
     </div>
     
-    <!-- 페이징 UI (동적으로 생성됨) -->
-    <div class="pagination-container" id="paginationContainer">
-        <!-- JavaScript에서 동적으로 생성 -->
+    <!-- 서버 사이드 페이징 UI -->
+    <div class="pagination-container" th:if="${totalPages > 1}">
+        <div class="pagination-info">
+            <span th:text="'총 ' + ${totalElements} + '개 특산품 (' + ${currentPage + 1} + '/' + ${totalPages} + ' 페이지)'"></span>
+        </div>
+        <div class="pagination">
+            <!-- 이전 버튼 -->
+            <a th:if="${currentPage > 0}" 
+               th:href="@{/specialties/monthly(month=${month}, page=${currentPage - 1}, size=${pageSize})}"
+               class="page-btn prev-btn">
+                <span>← 이전</span>
+            </a>
+            <span th:unless="${currentPage > 0}" class="page-btn prev-btn disabled">
+                <span>← 이전</span>
+            </span>
+            
+            <!-- 페이지 번호들 -->
+            <div class="page-numbers">
+                <a th:each="pageNum : ${#numbers.sequence(0, totalPages - 1)}"
+                   th:if="${pageNum >= currentPage - 2 and pageNum <= currentPage + 2}"
+                   th:href="@{/specialties/monthly(month=${month}, page=${pageNum}, size=${pageSize})}"
+                   th:text="${pageNum + 1}"
+                   th:class="${pageNum == currentPage} ? 'page-number active' : 'page-number'"></a>
+            </div>
+            
+            <!-- 다음 버튼 -->
+            <a th:if="${currentPage < totalPages - 1}" 
+               th:href="@{/specialties/monthly(month=${month}, page=${currentPage + 1}, size=${pageSize})}"
+               class="page-btn next-btn">
+                <span>다음 →</span>
+            </a>
+            <span th:unless="${currentPage < totalPages - 1}" class="page-btn next-btn disabled">
+                <span>다음 →</span>
+            </span>
+        </div>
     </div>
 </div>
 
