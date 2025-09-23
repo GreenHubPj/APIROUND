@@ -272,7 +272,7 @@ public class AuthController {
         if (form.getMarketingConsent() == null) form.setMarketingConsent(false);
         if (form.getSmsConsent() == null) form.setSmsConsent(false);
 
-        // ✅ 성별 값 정규화 (DB는 CHAR(1) → M/F/O 만 허용)
+        // ★ 성별 정규화 (DB가 ENUM('M','F')이거나 CHAR(1)이어도 안전)
         form.setGender(normalizeGender(form.getGender()));
 
         // 비밀번호 해시 저장
@@ -434,17 +434,27 @@ public class AuthController {
     private boolean isBlank(String s) { return s == null || s.isBlank(); }
     private String opt(String s) { return (s == null || s.isBlank()) ? null : s.trim(); }
 
-    /** 폼에서 넘어온 성별 값을 DB 규격(M/F/O)으로 정규화. 나머지는 null 처리 */
+    /**
+     * 폼에서 넘어온 성별 값을 DB 규격으로 정규화.
+     * - 허용: M/F (그 외 값은 null 처리)
+     * - 한글 값: 남/남성 → M, 여/여성 → F
+     * - 길이가 1 초과(예: "MALE")는 안전을 위해 버림(null)
+     */
     private String normalizeGender(String raw) {
         if (raw == null || raw.isBlank()) return null;
-        String v = raw.trim().toUpperCase();
-        // 이미 영문 코드인 경우
-        if (v.equals("M") || v.equals("F") || v.equals("O")) return v;
-        // 한글 값 매핑
-        if (raw.equals("남성")) return "M";
-        if (raw.equals("여성")) return "F";
-        if (raw.equals("기타")) return "O";
-        // 알 수 없는 값은 저장하지 않음(null)
+        String v = raw.trim();
+
+        // 한글/축약 매핑
+        if (v.equalsIgnoreCase("남") || v.equals("남성")) return "M";
+        if (v.equalsIgnoreCase("여") || v.equals("여성")) return "F";
+
+        // 영문 한 글자만 허용
+        if (v.length() == 1) {
+            String up = v.toUpperCase();
+            if (up.equals("M") || up.equals("F")) return up;
+        }
+
+        // 나머지는 저장하지 않음 → DB에 null
         return null;
     }
 }

@@ -1,3 +1,4 @@
+// src/main/java/com/apiround/greenhub/entity/User.java
 package com.apiround.greenhub.entity;
 
 import java.time.LocalDate;
@@ -19,7 +20,7 @@ import lombok.Data;
 
 @Data
 @Entity
-@Table(name = "`user`") // user 예약어라 백틱
+@Table(name = "`user`") // user 예약어
 public class User {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_id")
@@ -28,7 +29,7 @@ public class User {
     @Column(name = "login_id", length = 50, nullable = false, unique = true)
     private String loginId;
 
-    @JsonProperty(access = Access.WRITE_ONLY) // 응답에서 보이지 않게
+    @JsonProperty(access = Access.WRITE_ONLY)
     @Column(name = "password", length = 100, nullable = false)
     private String password;
 
@@ -41,7 +42,7 @@ public class User {
     @Column(name = "phone", length = 20, nullable = false)
     private String phone;
 
-    // ✅ 스키마가 CHAR(1)일 때 안전하게 매핑
+    // ✅ DB가 CHAR(1) 또는 ENUM('M','F') 모두 호환: 서버는 M/F 또는 null만 저장
     @Column(name = "gender", length = 1)
     private String gender;
 
@@ -64,6 +65,4 @@ public class User {
 
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
-
-
 }
