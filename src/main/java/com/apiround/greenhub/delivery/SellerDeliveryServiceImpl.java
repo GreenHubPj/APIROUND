@@ -1,10 +1,10 @@
-// src/main/java/com/apiround/greenhub/delivery/SellerDeliveryServiceImpl.java
 package com.apiround.greenhub.delivery;
 
 import com.apiround.greenhub.entity.Order;
 import com.apiround.greenhub.repository.OrderRepository;
 import com.apiround.greenhub.web.entity.OrderItem;
 import com.apiround.greenhub.web.repository.OrderItemRepository;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,9 +31,8 @@ public class SellerDeliveryServiceImpl implements SellerDeliveryService {
         Order order = resolveOrderByIdOrNumber(idOrNumber)
                 .orElseThrow(() -> new IllegalArgumentException("주문을 찾을 수 없습니다."));
 
-        // 해당 판매사의 아이템만 상태 업데이트
-        List<OrderItem> items = orderItemRepository
-                .findByCompanyIdAndOrder_OrderIdAndIsDeletedFalse(companyId, order.getOrderId());
+        // ✅ 변경: 레포지토리 메서드 교체
+        List<OrderItem> items = orderItemRepository.findByCompanyAndOrder(companyId, order.getOrderId());
         if (items.isEmpty()) {
             throw new IllegalArgumentException("해당 판매사의 주문이 아닙니다.");
         }
@@ -46,7 +45,7 @@ public class SellerDeliveryServiceImpl implements SellerDeliveryService {
         }
         orderItemRepository.saveAll(items);
 
-        // 주문 상태도 보정(선택): PREPARING -> SHIPPED -> DELIVERED 진행만 허용
+        // 주문 상태 상향만 허용
         String newOrderDb = DeliveryStatusMapper.toOrderDb(uiStatus);
         order.setStatus(raiseOrderStatus(order.getStatus(), newOrderDb));
         order.setUpdatedAt(now);

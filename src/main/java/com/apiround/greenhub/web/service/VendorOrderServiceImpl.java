@@ -1,4 +1,3 @@
-// src/main/java/com/apiround/greenhub/web/service/VendorOrderServiceImpl.java
 package com.apiround.greenhub.web.service;
 
 import com.apiround.greenhub.entity.Order;
@@ -12,15 +11,16 @@ import com.apiround.greenhub.web.dto.vendor.VendorOrderDetailDto;
 import com.apiround.greenhub.web.dto.vendor.VendorOrderSummaryDto;
 import com.apiround.greenhub.web.entity.OrderItem;
 import com.apiround.greenhub.web.repository.OrderItemRepository;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -75,8 +75,6 @@ public class VendorOrderServiceImpl implements VendorOrderService {
             BigDecimal vendorSubtotal = BigDecimal.ZERO;
             List<VendorOrderSummaryDto.Item> dtoItems = new ArrayList<>();
 
-            // ... 생략 (상단 동일)
-
             for (OrderItem r : vendorItems) {
                 String image = null;
                 if (r.getListingId() != null) {
@@ -99,8 +97,8 @@ public class VendorOrderServiceImpl implements VendorOrderService {
                 vendorSubtotal = vendorSubtotal.add(line);
 
                 dtoItems.add(VendorOrderSummaryDto.Item.builder()
-                        .orderItemId(r.getOrderItemId())            // ✅ 추가
-                        .itemStatus(r.getItemStatus())              // ✅ 추가 (예: PREPARING/SHIPPED/DELIVERED)
+                        .orderItemId(r.getOrderItemId())
+                        .itemStatus(r.getItemStatus())
                         .name(name)
                         .image(image)
                         .quantity(r.getQuantity() == null ? 0 : r.getQuantity().intValue())
@@ -109,7 +107,6 @@ public class VendorOrderServiceImpl implements VendorOrderService {
                         .price(line)
                         .build());
             }
-
 
             result.add(VendorOrderSummaryDto.builder()
                     .id(o.getOrderNumber() != null ? o.getOrderNumber() : String.valueOf(o.getOrderId()))
@@ -133,7 +130,8 @@ public class VendorOrderServiceImpl implements VendorOrderService {
         Order order = resolveOrderByIdOrNumber(idOrNumber)
                 .orElseThrow(() -> new IllegalArgumentException("주문 정보를 찾을 수 없습니다."));
 
-        List<OrderItem> rows = orderItemRepository.findByCompanyIdAndOrder_OrderIdAndIsDeletedFalse(companyId, order.getOrderId());
+        // ✅ 변경: 레포지토리 메서드 교체
+        List<OrderItem> rows = orderItemRepository.findByCompanyAndOrder(companyId, order.getOrderId());
         if (rows.isEmpty()) {
             throw new IllegalArgumentException("해당 판매사의 주문이 아닙니다.");
         }
@@ -177,7 +175,7 @@ public class VendorOrderServiceImpl implements VendorOrderService {
             vendorSubtotal = vendorSubtotal.add(line);
 
             items.add(VendorOrderDetailDto.Item.builder()
-                    .orderItemId(r.getOrderItemId())      // 🔹 추가
+                    .orderItemId(r.getOrderItemId())
                     .productId(r.getProductId())
                     .listingId(r.getListingId())
                     .name(name)
@@ -187,7 +185,7 @@ public class VendorOrderServiceImpl implements VendorOrderService {
                     .optionText(r.getOptionLabelSnap())
                     .unitPrice(unit)
                     .lineAmount(line)
-                    .itemStatus(r.getItemStatus())        // 🔹 추가
+                    .itemStatus(r.getItemStatus())
                     .courierName(r.getCourierName())
                     .trackingNumber(r.getTrackingNumber())
                     .build());
@@ -224,13 +222,11 @@ public class VendorOrderServiceImpl implements VendorOrderService {
         LocalDateTime from = s.atStartOfDay();
         LocalDateTime to = e.plusDays(1).atStartOfDay();
 
-        // 벤더 아이템 전체 조회(기존 리포지토리 활용), 날짜 필터는 Order.createdAt 기준으로 자바에서 필터
         List<OrderItem> allVendorItems = orderItemRepository.findActiveByCompanyOrderByOrderCreatedDesc(companyId);
         if (allVendorItems.isEmpty()) {
             return emptyDashboard();
         }
 
-        // 관련 주문 로딩
         LinkedHashSet<Integer> orderIds = allVendorItems.stream()
                 .map(oi -> oi.getOrder().getOrderId())
                 .collect(Collectors.toCollection(LinkedHashSet::new));
@@ -239,7 +235,6 @@ public class VendorOrderServiceImpl implements VendorOrderService {
         Map<Integer, Order> orderMap = orders.stream()
                 .collect(Collectors.toMap(Order::getOrderId, o -> o));
 
-        // 기간 내 주문만 선별
         Set<Integer> inRangeOrderIds = orders.stream()
                 .filter(o -> o.getCreatedAt() != null &&
                         !o.getCreatedAt().isBefore(from) &&
@@ -251,17 +246,12 @@ public class VendorOrderServiceImpl implements VendorOrderService {
             return emptyDashboard();
         }
 
-        // 주문별 벤더 소계
         Map<Integer, BigDecimal> vendorSubtotalByOrder = new HashMap<>();
-        // 상태 카운트
         Map<String, Integer> statusCounts = new HashMap<>();
-
-        // 시간대/일자 집계 및 베스트 상품
         Map<LocalDate, BigDecimal> daily = new TreeMap<>();
         Map<Integer, BigDecimal> hourly = new TreeMap<>();
         Map<String, BigDecimal> productSum = new HashMap<>();
 
-        // 먼저 in-range 주문의 벤더 라인만 합산
         for (OrderItem r : allVendorItems) {
             Order o = r.getOrder();
             if (o == null || o.getCreatedAt() == null) continue;
@@ -270,20 +260,16 @@ public class VendorOrderServiceImpl implements VendorOrderService {
             BigDecimal line = nz(r.getLineAmount());
             vendorSubtotalByOrder.merge(o.getOrderId(), line, BigDecimal::add);
 
-            // 일자 합
             LocalDate d = o.getCreatedAt().toLocalDate();
             daily.merge(d, line, BigDecimal::add);
 
-            // 시간 합
             int hour = o.getCreatedAt().getHour();
             hourly.merge(hour, line, BigDecimal::add);
 
-            // 베스트 상품
             String pname = StringUtils.hasText(r.getProductNameSnap()) ? r.getProductNameSnap() : "상품";
             productSum.merge(pname, line, BigDecimal::add);
         }
 
-        // 상태카운트(주문 단위)
         for (Integer oid : inRangeOrderIds) {
             Order o = orderMap.get(oid);
             if (o == null) continue;
@@ -291,7 +277,6 @@ public class VendorOrderServiceImpl implements VendorOrderService {
             statusCounts.merge(sStatus, 1, Integer::sum);
         }
 
-        // 요약
         List<Map.Entry<Integer, BigDecimal>> orderList = vendorSubtotalByOrder.entrySet().stream()
                 .sorted((a, b) -> {
                     LocalDateTime ta = Optional.ofNullable(orderMap.get(a.getKey())).map(Order::getCreatedAt).orElse(LocalDateTime.MIN);
@@ -302,18 +287,18 @@ public class VendorOrderServiceImpl implements VendorOrderService {
 
         BigDecimal totalSales = orderList.stream().map(Map.Entry::getValue).reduce(BigDecimal.ZERO, BigDecimal::add);
         int totalOrders = orderList.size();
-        BigDecimal avgAmount = totalOrders == 0 ? BigDecimal.ZERO : totalSales.divide(BigDecimal.valueOf(totalOrders), 0, BigDecimal.ROUND_HALF_UP);
+        BigDecimal avgAmount = totalOrders == 0
+                ? BigDecimal.ZERO
+                : totalSales.divide(BigDecimal.valueOf(totalOrders), 0, RoundingMode.HALF_UP);
 
         int done = statusCounts.getOrDefault("DELIVERED", 0);
         String completionRate = (totalOrders == 0) ? "0%" : String.format(Locale.ROOT, "%.1f%%", (done * 100.0 / totalOrders));
 
-        // 최다 주문시간 (단일 시간 기준)
         int peakHour = hourly.entrySet().stream()
                 .max(Comparator.comparing(Map.Entry::getValue))
                 .map(Map.Entry::getKey).orElse(0);
         String peakHourLabel = String.format("%02d:00", peakHour);
 
-        // 베스트 상품
         String bestProduct = productSum.entrySet().stream()
                 .max(Comparator.comparing(Map.Entry::getValue))
                 .map(Map.Entry::getKey).orElse("-");
@@ -337,7 +322,6 @@ public class VendorOrderServiceImpl implements VendorOrderService {
                 .TOTAL(totalOrders)
                 .build();
 
-        // 주문 행(상단 리스트용) – 최신순
         List<VendorOrderDashboardDto.OrderRow> rows = orderList.stream()
                 .map(e1 -> {
                     Order o = orderMap.get(e1.getKey());
@@ -349,7 +333,6 @@ public class VendorOrderServiceImpl implements VendorOrderService {
                             .build();
                 }).toList();
 
-        // 일별 그래프 포맷
         List<VendorOrderDashboardDto.DataPoint> dailyPoints = daily.entrySet().stream()
                 .map(e1 -> VendorOrderDashboardDto.DataPoint.builder()
                         .label(String.format("%d/%02d", e1.getKey().getMonthValue(), e1.getKey().getDayOfMonth()))
@@ -357,7 +340,6 @@ public class VendorOrderServiceImpl implements VendorOrderService {
                         .build())
                 .toList();
 
-        // 시간별 그래프 포맷(0~23 보정)
         List<VendorOrderDashboardDto.DataPoint> hourlyPoints = new ArrayList<>();
         for (int h = 0; h < 24; h++) {
             hourlyPoints.add(VendorOrderDashboardDto.DataPoint.builder()

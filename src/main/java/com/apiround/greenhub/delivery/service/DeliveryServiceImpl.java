@@ -2,7 +2,9 @@ package com.apiround.greenhub.delivery.service;
 
 import com.apiround.greenhub.delivery.repository.OrderStatusHistoryJdbc;
 import com.apiround.greenhub.web.entity.OrderItem;
+// ✅ OrderItemRepository 올바른 패키지로 임포트
 import com.apiround.greenhub.web.repository.OrderItemRepository;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
