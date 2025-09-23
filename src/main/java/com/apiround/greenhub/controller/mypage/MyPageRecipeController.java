@@ -6,6 +6,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -170,6 +171,24 @@ public class MyPageRecipeController {
         // 나머지 저장 로직...
 
         return "redirect:/recipes/new"; // 저장 후 이동할 페이지
+    }
+
+    @PostMapping(value = "/{recipeId}/upload-thumbnail", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Void> uploadThumbnail(
+            @RequestParam Long userId,
+            @PathVariable Long recipeId,
+            @RequestParam("thumbnail") MultipartFile thumbnail) throws IOException {
+
+        if (thumbnail.isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        byte[] data = thumbnail.getBytes();
+        String mime = thumbnail.getContentType();
+
+        myPageRecipeService.updateThumbnail(userId, recipeId, data, mime);
+
+        return ResponseEntity.ok().build();
     }
 
 

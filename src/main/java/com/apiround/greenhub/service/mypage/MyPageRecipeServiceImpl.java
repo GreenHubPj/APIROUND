@@ -32,11 +32,9 @@ public class MyPageRecipeServiceImpl implements MyPageRecipeService {
 
     @Override
     public Integer createRecipe(Long userId, MyPageRecipeRequestDto requestDto) {
-        // 1. User 조회
         User user = userRepository.findById(userId.intValue())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // 2. Recipe 객체 생성 및 저장
         Recipe recipe = new Recipe();
         recipe.setUser(user);
         recipe.setTitle(requestDto.getTitle());
@@ -53,10 +51,8 @@ public class MyPageRecipeServiceImpl implements MyPageRecipeService {
 
         Recipe savedRecipe = recipeRepository.save(recipe);
 
-        // 3. 재료(ingredients) 저장
         if (requestDto.getIngredients() != null && !requestDto.getIngredients().isEmpty()) {
             List<RecipeIngredient> recipeIngredients = new ArrayList<>();
-
             int lineNo = 1;
             for (MyPageRecipeRequestDto.IngredientDto ingredientDto : requestDto.getIngredients()) {
                 RecipeIngredient ingredient = new RecipeIngredient();
@@ -65,18 +61,14 @@ public class MyPageRecipeServiceImpl implements MyPageRecipeService {
                 ingredient.setNameText(ingredientDto.getName());
                 ingredient.setNote(ingredientDto.getAmount());
                 ingredient.setCreatedAt(LocalDateTime.now());
-
                 recipeIngredients.add(ingredient);
             }
-
             recipeIngredientRepository.saveAll(recipeIngredients);
         }
 
-        // 4. 조리 단계(steps) 저장
         if (requestDto.getInstructions() != null && !requestDto.getInstructions().isEmpty()) {
             List<RecipeStep> recipeSteps = new ArrayList<>();
             int stepNo = 1;
-
             for (MyPageRecipeRequestDto.InstructionDto instruction : requestDto.getInstructions()) {
                 if (instruction.getSteps() != null) {
                     for (String stepDescription : instruction.getSteps()) {
@@ -85,18 +77,15 @@ public class MyPageRecipeServiceImpl implements MyPageRecipeService {
                         step.setStepNo(stepNo++);
                         step.setInstruction(stepDescription);
                         step.setCreatedAt(LocalDateTime.now());
-
                         recipeSteps.add(step);
                     }
                 }
             }
-
             recipeStepRepository.saveAll(recipeSteps);
         }
 
         return savedRecipe.getRecipeId();
     }
-
 
     @Override
     @Transactional(readOnly = true)
@@ -117,23 +106,19 @@ public class MyPageRecipeServiceImpl implements MyPageRecipeService {
             dto.setCreatedAt(recipe.getCreatedAt());
             dto.setUpdatedAt(recipe.getUpdatedAt());
             dto.setUserId(recipe.getUserId());
-            // TODO: ingredients, steps 변환 후 세팅
-
+            // TODO: 필요 시 재료, 조리법 변환 후 세팅
             return dto;
         }).collect(Collectors.toList());
     }
 
     @Override
     public MyPageRecipeResponseDto getRecipe(Long userId, Long recipeId) {
-        // Recipe와 관련된 User를 함께 가져오기
         Recipe recipe = recipeRepository.findByIdWithUser(recipeId.intValue())
                 .orElseThrow(() -> new RuntimeException("Recipe not found"));
 
-        // User가 없으면 권한 에러 처리
         if (recipe.getUser() == null || !recipe.getUser().getUserId().equals(userId.intValue())) {
             throw new RuntimeException("권한 없음 또는 잘못된 사용자");
         }
-
 
         MyPageRecipeResponseDto dto = new MyPageRecipeResponseDto();
         dto.setRecipeId(recipe.getRecipeId());
@@ -149,7 +134,6 @@ public class MyPageRecipeServiceImpl implements MyPageRecipeService {
         dto.setCreatedAt(recipe.getCreatedAt());
         dto.setUpdatedAt(recipe.getUpdatedAt());
 
-        // 재료 리스트 변환
         List<MyPageRecipeResponseDto.IngredientDto> ingredients = recipe.getIngredients().stream()
                 .map(ingredient -> {
                     MyPageRecipeResponseDto.IngredientDto ingDto = new MyPageRecipeResponseDto.IngredientDto();
@@ -159,7 +143,6 @@ public class MyPageRecipeServiceImpl implements MyPageRecipeService {
                 }).collect(Collectors.toList());
         dto.setIngredients(ingredients);
 
-        // 조리법 리스트 변환
         List<MyPageRecipeResponseDto.StepDto> steps = recipe.getSteps().stream()
                 .sorted(Comparator.comparingInt(RecipeStep::getStepNo))
                 .map(step -> {
@@ -176,7 +159,6 @@ public class MyPageRecipeServiceImpl implements MyPageRecipeService {
 
     @Override
     public void updateRecipe(Long userId, Long recipeId, MyPageRecipeRequestDto requestDto) {
-        // 1. 레시피 존재 및 사용자 권한 확인
         Recipe recipe = recipeRepository.findByIdWithUser(recipeId.intValue())
                 .orElseThrow(() -> new RuntimeException("Recipe not found"));
 
@@ -184,7 +166,6 @@ public class MyPageRecipeServiceImpl implements MyPageRecipeService {
             throw new RuntimeException("수정 권한이 없습니다.");
         }
 
-        // 2. 레시피 기본 정보 업데이트
         recipe.setTitle(requestDto.getTitle());
         recipe.setSummary(requestDto.getSummary());
         recipe.setBadgeText(requestDto.getBadgeText());
@@ -196,29 +177,23 @@ public class MyPageRecipeServiceImpl implements MyPageRecipeService {
         recipe.setUpdatedAt(LocalDateTime.now());
         recipeRepository.save(recipe);
 
-        // 3. 기존 재료 삭제 후 새로 저장
         recipeIngredientRepository.deleteByRecipeId(recipeId.intValue());
-
         if (requestDto.getIngredients() != null && !requestDto.getIngredients().isEmpty()) {
             List<RecipeIngredient> updatedIngredients = new ArrayList<>();
             int lineNo = 1;
-
             for (MyPageRecipeRequestDto.IngredientDto ing : requestDto.getIngredients()) {
                 RecipeIngredient ingredient = new RecipeIngredient();
                 ingredient.setRecipe(recipe);
                 ingredient.setLineNo(lineNo++);
                 ingredient.setNameText(ing.getName());
-                ingredient.setNote(ing.getAmount()); // note에 amount 저장 중
+                ingredient.setNote(ing.getAmount());
                 ingredient.setCreatedAt(LocalDateTime.now());
                 updatedIngredients.add(ingredient);
             }
-
             recipeIngredientRepository.saveAll(updatedIngredients);
         }
 
-        // 4. 기존 조리단계 삭제 후 새로 저장
         recipeStepRepository.deleteByRecipeId(recipeId.intValue());
-
         if (requestDto.getSteps() != null && !requestDto.getSteps().isEmpty()) {
             List<RecipeStep> updatedSteps = new ArrayList<>();
             for (MyPageRecipeRequestDto.StepDto stepDto : requestDto.getSteps()) {
@@ -226,15 +201,12 @@ public class MyPageRecipeServiceImpl implements MyPageRecipeService {
                 step.setRecipe(recipe);
                 step.setStepNo(stepDto.getStepOrder());
                 step.setInstruction(stepDto.getDescription());
-                step.setStepImageUrl(stepDto.getImageUrl()); // 없으면 null
+                step.setStepImageUrl(stepDto.getImageUrl());
                 step.setCreatedAt(LocalDateTime.now());
                 updatedSteps.add(step);
             }
-
             recipeStepRepository.saveAll(updatedSteps);
         }
-
-        // 🔁 instructions 필드는 현재 사용 안 함 (필요 시 여기에 추가)
     }
 
     @Override
@@ -242,16 +214,27 @@ public class MyPageRecipeServiceImpl implements MyPageRecipeService {
         Recipe recipe = recipeRepository.findById(recipeId.intValue())
                 .orElseThrow(() -> new RuntimeException("레시피가 존재하지 않습니다."));
 
-        // 권한 체크: 레시피 소유자만 삭제 가능
         if (!recipe.getUser().getUserId().equals(userId.intValue())) {
             throw new RuntimeException("삭제 권한이 없습니다.");
         }
-        // 소프트 딜리트 처리
+
         recipe.setStatus("DELETED");
         recipe.setUpdatedAt(LocalDateTime.now());
-
         recipeRepository.save(recipe);
     }
-    // 나머지 updateRecipe, getRecipe, deleteRecipe도 비슷한 구조로 구현
 
+    @Override
+    public void updateThumbnail(Long userId, Long recipeId, byte[] thumbnailData, String thumbnailMime) {
+        Recipe recipe = recipeRepository.findById(recipeId.intValue())
+                .orElseThrow(() -> new RuntimeException("레시피가 없습니다."));
+
+        if (!recipe.getUser().getUserId().equals(userId.intValue())) {
+            throw new RuntimeException("권한이 없습니다.");
+        }
+
+        recipe.setThumbnailData(thumbnailData);
+        recipe.setThumbnailMime(thumbnailMime);
+        recipe.setUpdatedAt(LocalDateTime.now());
+        recipeRepository.save(recipe);
+    }
 }

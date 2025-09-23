@@ -75,4 +75,12 @@ public class Recipe {
     private List<RecipeXProduct> recipeProducts;
 
     public enum Difficulty { EASY, MEDIUM, HARD }
+
+    @Lob
+    @Column(name = "thumbnail_data", columnDefinition = "LONGBLOB")
+    private byte[] thumbnailData;
+
+    @Column(name = "thumbnail_mime", length = 100)
+    private String thumbnailMime;
+
 }
