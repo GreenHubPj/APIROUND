@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>레시피 관리 - GreenHub</title>
+    <link rel="stylesheet" href="/css/header.css">
+    <link rel="stylesheet" href="/css/recipe.css">
+    <link rel="stylesheet" href="/css/footer.css">
+    <link rel="stylesheet" href="/css/admin-recipe.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+<!-- 헤더 include (최신 문법) -->
+<div th:replace="~{common/header :: header}"></div>
+
+<main class="main-content">
+    <!-- 배너 -->
+    <section class="banner-section">
+        <div class="banner-content">
+            <div class="banner-title">
+                <img src="/images/고기 트럭.png" alt="레시피 관리" class="banner-icon">
+                <p class="title-underground">___________</p>
+                <div class="title-name">레시피 관리</div>
+            </div>
+
+            <!-- 관리자용 필터 및 검색 -->
+            <section class="admin-controls">
+                <div class="admin-controls-container">
+                    <!-- 상태 필터 -->
+                    <div class="status-filter">
+                        <label for="statusFilter">상태별 필터:</label>
+                        <select id="statusFilter" name="status">
+                            <option value="">전체</option>
+                            <option value="PENDING" th:selected="${statusFilter == 'PENDING'}">승인 대기</option>
+                            <option value="APPROVED" th:selected="${statusFilter == 'APPROVED'}">승인됨</option>
+                            <option value="REJECTED" th:selected="${statusFilter == 'REJECTED'}">거부됨</option>
+                            <option value="PUBLISHED" th:selected="${statusFilter == 'PUBLISHED'}">게시됨</option>
+                            <option value="STOP" th:selected="${statusFilter == 'STOP'}">게시중단</option>
+                        </select>
+                    </div>
+
+                    <!-- 검색바 -->
+                    <div class="search-section">
+                        <div class="search-container">
+                            <div class="search-bar">
+                                <input type="text" placeholder="레시피 검색" class="search-input" id="searchInput" th:value="${searchTerm}">
+                                <button class="search-btn" id="searchBtn">
+                                    <img src="/images/돋보기 아이콘.png" alt="검색" class="search-icon">
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </section>
+
+    <!-- 레시피 관리 목록 -->
+    <div class="admin-recipes-grid" id="adminRecipesGrid">
+        <div th:each="recipe : ${recipes}" class="admin-recipe-card" th:data-recipe-id="${recipe.recipeId}">
+            <div class="recipe-card-content">
+                <!-- 레시피 이미지 -->
+                <div class="recipe-image-container">
+                    <img class="recipe-image"
+                         th:alt="${recipe.title}"
+                         th:with="imgUrl=${#strings.isEmpty(recipe.heroImageUrl)} ? '/images/고기 트럭.png' : ${recipe.heroImageUrl}"
+                         th:src="@{${imgUrl}}"
+                         loading="lazy"
+                         th:onerror="|this.onerror=null;this.src='@{/images/고기 트럭.png}'|">
+                </div>
+
+                <!-- 레시피 정보 -->
+                <div class="recipe-info">
+                    <h3 class="recipe-name" th:text="${recipe.title}">레시피명</h3>
+                    <p class="recipe-description" th:if="${recipe.summary != null}" th:text="${recipe.summary}"></p>
+                    <div class="recipe-meta">
+                        <div class="recipe-time" th:if="${recipe.cookMinutes != null}" th:text="'조리시간: ' + ${recipe.cookMinutes} + '분'"></div>
+                        <div class="recipe-servings" th:if="${recipe.servings != null}" th:text="${recipe.servings}"></div>
+                        <div class="recipe-difficulty" th:if="${recipe.difficulty != null}" th:text="'난이도: ' + ${recipe.difficulty}"></div>
+                    </div>
+                    
+                    <!-- 상태 표시 -->
+                    <div class="recipe-status">
+                        <span class="status-badge" th:class="'status-' + ${recipe.status}" th:text="${recipe.status}"></span>
+                    </div>
+                </div>
+
+                <!-- 관리자 액션 버튼들 -->
+                <div class="admin-actions">
+                    <button class="action-btn view-btn" th:onclick="|viewRecipe(${recipe.recipeId})|">상세보기</button>
+                    
+                    <!-- 상태별 액션 버튼 -->
+                    <div class="status-actions" th:if="${recipe.status == 'PENDING'}">
+                        <button class="action-btn approve-btn" th:onclick="|approveRecipe(${recipe.recipeId})|">승인</button>
+                        <button class="action-btn reject-btn" th:onclick="|rejectRecipe(${recipe.recipeId})|">거부</button>
+                    </div>
+                    
+                    <div class="status-actions" th:if="${recipe.status == 'APPROVED'}">
+                        <button class="action-btn publish-btn" th:onclick="|publishRecipe(${recipe.recipeId})|">게시</button>
+                    </div>
+                    
+                    <div class="status-actions" th:if="${recipe.status == 'PUBLISHED'}">
+                        <button class="action-btn unpublish-btn" th:onclick="|unpublishRecipe(${recipe.recipeId})|">게시 중단</button>
+                    </div>
+                    
+                    <div class="status-actions" th:if="${recipe.status == 'STOP'}">
+                        <button class="action-btn re-publish-btn" th:onclick="|rePublishRecipe(${recipe.recipeId})|">게시 재개</button>
+                    </div>
+                    
+                    <!-- 삭제 버튼 (모든 상태에서 가능) -->
+                    <button class="action-btn delete-btn" th:onclick="|deleteRecipe(${recipe.recipeId})|">삭제</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 레시피가 없는 경우 -->
+        <div th:if="${#lists.isEmpty(recipes)}" class="no-recipes">
+            <p>등록된 레시피가 없습니다.</p>
+        </div>
+    </div>
+
+    <!-- 서버 사이드 페이징 UI -->
+    <div class="pagination-container" th:if="${totalPages > 1}">
+        <div class="pagination-info">
+            <span th:text="'총 ' + ${totalElements} + '개 레시피 (' + ${currentPage + 1} + '/' + ${totalPages} + ' 페이지)'"></span>
+        </div>
+        <div class="pagination">
+            <!-- 이전 버튼 -->
+            <a th:if="${currentPage > 0}" 
+               th:href="@{/admin/recipe-management(page=${currentPage - 1}, size=${pageSize}, search=${searchTerm}, status=${statusFilter})}"
+               class="page-btn prev-btn">
+                <span>← 이전</span>
+            </a>
+            <span th:unless="${currentPage > 0}" class="page-btn prev-btn disabled">
+                <span>← 이전</span>
+            </span>
+            
+            <!-- 페이지 번호들 -->
+            <div class="page-numbers">
+                <a th:each="pageNum : ${#numbers.sequence(0, totalPages - 1)}"
+                   th:if="${pageNum >= currentPage - 2 and pageNum <= currentPage + 2}"
+                   th:href="@{/admin/recipe-management(page=${pageNum}, size=${pageSize}, search=${searchTerm}, status=${statusFilter})}"
+                   th:text="${pageNum + 1}"
+                   th:class="${pageNum == currentPage} ? 'page-number active' : 'page-number'"
+                   th:title="'페이지 ' + ${pageNum + 1} + '로 이동'"></a>
+            </div>
+            
+            
+            <!-- 다음 버튼 -->
+            <a th:if="${currentPage < totalPages - 1}" 
+               th:href="@{/admin/recipe-management(page=${currentPage + 1}, size=${pageSize}, search=${searchTerm}, status=${statusFilter})}"
+               class="page-btn next-btn">
+                <span>다음 →</span>
+            </a>
+            <span th:unless="${currentPage < totalPages - 1}" class="page-btn next-btn disabled">
+                <span>다음 →</span>
+            </span>
+        </div>
+    </div>
+</main>
+
+<!-- 푸터 include -->
+<div th:replace="~{common/footer :: footer}"></div>
+
+<!-- 페이지 스크립트 -->
+<script>
+    // 검색 기능
+    document.getElementById('searchBtn')?.addEventListener('click', function () {
+        const searchTerm = document.getElementById('searchInput')?.value || '';
+        const statusFilter = document.getElementById('statusFilter')?.value || '';
+        if (searchTerm.trim().length > 0 || statusFilter) {
+            const params = new URLSearchParams();
+            if (searchTerm.trim()) params.append('search', searchTerm.trim());
+            if (statusFilter) params.append('status', statusFilter);
+            window.location.href = '/admin/recipe-management?' + params.toString();
+        }
+    });
+    
+    // 엔터키 검색
+    document.getElementById('searchInput')?.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            document.getElementById('searchBtn').click();
+        }
+    });
+
+    // 상태 필터 변경 시 자동 검색
+    document.getElementById('statusFilter')?.addEventListener('change', function() {
+        const searchTerm = document.getElementById('searchInput')?.value || '';
+        const statusFilter = this.value;
+        const params = new URLSearchParams();
+        if (searchTerm.trim()) params.append('search', searchTerm.trim());
+        if (statusFilter) params.append('status', statusFilter);
+        window.location.href = '/admin/recipe-management?' + params.toString();
+    });
+
+    // 레시피 상세보기
+    function viewRecipe(recipeId) {
+        window.location.href = '/admin/recipe-management/' + recipeId;
+    }
+
+    // 레시피 승인
+    function approveRecipe(recipeId) {
+        if (confirm('이 레시피를 승인하시겠습니까?')) {
+            fetch('/admin/recipe-management/' + recipeId + '/approve', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.text())
+            .then(data => {
+                alert(data);
+                location.reload();
+            })
+            .catch(error => {
+                alert('승인 처리 중 오류가 발생했습니다: ' + error);
+            });
+        }
+    }
+
+    // 레시피 거부
+    function rejectRecipe(recipeId) {
+        if (confirm('이 레시피를 거부하시겠습니까?')) {
+            fetch('/admin/recipe-management/' + recipeId + '/reject', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.text())
+            .then(data => {
+                alert(data);
+                location.reload();
+            })
+            .catch(error => {
+                alert('거부 처리 중 오류가 발생했습니다: ' + error);
+            });
+        }
+    }
+
+    // 레시피 게시
+    function publishRecipe(recipeId) {
+        if (confirm('이 레시피를 게시하시겠습니까?')) {
+            fetch('/admin/recipe-management/' + recipeId + '/publish', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.text())
+            .then(data => {
+                alert(data);
+                location.reload();
+            })
+            .catch(error => {
+                alert('게시 처리 중 오류가 발생했습니다: ' + error);
+            });
+        }
+    }
+
+    // 레시피 게시중단
+    function unpublishRecipe(recipeId) {
+        if (confirm('이 레시피를 게시중단하시겠습니까?')) {
+            fetch('/admin/recipe-management/' + recipeId + '/stop', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.text())
+            .then(data => {
+                alert(data);
+                location.reload();
+            })
+            .catch(error => {
+                alert('게시중단 처리 중 오류가 발생했습니다: ' + error);
+            });
+        }
+    }
+
+    // 레시피 게시 재개
+    function rePublishRecipe(recipeId) {
+        if (confirm('이 레시피를 다시 게시하시겠습니까?')) {
+            fetch('/admin/recipe-management/' + recipeId + '/re-publish', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.text())
+            .then(data => {
+                alert(data);
+                location.reload();
+            })
+            .catch(error => {
+                alert('게시 재개 처리 중 오류가 발생했습니다: ' + error);
+            });
+        }
+    }
+
+    // 레시피 삭제
+    function deleteRecipe(recipeId) {
+        if (confirm('이 레시피를 삭제하시겠습니까? 삭제된 레시피는 복구할 수 없습니다.')) {
+            fetch('/admin/recipe-management/' + recipeId + '/delete', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.text())
+            .then(data => {
+                alert(data);
+                location.reload();
+            })
+            .catch(error => {
+                alert('삭제 처리 중 오류가 발생했습니다: ' + error);
+            });
+        }
+    }
+
+    // 페이징 버튼 클릭 이벤트 강제 처리
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('페이징 이벤트 리스너 등록');
+        
+        // 페이징 버튼들에 클릭 이벤트 추가
+        const pageButtons = document.querySelectorAll('.page-btn, .page-number');
+        console.log('페이징 버튼 개수:', pageButtons.length);
+        
+        pageButtons.forEach((button, index) => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                const href = this.getAttribute('href');
+                console.log('페이징 버튼 클릭:', index, href);
+                if (href) {
+                    window.location.href = href;
+                }
+            });
+        });
+        
+        // 페이징 링크가 제대로 작동하지 않는 경우를 위한 대비책
+        const paginationLinks = document.querySelectorAll('a[href*="page="]');
+        console.log('페이징 링크 개수:', paginationLinks.length);
+        
+        paginationLinks.forEach((link, index) => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const url = this.getAttribute('href');
+                console.log('페이징 링크 클릭:', index, url);
+                window.location.href = url;
+            });
+        });
+    });
+</script>
+<script src="/js/recipe.js" defer></script>
+</body>
+</html>

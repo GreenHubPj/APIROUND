@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const ingredientNoteEl = document.getElementById('ingredientNote');
     const recipeProductImageEl = document.getElementById('recipeProductImage');
     const ingredientNoteTextEl = document.getElementById('ingredientNoteText');
-    
+
     // 조리시간 및 난이도 관련 요소
     const cookingTimeDisplay = document.getElementById('cookingTimeDisplay');
     const difficultyDisplay = document.getElementById('difficultyDisplay');
@@ -63,7 +63,7 @@ document.addEventListener('DOMContentLoaded', function () {
         // 추가 버튼 보이기
         addIngredientBtn.style.display = 'inline-block';
         addSectionBtn.style.display = 'inline-block';
-        
+
         // 이미지 업로드 버튼 보이기
         const imageUpload = document.querySelector('.image-upload');
         if (imageUpload) {
@@ -74,12 +74,12 @@ document.addEventListener('DOMContentLoaded', function () {
         recipeInstructionsEl.querySelectorAll('.instruction-title, .instruction-steps li').forEach(el => {
             el.contentEditable = 'true';
         });
-        
+
         // 기존 섹션들의 버튼들 보이기
         recipeInstructionsEl.querySelectorAll('.add-step, .remove-step, .remove-section').forEach(btn => {
             btn.style.display = 'inline-block';
         });
-        
+
         // 기존 섹션들에 이벤트 리스너 추가
         recipeInstructionsEl.querySelectorAll('.instruction-section').forEach(section => {
             setupSectionEventListeners(section);
@@ -113,7 +113,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         addIngredientBtn.style.display = 'none';
         addSectionBtn.style.display = 'none';
-        
+
         // 이미지 업로드 버튼 숨기기
         const imageUpload = document.querySelector('.image-upload');
         if (imageUpload) {
@@ -123,7 +123,7 @@ document.addEventListener('DOMContentLoaded', function () {
         recipeInstructionsEl.querySelectorAll('.instruction-title, .instruction-steps li').forEach(el => {
             el.contentEditable = 'false';
         });
-        
+
         // 섹션 버튼들 숨기기
         recipeInstructionsEl.querySelectorAll('.add-step, .remove-step, .remove-section').forEach(btn => {
             btn.style.display = 'none';
@@ -182,13 +182,13 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         console.log('저장 완료');
         alert('레시피가 성공적으로 저장되었습니다.');
-        
+
         // 업로드된 파일 정보 초기화
         window.uploadedImageFile = null;
-        
+
         // 편집 모드 종료
         exitEditMode();
-        
+
         // 페이지 새로고침하여 최신 데이터 로드
         window.location.reload();
     }
@@ -219,7 +219,7 @@ document.addEventListener('DOMContentLoaded', function () {
             steps.forEach(step => {
                 const stepText = step.textContent.replace(/×$/, '').trim(); // 삭제 버튼 텍스트 제거
                 if (stepText) {
-                    updatedSteps.push({ 
+                    updatedSteps.push({
                         stepOrder: stepOrder++,
                         description: stepText,
                         imageUrl: null
@@ -405,12 +405,12 @@ document.addEventListener('DOMContentLoaded', function () {
             <button class="add-step" style="display: inline-block;">+ 단계 추가</button>
             <button class="remove-section" style="display: inline-block;">섹션 삭제</button>
         `;
-        
+
         recipeInstructionsEl.appendChild(newSection);
-        
+
         // 이벤트 리스너 추가
         setupSectionEventListeners(newSection);
-        
+
         const newTitle = newSection.querySelector('.instruction-title');
         newTitle.focus();
         document.execCommand('selectAll', false, null);
@@ -421,7 +421,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const addStepBtn = section.querySelector('.add-step');
         const removeSectionBtn = section.querySelector('.remove-section');
         const removeStepBtns = section.querySelectorAll('.remove-step');
-        
+
         addStepBtn.addEventListener('click', () => {
             const stepsList = section.querySelector('.instruction-steps');
             const stepCount = stepsList.querySelectorAll('li').length;
@@ -430,20 +430,20 @@ document.addEventListener('DOMContentLoaded', function () {
             newStep.innerHTML = `새로운 단계를 입력하세요.
                 <button class="remove-step" style="display: inline-block;">×</button>`;
             stepsList.appendChild(newStep);
-            
+
             const removeBtn = newStep.querySelector('.remove-step');
             removeBtn.addEventListener('click', () => newStep.remove());
-            
+
             newStep.focus();
             document.execCommand('selectAll', false, null);
         });
-        
+
         removeSectionBtn.addEventListener('click', () => {
             if (confirm('이 섹션을 삭제하시겠습니까?')) {
                 section.remove();
             }
         });
-        
+
         removeStepBtns.forEach(btn => {
             btn.addEventListener('click', () => btn.parentElement.remove());
         });
@@ -537,7 +537,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // 조리시간 및 난이도 표시 업데이트 함수
     function updateTimeAndDifficultyDisplay(recipe) {
         // 조리시간 표시 업데이트
-        const timeValueEl = cookingTimeDisplay.querySelector('.time-value span') || 
+        const timeValueEl = cookingTimeDisplay.querySelector('.time-value span') ||
                            cookingTimeDisplay.querySelector('span');
         if (timeValueEl) {
             if (recipe.cookMinutes) {
@@ -548,7 +548,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         // 난이도 표시 업데이트
-        const difficultyValueEl = difficultyDisplay.querySelector('.difficulty-value span') || 
+        const difficultyValueEl = difficultyDisplay.querySelector('.difficulty-value span') ||
                                  difficultyDisplay.querySelector('span');
         if (difficultyValueEl) {
             if (recipe.difficulty === 'EASY') {
@@ -615,11 +615,11 @@ document.addEventListener('DOMContentLoaded', function () {
     if (addIngredientBtn) {
         addIngredientBtn.addEventListener('click', addIngredient);
     }
-    
+
     if (addSectionBtn) {
         addSectionBtn.addEventListener('click', addRecipeSection);
     }
-    
+
     // 이미지 업로드 이벤트 리스너
     if (imageUpload) {
         imageUpload.addEventListener('change', handleImageUpload);

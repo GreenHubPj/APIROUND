@@ -70,13 +70,14 @@
 
         <div class="book-layout">
             <!-- 왼쪽 페이지 - 재료와 이미지 -->
-            <div class="recipe-image">
-                <img src="${recipe.thumbnailUrl}" alt="레시피 썸네일" class="recipe-main-image" id="recipeMainImage" />
-                <div class="image-upload">
-                    <input type="file" id="thumbnailUpload" accept="image/*" />
-                    <label for="thumbnailUpload" class="upload-btn">이미지 변경</label>
+            <div class="left-page">
+                <div class="recipe-image">
+                    <img src="" alt="" class="recipe-main-image" id="recipeMainImage" />
+                    <div class="image-upload" style="display: none;">
+                        <input type="file" id="imageUpload" accept="image/*" />
+                        <label for="imageUpload" class="upload-btn">이미지 변경</label>
+                    </div>
                 </div>
-            </div>
 
                 <div class="ingredients-section">
                     <h3 class="ingredients-title">재료</h3>

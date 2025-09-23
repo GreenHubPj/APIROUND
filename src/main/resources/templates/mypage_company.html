@@ -131,6 +131,13 @@
                 <p class="module-description">농장 정보, 연락처, 주소 등 업체 정보를 수정할 수 있습니다.</p>
             </div>
 
+            <!-- 레시피 관리 모듈 (company_id = 3인 회사에게만 표시) -->
+            <div th:if="${comp != null && comp.companyId != null && comp.companyId == 3}" class="module-item" data-module="recipe-management" tabindex="0" role="button" aria-label="레시피관리">
+                <div class="module-icon"><span class="icon">🍳</span></div>
+                <h3 class="module-title">레시피관리</h3>
+                <p class="module-description">레시피를 승인, 거부, 게시, 삭제할 수 있는 관리자 기능입니다.</p>
+            </div>
+
             <!-- 업체 로그인 사용자에게만 표시되는 알림 메일 전송 버튼 -->
             <div th:if="${currentCompany != null}" class="module-item" data-module="email-notification" tabindex="0" role="button" aria-label="알림 메일 전송">
                 <div class="module-icon"><span class="icon">📧</span></div>
