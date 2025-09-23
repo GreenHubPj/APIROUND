@@ -540,6 +540,12 @@ async function updateOrderStatusWithServer(button, orderItem) {
 
             updateStatusCardsFromState();
             updateDailySummaryText();
+            
+            // mypage-company 통계 업데이트 (해당 페이지가 열려있는 경우)
+            if (typeof window.updateCompanyStats === 'function') {
+                window.updateCompanyStats();
+            }
+            
             showNotification('주문 상태가 업데이트되었습니다.', 'success');
         } else {
             showNotification(result.message || '상태 업데이트에 실패했습니다.', 'error');
