@@ -64,9 +64,9 @@
             <!-- 탭 메뉴 -->
             <div class="delivery-tabs">
                 <button class="tab-button active" data-tab="all">전체</button>
-                <button class="tab-button" data-tab="preparing">배송 준비</button>
-                <button class="tab-button" data-tab="delivering">배송중</button>
-                <button class="tab-button" data-tab="completed">배송 완료</button>
+                <button data-item-id="[[${item.orderItemId}]]" class="tab-button" data-status="PREPARING">배송 준비중</button>
+                <button data-item-id="[[${item.orderItemId}]]" class="tab-button" data-status="SHIPPED">배송중</button>
+                <button data-item-id="[[${item.orderItemId}]]" class="tab-button" data-status="DELIVERED">배송완료</button>
                 <button class="tab-button" data-tab="return">교환/환불</button>
             </div>
 

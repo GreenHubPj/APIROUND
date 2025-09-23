@@ -20,12 +20,12 @@ import org.springframework.util.StringUtils;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Transactional // 기본 R/W 트랜잭션
 public class VendorOrderServiceImpl implements VendorOrderService {
 
     private final OrderRepository orderRepository;
@@ -33,6 +33,118 @@ public class VendorOrderServiceImpl implements VendorOrderService {
     private final ProductListingRepository productListingRepository;
     private final SpecialtyProductRepository specialtyProductRepository;
 
+    /* ========================================================================
+     * 판매자가 개별 아이템 상태 변경
+     * ====================================================================== */
+    @Override
+    public void updateItemStatus(Integer companyId, Integer orderItemId, String nextStatus,
+                                 String courierName, String trackingNumber) {
+        OrderItem item = orderItemRepository.findById(orderItemId)
+                .orElseThrow(() -> new IllegalArgumentException("아이템을 찾을 수 없습니다."));
+
+        // 내 회사의 아이템인지 확인
+        if (!Objects.equals(item.getCompanyId(), companyId)) {
+            throw new IllegalArgumentException("본인 아이템만 변경할 수 있습니다.");
+        }
+
+        String ns = normalizeStatus(nextStatus); // PREPARING / SHIPPED / DELIVERED
+        if (!List.of("PREPARING","SHIPPED","DELIVERED").contains(ns)) {
+            throw new IllegalArgumentException("허용되지 않는 상태값입니다.");
+        }
+
+        item.setItemStatus(ns);
+        if (courierName != null) item.setCourierName(courierName);
+        if (trackingNumber != null) item.setTrackingNumber(trackingNumber);
+        item.setUpdatedAt(LocalDateTime.now());
+
+        orderItemRepository.save(item);
+
+        // 부모 주문 상태 집계
+        aggregateOrderStatus(item.getOrder().getOrderId());
+    }
+
+    /* ========================================================================
+     * 판매자가 특정 주문의 "내 아이템 전부" 상태 일괄 변경
+     * ====================================================================== */
+    @Override
+    public void updateAllMyItemsOfOrder(Integer companyId, Integer orderId, String nextStatus,
+                                        String courierName, String trackingNumber) {
+        if (companyId == null || orderId == null) {
+            throw new IllegalArgumentException("companyId, orderId는 필수입니다.");
+        }
+
+        String ns = normalizeStatus(nextStatus);
+        if (!List.of("PREPARING","SHIPPED","DELIVERED").contains(ns)) {
+            throw new IllegalArgumentException("허용되지 않는 상태값입니다.");
+        }
+
+        // 해당 주문에서 내 회사의 아이템들만
+        List<OrderItem> myItems = orderItemRepository
+                .findByCompanyIdAndOrder_OrderIdAndIsDeletedFalse(companyId, orderId);
+
+        if (myItems.isEmpty()) {
+            throw new IllegalArgumentException("변경할 아이템이 없습니다. (다른 판매사 주문이거나 빈 주문)");
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+        for (OrderItem oi : myItems) {
+            oi.setItemStatus(ns);
+            if (courierName != null) oi.setCourierName(courierName);
+            if (trackingNumber != null) oi.setTrackingNumber(trackingNumber);
+            oi.setUpdatedAt(now);
+        }
+        orderItemRepository.saveAll(myItems);
+
+        // 부모 주문 상태 집계
+        aggregateOrderStatus(orderId);
+    }
+
+    /** 입력 상태 문자열을 상수형 코드로 정규화 */
+    private String normalizeStatus(String s) {
+        if (s == null) return "PREPARING";
+        String v = s.trim().toUpperCase(Locale.ROOT);
+        // 한글/약칭 대응
+        switch (v) {
+            case "배송중": case "배송 중": case "SHIPPING":  return "SHIPPED";
+            case "배송완료": case "완료": case "COMPLETED":   return "DELIVERED";
+            case "준비중": case "준비 중":                    return "PREPARING";
+            default:                                          return v; // 이미 코드면 그대로
+        }
+    }
+
+    /**
+     * 같은 주문의 모든 아이템 상태를 보고 부모 주문(orders.status)을 갱신.
+     * 규칙:
+     *  - 모두 DELIVERED -> DELIVERED
+     *  - 그 외에 SHIPPED가 하나라도 있으면 -> SHIPPED
+     *  - 그 외 -> PREPARING
+     */
+    private void aggregateOrderStatus(Integer orderId) {
+        List<OrderItem> items = orderItemRepository.findByOrder_OrderId(orderId);
+        if (items.isEmpty()) return;
+
+        boolean allDelivered = items.stream()
+                .allMatch(i -> "DELIVERED".equalsIgnoreCase(nvl(i.getItemStatus())));
+        boolean anyShipped = items.stream()
+                .anyMatch(i -> "SHIPPED".equalsIgnoreCase(nvl(i.getItemStatus())));
+
+        String parent;
+        if (allDelivered) parent = "DELIVERED";
+        else if (anyShipped) parent = "SHIPPED";
+        else parent = "PREPARING";
+
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new IllegalArgumentException("부모 주문을 찾을 수 없습니다."));
+        order.setStatus(parent);
+        order.setUpdatedAt(LocalDateTime.now());
+        orderRepository.save(order);
+    }
+
+    private static String nvl(String s) { return s == null ? "" : s; }
+
+    /* ========================================================================
+     * 판매사 - 주문 리스트
+     * ====================================================================== */
     @Override
     @Transactional(readOnly = true)
     public List<VendorOrderSummaryDto> findMyOrders(Integer companyId) {
@@ -119,6 +231,9 @@ public class VendorOrderServiceImpl implements VendorOrderService {
         return result;
     }
 
+    /* ========================================================================
+     * 판매사 - 주문 상세
+     * ====================================================================== */
     @Override
     @Transactional(readOnly = true)
     public VendorOrderDetailDto findMyOrderDetail(String idOrNumber, Integer companyId) {
@@ -128,7 +243,8 @@ public class VendorOrderServiceImpl implements VendorOrderService {
         Order order = resolveOrderByIdOrNumber(idOrNumber)
                 .orElseThrow(() -> new IllegalArgumentException("주문 정보를 찾을 수 없습니다."));
 
-        List<OrderItem> rows = orderItemRepository.findByCompanyIdAndOrder_OrderIdAndIsDeletedFalse(companyId, order.getOrderId());
+        List<OrderItem> rows = orderItemRepository
+                .findByCompanyIdAndOrder_OrderIdAndIsDeletedFalse(companyId, order.getOrderId());
         if (rows.isEmpty()) {
             throw new IllegalArgumentException("해당 판매사의 주문이 아닙니다.");
         }
@@ -182,8 +298,8 @@ public class VendorOrderServiceImpl implements VendorOrderService {
                     .unitPrice(unit)
                     .lineAmount(line)
                     .itemStatus(r.getItemStatus())
-                    .courierName(null)
-                    .trackingNumber(null)
+                    .courierName(r.getCourierName())
+                    .trackingNumber(r.getTrackingNumber())
                     .build());
         }
 
@@ -207,7 +323,9 @@ public class VendorOrderServiceImpl implements VendorOrderService {
                 .build();
     }
 
-    /** ✅ 대시보드 집계 */
+    /* ========================================================================
+     * 판매사 - 대시보드
+     * ====================================================================== */
     @Override
     @Transactional(readOnly = true)
     public VendorOrderDashboardDto loadDashboard(Integer companyId, LocalDate start, LocalDate end) {
@@ -215,14 +333,10 @@ public class VendorOrderServiceImpl implements VendorOrderService {
 
         LocalDate s = (start == null) ? LocalDate.now().minusDays(30) : start;
         LocalDate e = (end == null) ? LocalDate.now() : end;
-        LocalDateTime from = s.atStartOfDay();
-        LocalDateTime to = e.plusDays(1).atStartOfDay();
 
-        // 벤더 아이템 전체 조회(기존 리포지토리 활용), 날짜 필터는 Order.createdAt 기준으로 자바에서 필터
+        // 벤더 아이템 전체 조회(주문일 기준 최신순)
         List<OrderItem> allVendorItems = orderItemRepository.findActiveByCompanyOrderByOrderCreatedDesc(companyId);
-        if (allVendorItems.isEmpty()) {
-            return emptyDashboard();
-        }
+        if (allVendorItems.isEmpty()) return emptyDashboard();
 
         // 관련 주문 로딩
         LinkedHashSet<Integer> orderIds = allVendorItems.stream()
@@ -233,29 +347,25 @@ public class VendorOrderServiceImpl implements VendorOrderService {
         Map<Integer, Order> orderMap = orders.stream()
                 .collect(Collectors.toMap(Order::getOrderId, o -> o));
 
-        // 기간 내 주문만 선별
+        // 기간 내 주문만 (order.createdAt의 날짜 기준)
         Set<Integer> inRangeOrderIds = orders.stream()
-                .filter(o -> o.getCreatedAt() != null &&
-                        !o.getCreatedAt().isBefore(from) &&
-                        o.getCreatedAt().isBefore(to))
+                .filter(o -> o.getCreatedAt() != null) // null 보호
+                .filter(o -> {
+                    LocalDate d = o.getCreatedAt().toLocalDate();
+                    return !d.isBefore(s) && !d.isAfter(e);
+                })
                 .map(Order::getOrderId)
                 .collect(Collectors.toSet());
 
-        if (inRangeOrderIds.isEmpty()) {
-            return emptyDashboard();
-        }
+        if (inRangeOrderIds.isEmpty()) return emptyDashboard();
 
-        // 주문별 벤더 소계
+        // 집계용 맵
         Map<Integer, BigDecimal> vendorSubtotalByOrder = new HashMap<>();
-        // 상태 카운트
         Map<String, Integer> statusCounts = new HashMap<>();
-
-        // 시간대/일자 집계 및 베스트 상품
         Map<LocalDate, BigDecimal> daily = new TreeMap<>();
         Map<Integer, BigDecimal> hourly = new TreeMap<>();
         Map<String, BigDecimal> productSum = new HashMap<>();
 
-        // 먼저 in-range 주문의 벤더 라인만 합산
         for (OrderItem r : allVendorItems) {
             Order o = r.getOrder();
             if (o == null || o.getCreatedAt() == null) continue;
@@ -264,20 +374,17 @@ public class VendorOrderServiceImpl implements VendorOrderService {
             BigDecimal line = nz(r.getLineAmount());
             vendorSubtotalByOrder.merge(o.getOrderId(), line, BigDecimal::add);
 
-            // 일자 합
             LocalDate d = o.getCreatedAt().toLocalDate();
             daily.merge(d, line, BigDecimal::add);
 
-            // 시간 합
             int hour = o.getCreatedAt().getHour();
             hourly.merge(hour, line, BigDecimal::add);
 
-            // 베스트 상품
             String pname = StringUtils.hasText(r.getProductNameSnap()) ? r.getProductNameSnap() : "상품";
             productSum.merge(pname, line, BigDecimal::add);
         }
 
-        // 상태카운트(주문 단위)
+        // 상태 카운트 (주문 단위)
         for (Integer oid : inRangeOrderIds) {
             Order o = orderMap.get(oid);
             if (o == null) continue;
@@ -285,31 +392,34 @@ public class VendorOrderServiceImpl implements VendorOrderService {
             statusCounts.merge(sStatus, 1, Integer::sum);
         }
 
-        // 요약
+        // 최신순 정렬
         List<Map.Entry<Integer, BigDecimal>> orderList = vendorSubtotalByOrder.entrySet().stream()
                 .sorted((a, b) -> {
-                    LocalDateTime ta = Optional.ofNullable(orderMap.get(a.getKey())).map(Order::getCreatedAt).orElse(LocalDateTime.MIN);
-                    LocalDateTime tb = Optional.ofNullable(orderMap.get(b.getKey())).map(Order::getCreatedAt).orElse(LocalDateTime.MIN);
+                    LocalDateTime ta = Optional.ofNullable(orderMap.get(a.getKey()))
+                            .map(Order::getCreatedAt).orElse(LocalDateTime.MIN);
+                    LocalDateTime tb = Optional.ofNullable(orderMap.get(b.getKey()))
+                            .map(Order::getCreatedAt).orElse(LocalDateTime.MIN);
                     return tb.compareTo(ta);
                 })
                 .toList();
 
-        BigDecimal totalSales = orderList.stream().map(Map.Entry::getValue).reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal totalSales = orderList.stream().map(Map.Entry::getValue)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
         int totalOrders = orderList.size();
-        BigDecimal avgAmount = totalOrders == 0 ? BigDecimal.ZERO : totalSales.divide(BigDecimal.valueOf(totalOrders), 0, BigDecimal.ROUND_HALF_UP);
+        BigDecimal avgAmount = totalOrders == 0
+                ? BigDecimal.ZERO
+                : totalSales.divide(BigDecimal.valueOf(totalOrders), 0, BigDecimal.ROUND_HALF_UP);
 
         int done = statusCounts.getOrDefault("DELIVERED", 0);
         String completionRate = (totalOrders == 0) ? "0%" : String.format(Locale.ROOT, "%.1f%%", (done * 100.0 / totalOrders));
 
-        // 최다 주문시간 (단일 시간 기준)
         int peakHour = hourly.entrySet().stream()
-                .max(Comparator.comparing(Map.Entry::getValue))
+                .max(Map.Entry.comparingByValue())
                 .map(Map.Entry::getKey).orElse(0);
         String peakHourLabel = String.format("%02d:00", peakHour);
 
-        // 베스트 상품
         String bestProduct = productSum.entrySet().stream()
-                .max(Comparator.comparing(Map.Entry::getValue))
+                .max(Map.Entry.comparingByValue())
                 .map(Map.Entry::getKey).orElse("-");
 
         VendorOrderDashboardDto.Summary summary = VendorOrderDashboardDto.Summary.builder()
@@ -331,7 +441,7 @@ public class VendorOrderServiceImpl implements VendorOrderService {
                 .TOTAL(totalOrders)
                 .build();
 
-        // 주문 행(상단 리스트용) – 최신순
+        // 주문 행(최신순)
         List<VendorOrderDashboardDto.OrderRow> rows = orderList.stream()
                 .map(e1 -> {
                     Order o = orderMap.get(e1.getKey());
@@ -351,7 +461,7 @@ public class VendorOrderServiceImpl implements VendorOrderService {
                         .build())
                 .toList();
 
-        // 시간별 그래프 포맷(0~23 보정)
+        // 시간별 그래프 포맷(0~23 채우기)
         List<VendorOrderDashboardDto.DataPoint> hourlyPoints = new ArrayList<>();
         for (int h = 0; h < 24; h++) {
             hourlyPoints.add(VendorOrderDashboardDto.DataPoint.builder()
@@ -399,9 +509,10 @@ public class VendorOrderServiceImpl implements VendorOrderService {
         }
     }
 
+    /* DB status → 화면용 상태 문자열 */
     private String mapUiStatus(String db) {
         if (db == null) return "preparing";
-        switch (db.toUpperCase()) {
+        switch (db.toUpperCase(Locale.ROOT)) {
             case "DELIVERED": return "completed";
             case "SHIPPED":   return "shipping";
             case "CANCELLED":
@@ -413,5 +524,6 @@ public class VendorOrderServiceImpl implements VendorOrderService {
             default:          return "preparing";
         }
     }
+
     private BigDecimal nz(BigDecimal v) { return v == null ? BigDecimal.ZERO : v; }
 }

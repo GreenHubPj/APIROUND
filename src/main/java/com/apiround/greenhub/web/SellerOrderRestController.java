@@ -1,6 +1,7 @@
 // src/main/java/com/apiround/greenhub/web/SellerOrderRestController.java
 package com.apiround.greenhub.web;
 
+import com.apiround.greenhub.web.dto.UpdateItemStatusRequest;
 import com.apiround.greenhub.web.dto.vendor.VendorOrderDetailDto;
 import com.apiround.greenhub.web.dto.vendor.VendorOrderSummaryDto;
 import com.apiround.greenhub.web.service.VendorOrderService;
@@ -55,5 +56,35 @@ public class SellerOrderRestController {
                 "success", true,
                 "order", detail
         ));
+    }
+
+    // 아이템 단건 상태 변경
+    @PatchMapping("/items/{orderItemId}/status")
+    public ResponseEntity<?> updateItemStatus(@PathVariable Integer orderItemId,
+                                              @RequestBody UpdateItemStatusRequest req,
+                                              HttpSession session) {
+        Integer companyId = (Integer) session.getAttribute("loginCompanyId");
+        if (companyId == null) {
+            return ResponseEntity.status(401).body(Map.of("success", false, "message", "판매사 로그인이 필요합니다."));
+        }
+        try {
+            vendorOrderService.updateItemStatus(companyId, orderItemId, req.getStatus(),
+                    req.getCourierName(), req.getTrackingNumber());
+            return ResponseEntity.ok(Map.of("success", true));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of("success", false, "message", "상태 변경 실패"));
+        }
+    }
+    @PatchMapping("/orders/{orderId}/status")
+    public ResponseEntity<?> updateOrderItemsStatus(@PathVariable Integer orderId,
+                                                    @RequestBody UpdateItemStatusRequest req,
+                                                    HttpSession session) {
+        Integer companyId = (Integer) session.getAttribute("loginCompanyId");
+        if (companyId == null) return ResponseEntity.status(401).body(Map.of("success", false, "message", "판매사 로그인이 필요합니다."));
+        vendorOrderService.updateAllMyItemsOfOrder(companyId, orderId, req.getStatus(),
+                req.getCourierName(), req.getTrackingNumber());
+        return ResponseEntity.ok(Map.of("success", true));
     }
 }
