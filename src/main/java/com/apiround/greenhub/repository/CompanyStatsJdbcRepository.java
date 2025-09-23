@@ -12,38 +12,44 @@ public class CompanyStatsJdbcRepository {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    /** 업체 기준 총 주문건 수 (해당 업체가 포함된 주문의 고유 건수) */
+    /** 업체 기준 총 주문건 수 (orders 테이블 기준) */
     public long countTotalOrdersByCompany(int companyId) {
         String sql = """
-            SELECT COUNT(DISTINCT oi.order_id)
-            FROM order_item oi
+            SELECT COUNT(DISTINCT o.order_id)
+            FROM orders o
+            JOIN order_item oi ON oi.order_id = o.order_id
             WHERE oi.company_id = ?
+              AND (o.is_deleted = 0 OR o.is_deleted IS NULL)
               AND (oi.is_deleted = 0 OR oi.is_deleted IS NULL)
         """;
         Long v = jdbcTemplate.queryForObject(sql, Long.class, companyId);
         return v != null ? v : 0L;
     }
 
-    /** 배송완료 아이템 수 */
+    /** 배송완료 주문 수 (orders 테이블 status 기준) */
     public long countDeliveredItemsByCompany(int companyId) {
         String sql = """
-            SELECT COUNT(*)
-            FROM order_item oi
+            SELECT COUNT(DISTINCT o.order_id)
+            FROM orders o
+            JOIN order_item oi ON oi.order_id = o.order_id
             WHERE oi.company_id = ?
-              AND oi.item_status = 'DELIVERED'
+              AND o.status = 'DELIVERED'
+              AND (o.is_deleted = 0 OR o.is_deleted IS NULL)
               AND (oi.is_deleted = 0 OR oi.is_deleted IS NULL)
         """;
         Long v = jdbcTemplate.queryForObject(sql, Long.class, companyId);
         return v != null ? v : 0L;
     }
 
-    /** 진행중 아이템 수 */
+    /** 진행중 주문 수 (orders 테이블 status 기준) */
     public long countPendingItemsByCompany(int companyId) {
         String sql = """
-            SELECT COUNT(*)
-            FROM order_item oi
+            SELECT COUNT(DISTINCT o.order_id)
+            FROM orders o
+            JOIN order_item oi ON oi.order_id = o.order_id
             WHERE oi.company_id = ?
-              AND oi.item_status IN ('PENDING','PAID','PREPARING','SHIPPED')
+              AND o.status IN ('PENDING','PAID','PREPARING','SHIPPED')
+              AND (o.is_deleted = 0 OR o.is_deleted IS NULL)
               AND (oi.is_deleted = 0 OR oi.is_deleted IS NULL)
         """;
         Long v = jdbcTemplate.queryForObject(sql, Long.class, companyId);

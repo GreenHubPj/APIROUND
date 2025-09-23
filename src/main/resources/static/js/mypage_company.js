@@ -260,18 +260,36 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!modulesGrid || !companyStats) return;
 
         if (window.innerWidth <= 480) {
+            // 모바일: 1열
             modulesGrid.style.gridTemplateColumns = '1fr';
             companyStats.style.gridTemplateColumns = '1fr';
         } else if (window.innerWidth <= 768) {
+            // 태블릿: 2열
             modulesGrid.style.gridTemplateColumns = 'repeat(2, 1fr)';
             companyStats.style.gridTemplateColumns = 'repeat(2, 1fr)';
         } else {
+            // 데스크톱: 3열 (모듈), 4열 (통계)
             modulesGrid.style.gridTemplateColumns = 'repeat(3, 1fr)';
             companyStats.style.gridTemplateColumns = 'repeat(4, 1fr)';
         }
     }
-    window.addEventListener('resize', handleResize);
+    
+    // 초기 로드 시 반응형 적용
     handleResize();
+    
+    // 리사이즈 이벤트 리스너 등록
+    window.addEventListener('resize', handleResize);
+    
+    // 통계 실시간 업데이트 (주문 상태 변경 시)
+    function updateStats() {
+        // 통계 숫자 애니메이션 재실행
+        animateNumbers();
+    }
+    
+    // 주문 상태 변경 시 통계 업데이트 (전역 함수로 등록)
+    window.updateCompanyStats = updateStats;
+
+
 
     // 모듈/통계 애니메이션
     function addAnimation() {
