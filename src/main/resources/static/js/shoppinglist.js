@@ -426,7 +426,9 @@ document.addEventListener('DOMContentLoaded', function() {
                             <span class="seller-name">GreenHub</span>
                         </div>
                         <div class="product-details">
-                            <img src="/images/default-product.jpg" alt="${item.optionName || item.title}" class="product-image">
+                            <img src="/api/listings/${item.optionId}/thumbnail"
+                                 onerror="this.src='/images/과일 트럭.png'"
+                                 class="product-image">
                             <div class="product-info">
                                 <h3 class="product-name">${item.optionName || item.title}</h3>
                                 <p class="product-description">신선한 농산물을 만나보세요.</p>

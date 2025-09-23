@@ -1,9 +1,16 @@
 /* 기본 스타일 */
+* {
+    box-sizing: border-box;
+}
+
 body {
     font-family: 'Noto Sans KR', sans-serif;
     line-height: 1.6;
     color: #333;
     background-color: #f8f9fa;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
 }
 
 /* 메인 콘텐츠 */
@@ -11,6 +18,8 @@ body {
     max-width: 1200px;
     margin: 0 auto;
     padding: 2rem;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 /* 페이지 헤더 */
@@ -98,6 +107,8 @@ body {
     overflow: hidden;
     display: flex;
     transition: all 0.3s ease;
+    width: 100%;
+    max-width: 100%;
 }
 
 .product-card:hover {
@@ -109,6 +120,7 @@ body {
 .product-image {
     position: relative;
     width: 500px;
+    max-width: 100%;
     overflow: hidden;
     border-radius: 15px;
 }
@@ -169,10 +181,13 @@ body {
     display: flex;
     align-items: flex-start;
     gap: 1rem;
+    width: 100%;
+    max-width: 100%;
 }
 
 .product-detail-img {
     width: 300px;
+    max-width: 100%;
     border-radius: 10px;
     object-fit: cover;
 }
@@ -210,6 +225,8 @@ body {
     flex-wrap: wrap;
     flex-direction: column;
     flex: 1;
+    width: 100%;
+    max-width: 100%;
 }
 
 .price-option {
@@ -217,6 +234,9 @@ body {
     border-radius: 10px;
     padding: 1rem;
     transition: all 0.3s ease;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
 }
 
 .price-option:hover {
@@ -309,8 +329,19 @@ body {
 
 /* 반응형 디자인 */
 @media (max-width: 768px) {
+    * {
+        box-sizing: border-box;
+    }
+    
+    body {
+        overflow-x: hidden;
+    }
+    
     .main-content {
         padding: 1rem;
+        max-width: 100%;
+        width: 100%;
+        margin: 0;
     }
     
     .page-title {
@@ -320,19 +351,53 @@ body {
     .trend-bar {
         flex-direction: column;
         gap: 0.5rem;
+        width: 100%;
     }
     
     .product-card {
         flex-direction: column;
+        width: 100%;
+        margin: 0;
     }
     
     .product-image {
-        width: 100%;
+        width: 100% !important;
         height: 250px;
+        max-width: 100%;
+        flex-shrink: 0;
     }
     
     .product-info {
         padding: 1.5rem;
+        width: 100%;
+    }
+    
+    .product-detail {
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+    }
+    
+    .product-detail-img {
+        width: 100% !important;
+        max-width: 100%;
+        height: auto;
+        flex-shrink: 0;
+    }
+    
+    .product-status {
+        width: 100%;
+    }
+    
+    .price-selector {
+        width: 100%;
+        flex-direction: column;
+    }
+    
+    .price-option {
+        width: 100% !important;
+        margin-bottom: 0.5rem;
+        flex-shrink: 0;
     }
     
     .quantity-selector {
@@ -341,10 +406,34 @@ body {
     
     .recipe-tags {
         justify-content: center;
+        flex-wrap: wrap;
+        width: 100%;
+    }
+    
+    .recipe-tag {
+        flex-shrink: 0;
+        margin-bottom: 0.5rem;
+    }
+    
+    .company-info {
+        width: 100%;
+    }
+    
+    .product-actions {
+        width: 100%;
+        flex-direction: column;
+    }
+    
+    .btn-cart, .btn-buy {
+        width: 100%;
     }
 }
 
 @media (max-width: 480px) {
+    .main-content {
+        padding: 0.5rem;
+    }
+    
     .page-title {
         font-size: 1.5rem;
     }
@@ -357,6 +446,28 @@ body {
         flex-direction: column;
         text-align: center;
         gap: 0.25rem;
+    }
+    
+    .product-image {
+        height: 200px;
+    }
+    
+    .product-info {
+        padding: 1rem;
+    }
+    
+    .price-option {
+        padding: 0.8rem;
+    }
+    
+    .product-actions {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .btn-cart, .btn-buy {
+        padding: 12px 16px;
+        font-size: 14px;
     }
 }
 
