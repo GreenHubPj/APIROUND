@@ -75,6 +75,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // o: OrderDetailDto
     const items = (o.items || []).map(it => ({
       id: it.productId || it.listingId || null,
+      listingId: it.listingId,
       name: it.name,
       image: it.image || '/images/default-product.jpg',
       quantity: it.quantity,
@@ -172,6 +173,7 @@ document.addEventListener('DOMContentLoaded', function() {
       status: src.status,
       items: (src.items || []).map(it => ({
         id: it.id,
+        listingId: it.listingId,
         name: it.name,
         image: it.image,
         quantity: it.quantity,
@@ -231,7 +233,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const itemsList = document.getElementById('orderItemsList');
     itemsList.innerHTML = (items || []).map(item => `
       <div class="order-item-detail" data-product-id="${item.id}" onclick="goToProduct('${item.id || ''}')">
-        <img src="${item.image}" alt="${item.name}" class="item-image-detail">
+        <img src="/api/listings/${item.listingId}/thumbnail" 
+             alt="${item.name}" 
+             class="item-image-detail"
+             onerror="this.onerror=null;this.src='/images/농산물.png'">
         <div class="item-info-detail">
           <div class="item-name-detail">${item.name}</div>
           <div class="item-details-detail">
@@ -434,6 +439,7 @@ document.addEventListener('DOMContentLoaded', function() {
     } else {
       cartItems.push({
         id: product.id,
+        listingId: product.listingId,
         name: product.name,
         price: product.price,
         quantity: product.quantity,
@@ -457,6 +463,7 @@ document.addEventListener('DOMContentLoaded', function() {
       orderData.items.forEach(item => {
         addToCart({
           id: item.id,
+          listingId: item.listingId,
           name: item.name,
           price: item.unitPrice,
           quantity: item.quantity,

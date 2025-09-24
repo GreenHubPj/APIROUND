@@ -40,7 +40,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const itemsHtml = (order.items || []).map(item => `
       <div class="order-item">
-        <img src="${item.image || '/images/default-product.jpg'}" alt="${item.name}" class="item-image">
+        <img src="/api/listings/${item.listingId}/thumbnail" alt="${item.name}" class="item-image" onerror="this.onerror=null;this.src='/images/농산물.png'">
         <div class="item-info">
           <div class="item-name">${item.name}</div>
           <div class="item-details">
@@ -271,6 +271,7 @@ document.addEventListener('DOMContentLoaded', function () {
           items: (o.items || []).map(it => ({
             name: it.name,
             image: it.image,
+            listingId: it.listingId,
             quantity: it.quantity,
             unit: it.unit,
             optionText: it.optionText,

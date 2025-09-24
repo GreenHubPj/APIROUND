@@ -1,12 +1,13 @@
 package com.apiround.greenhub.repository.item;
 
-import com.apiround.greenhub.entity.item.Region;
-import com.apiround.greenhub.entity.item.Seasonal;
+import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import java.util.List;
+import com.apiround.greenhub.entity.item.Region;
+import com.apiround.greenhub.entity.item.Seasonal;
 
 public interface SeasonalRepository extends JpaRepository<Seasonal, Long> {
 

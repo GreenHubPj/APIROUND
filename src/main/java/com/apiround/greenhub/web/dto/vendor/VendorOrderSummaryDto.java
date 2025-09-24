@@ -1,11 +1,11 @@
 package com.apiround.greenhub.web.dto.vendor;
 
-import lombok.Builder;
-import lombok.Getter;
-
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+
+import lombok.Builder;
+import lombok.Getter;
 
 @Getter
 @Builder
@@ -28,5 +28,6 @@ public class VendorOrderSummaryDto {
         private String  unit;
         private String  optionText;
         private BigDecimal price;
+        private Integer listingId;     // ✅ 추가: ListingImageController용
     }
 }

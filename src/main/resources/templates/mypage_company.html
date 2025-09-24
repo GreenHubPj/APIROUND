@@ -165,18 +165,18 @@
                 <p>SMS 동의한 고객 <span id="recipientCount">-</span>명에게 메일을 발송합니다.</p>
                 <button type="button" id="checkRecipientsBtn" class="btn-secondary">수신자 확인</button>
             </div>
-            
+
             <form id="emailForm">
                 <div class="form-group">
                     <label for="emailSubject">제목</label>
                     <input type="text" id="emailSubject" name="subject" placeholder="메일 제목을 입력하세요" required>
                 </div>
-                
+
                 <div class="form-group">
                     <label for="emailMessage">내용</label>
                     <textarea id="emailMessage" name="message" rows="6" placeholder="메일 내용을 입력하세요&#10;&#10;" required></textarea>
                 </div>
-                
+
                 <div class="form-actions">
                     <button type="button" onclick="closeEmailModal()" class="btn-cancel">취소</button>
                     <button type="submit" class="btn-send">메일 발송</button>

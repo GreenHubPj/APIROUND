@@ -27,10 +27,10 @@
              th:data-product-id="${region.productId}" 
              th:onclick="'goToProductDetail(' + ${region.productId} + ')'">
             <!-- 썸네일 -->
-            <img th:src="${region.thumbnailUrl != null ? region.thumbnailUrl : '/images/따봉 트럭.png'}"
-                 th:alt="${region.productName}" 
-                 class="product-image"
-                 th:onerror="|this.onerror=null;this.src='@{/images/따봉 트럭.png}'|">
+                <img th:src="@{/api/products/{id}/thumbnail(id=${region.productId})}"
+                     th:alt="${region.productName}"
+                     class="product-image" 
+                     th:onerror="|this.onerror=null;this.src='@{/images/따봉 트럭.png}'|">
 
             <div class="product-info">
                 <!-- 상품명 -->

@@ -349,9 +349,35 @@ body {
     }
     
     .trend-bar {
-        flex-direction: column;
+        flex-direction: row;
         gap: 0.5rem;
         width: 100%;
+        padding: 1rem;
+        justify-content: space-between;
+    }
+    
+    .trend-item {
+        flex: 1;
+        max-width: calc(33.333% - 0.5rem);
+        padding: 0.3rem 0.8rem;
+        font-size: 0.8rem;
+        text-align: center;
+    }
+    
+    .trend-item:nth-child(n+4) {
+        display: none;
+    }
+    
+    .rank {
+        font-size: 0.9rem;
+    }
+    
+    .product-name {
+        font-size: 0.8rem;
+    }
+    
+    .trend-icon {
+        font-size: 0.7rem;
     }
     
     .product-card {
@@ -443,9 +469,29 @@ body {
     }
     
     .trend-item {
-        flex-direction: column;
+        flex-direction: row;
         text-align: center;
         gap: 0.25rem;
+        padding: 0.2rem 0.6rem;
+        font-size: 0.7rem;
+        flex: 1;
+        max-width: calc(33.333% - 0.5rem);
+    }
+    
+    .trend-item:nth-child(n+4) {
+        display: none;
+    }
+    
+    .rank {
+        font-size: 0.8rem;
+    }
+    
+    .product-name {
+        font-size: 0.7rem;
+    }
+    
+    .trend-icon {
+        font-size: 0.6rem;
     }
     
     .product-image {
