@@ -119,12 +119,23 @@ public class CartService {
      * Entity -> DTO 변환
      */
     private CartDto.Response toResponseDto(CartEntity cart) {
+        var option   = cart.getPriceOption();
+        var listing  = option.getProductListing(); // 이미 쓰고 있던 연관
+
+        Integer listingId = (listing != null) ? listing.getListingId() : null;
+        String imageUrl   = (listingId != null) ? ("/api/listings/" + listingId + "/thumbnail") : null;
+
         return CartDto.Response.builder()
                 .cartId(cart.getCartId())
-                .optionId(cart.getPriceOption().getOptionId())
-                .optionName(cart.getPriceOption().getProductListing().getTitle())  // 실제 필드명에 맞게 수정 필요
+                .optionId(option.getOptionId())
+                .optionName(option.getOptionLabel()) // ✅ 옵션 라벨
                 .quantity(cart.getQuantity())
                 .unit(cart.getUnit())
+
+                .title(listing != null ? listing.getTitle() : null) // ✅ 상품 제목
+                .listingId(listingId)
+                .imageUrl(imageUrl) // ✅ LOB을 서빙하는 엔드포인트
+
                 .unitPrice(cart.getUnitPrice())
                 .totalPrice(cart.getTotalPrice())
                 .build();

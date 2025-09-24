@@ -196,28 +196,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const totalAmount = calculateTotalAmount(selectedItems);
             if (confirm(`선택한 ${selectedItems.length}개 상품을 총 ${totalAmount.toLocaleString()}원에 주문하시겠습니까?`)) {
-                const cartIds = selectedItems.map(item => item.cartId);
-                const results = await processOrder(cartIds);
-                
-                if (results && results.length > 0) {
-                    const successCount = results.filter(r => r.success).length;
-                    const failCount = results.filter(r => !r.success).length;
-                    
-                    if (successCount === results.length) {
-                        alert('모든 주문이 완료되었습니다!');
-                    } else if (successCount > 0) {
-                        alert(`${successCount}개 주문 완료, ${failCount}개 주문 실패`);
-                    } else {
-                        alert('주문 처리에 실패했습니다.');
-                    }
-                    
-                    await renderCartItems();
-                    updateSelectAllState();
-                    updateDeleteButton();
-                    updateOrderSummary();
-                } else {
-                    alert('주문 처리에 실패했습니다.');
-                }
+                // 선택된 상품들의 cartId를 orderId로 전달
+                const selectedCartIds = selectedItems.map(item => item.cartId);
+                window.location.href = `/buying?orderId=${selectedCartIds.join(',')}`;
             }
         } catch (error) {
             console.error('최종 주문 처리 중 오류 발생:', error);
@@ -426,9 +407,11 @@ document.addEventListener('DOMContentLoaded', function() {
                             <span class="seller-name">GreenHub</span>
                         </div>
                         <div class="product-details">
-                            <img src="/images/default-product.jpg" alt="${item.optionName || item.title}" class="product-image">
+                           <img src="/api/listings/${item.listingId}/thumbnail"
+                                onerror="this.src='/images/과일 트럭.png'"
+                                class="product-image">
                             <div class="product-info">
-                                <h3 class="product-name">${item.optionName || item.title}</h3>
+                                <h3 class="product-name">${item.title || item.optionName}</h3>
                                 <p class="product-description">신선한 농산물을 만나보세요.</p>
                                 <div class="product-price">${item.unitPrice.toLocaleString()}원/${item.unit}</div>
                                 <div class="product-origin">
@@ -474,6 +457,12 @@ document.addEventListener('DOMContentLoaded', function() {
             `;
         }
     }
+
+    window.orderItem = function(cartId) {
+        console.log('orderItem 호출됨, cartId:', cartId);
+        // Controller가 받는 orderId 파라미터로 전달
+        window.location.href = `/buying?orderId=${cartId}`;
+    };
 
     // 수량 변경 함수 (API 호출)
     async function updateCartItemQuantity(cartId, newQuantity) {
@@ -598,60 +587,56 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
 
-    window.modifyOrder = async function(cartId) {
-        try {
-            const cartItems = await getCartItems();
-            const item = cartItems.find(item => item.cartId === cartId);
-            
-            if (item) {
-                const itemName = item.optionName || item.title;
-                const newQuantity = prompt(`${itemName}의 수량을 입력해주세요. (현재: ${item.quantity}${item.unit})`, item.quantity);
-                
-                if (newQuantity !== null && newQuantity !== '') {
-                    const quantity = parseInt(newQuantity);
-                    if (quantity > 0) {
-                        const result = await updateCartItemQuantity(cartId, quantity);
-                        if (result) {
-                            await renderCartItems();
-                            updateOrderSummary();
-                            alert('수량이 변경되었습니다.');
-                        } else {
-                            alert('수량 변경에 실패했습니다.');
-                        }
-                    } else {
-                        alert('수량은 1 이상이어야 합니다.');
-                    }
-                }
-            }
-        } catch (error) {
-            console.error('주문 수정 중 오류 발생:', error);
-            alert('주문 수정 중 오류가 발생했습니다.');
-        }
-    };
+   // modifyOrder 함수를 수정해서 각 단계별로 확인
+   window.modifyOrder = async function(cartId) {
+       console.log('=== modifyOrder 시작 ===');
+       console.log('받은 cartId:', cartId);
 
-    window.orderItem = async function(cartId) {
-        try {
-            const cartItems = await getCartItems();
-            const item = cartItems.find(item => item.cartId === cartId);
-            
-            if (item) {
-                const itemName = item.optionName || item.title;
-                if (confirm(`${itemName}을(를) 주문하시겠습니까?`)) {
-                    const results = await processOrder([cartId]);
-                    if (results && results.length > 0 && results[0].success) {
-                        alert('주문이 완료되었습니다!');
-                        await renderCartItems();
-                        updateOrderSummary();
-                    } else {
-                        alert('주문 처리에 실패했습니다.');
-                    }
-                }
-            }
-        } catch (error) {
-            console.error('개별 주문 처리 중 오류 발생:', error);
-            alert('주문 처리 중 오류가 발생했습니다.');
-        }
-    };
+       try {
+           console.log('getCartItems 호출 중...');
+           const cartItems = await getCartItems();
+           console.log('getCartItems 결과:', cartItems);
+
+           const item = cartItems.find(item => item.cartId == cartId);
+           console.log('찾은 item:', item);
+
+           if (item) {
+               console.log('item 발견됨:', item);
+               const itemName = item.optionName || item.title;
+
+               // prompt 창 호출 전 로그
+               const newQuantity = prompt(`${itemName}의 수량을 입력해주세요. (현재: ${item.quantity}${item.unit})`, item.quantity);
+               console.log('사용자 입력:', newQuantity);
+
+               if (newQuantity !== null && newQuantity !== '') {
+                   const quantity = parseInt(newQuantity);
+                   console.log('파싱된 수량:', quantity);
+
+                   if (quantity > 0) {
+                       const result = await updateCartItemQuantity(cartId, quantity);
+                       console.log('수량 업데이트 결과:', result);
+
+                       if (result) {
+                           await renderCartItems();
+                           updateOrderSummary();
+                           alert('수량이 변경되었습니다.');
+                           console.log('=== modifyOrder 완료 ===');
+                       } else {
+                           alert('수량 변경에 실패했습니다.');
+                       }
+                   } else {
+                       alert('수량은 1 이상이어야 합니다.');
+                   }
+               } else {
+                   console.log('사용자가 취소함');
+               }
+           } else {
+               alert('장바구니에서 해당 상품을 찾을 수 없습니다.');
+           }
+       } catch (error) {
+           alert('주문 수정 중 오류가 발생했습니다.');
+       }
+   };
 
     // 초기화 (API 기반)
     async function initialize() {

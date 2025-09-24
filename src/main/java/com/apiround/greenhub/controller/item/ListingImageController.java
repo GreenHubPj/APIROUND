@@ -20,17 +20,17 @@ public class ListingImageController {
 
         var listing = listingOpt.get();
 
-        // 1) DB 바이트 우선
+        // 1) DB의 LOB 우선
         if (listing.getThumbnailData() != null && listing.getThumbnailData().length > 0) {
             String mime = (listing.getThumbnailMime() == null || listing.getThumbnailMime().isBlank())
                     ? "image/jpeg" : listing.getThumbnailMime();
             return ResponseEntity.ok()
                     .header("Content-Type", mime)
-                    .header("Cache-Control", "public, max-age=86400") // 1일 캐시
+                    .header("Cache-Control", "public, max-age=86400")
                     .body(listing.getThumbnailData());
         }
 
-        // 2) 과거 URL이 있으면 302 리다이렉트(선택)
+        // 2) 과거 URL 보유 시 302
         if (listing.getThumbnailUrl() != null && !listing.getThumbnailUrl().isBlank()) {
             return ResponseEntity.status(302).header("Location", listing.getThumbnailUrl()).build();
         }

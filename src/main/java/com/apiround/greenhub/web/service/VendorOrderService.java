@@ -14,10 +14,4 @@ public interface VendorOrderService {
 
     // ✅ 대시보드 데이터
     VendorOrderDashboardDto loadDashboard(Integer companyId, LocalDate start, LocalDate end);
-
-    void updateItemStatus(Integer companyId, Integer orderItemId, String nextStatus,
-                          String courierName, String trackingNumber);
-
-    void updateAllMyItemsOfOrder(Integer companyId, Integer orderId, String nextStatus,
-                                 String courierName, String trackingNumber);
 }

@@ -15,4 +15,6 @@ public interface MyPageRecipeService {
     void updateRecipe(Long userId, Long recipeId, MyPageRecipeRequestDto requestDto);
 
     void deleteRecipe(Long userId, Long recipeId);
+
+    void updateThumbnail(Long userId, Long recipeId, byte[] thumbnailData, String thumbnailMime);
 }

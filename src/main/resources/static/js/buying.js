@@ -2,7 +2,86 @@
 
 document.addEventListener('DOMContentLoaded', function() {
   console.log('GreenHub 구매 페이지가 로드되었습니다.');
-  console.log('currentOrder raw:', localStorage.getItem('currentOrder'));
+  
+  // URL 파라미터에서 orderId 받기
+  const urlParams = new URLSearchParams(window.location.search);
+  const orderId = urlParams.get('orderId');
+
+  console.log('받은 orderId:', orderId);
+
+  // orderId가 있으면 상품 정보 조회
+  if (orderId) {
+    // 단일 상품인 경우
+    if (!orderId.includes(',')) {
+      fetch(`/api/cart`)
+        .then(response => response.json())
+        .then(cartItems => {
+          const item = cartItems.find(item => item.cartId == orderId);
+          if (item) {
+            const productData = {
+              productId: item.listingId,
+              optionIdx: 0,
+              id: item.listingId,
+              name: item.optionName,
+              title: item.optionName,
+              category: "농산물",
+              region: "서울",
+              image: `/api/listings/${item.listingId}/thumbnail`,
+              optionText: `${item.quantity}${item.unit}`,
+              quantityCount: item.quantity,
+              unitPrice: item.unitPrice,
+              priceRaw: item.totalPrice,
+              priceFormatted: `${item.totalPrice.toLocaleString()}원`,
+              quantity: `${item.quantity}${item.unit}`,
+              price: `${item.totalPrice.toLocaleString()}원`,
+              timestamp: new Date().toISOString()
+            };
+
+            console.log('생성된 상품 데이터:', productData);
+            localStorage.setItem('currentOrder', JSON.stringify([productData]));
+            console.log('currentOrder raw:', localStorage.getItem('currentOrder'));
+          }
+        })
+        .catch(error => {
+          console.error('상품 정보 조회 실패:', error);
+        });
+    } else {
+      // 여러 상품인 경우
+      const cartIds = orderId.split(',');
+      fetch('/api/cart')
+        .then(response => response.json())
+        .then(cartItems => {
+          const selectedItems = cartItems.filter(item => cartIds.includes(item.cartId.toString()));
+          const productDataArray = selectedItems.map(item => ({
+            productId: item.listingId,
+            optionIdx: 0,
+            id: item.listingId,
+            name: item.optionName,
+            title: item.optionName,
+            category: "농산물",
+            region: "서울",
+            image: `/api/listings/${item.listingId}/thumbnail`,
+            optionText: `${item.quantity}${item.unit}`,
+            quantityCount: item.quantity,
+            unitPrice: item.unitPrice,
+            priceRaw: item.totalPrice,
+            priceFormatted: `${item.totalPrice.toLocaleString()}원`,
+            quantity: `${item.quantity}${item.unit}`,
+            price: `${item.totalPrice.toLocaleString()}원`,
+            timestamp: new Date().toISOString()
+          }));
+
+          console.log('생성된 상품 데이터 배열:', productDataArray);
+          localStorage.setItem('currentOrder', JSON.stringify(productDataArray));
+          console.log('currentOrder raw:', localStorage.getItem('currentOrder'));
+        })
+        .catch(error => {
+          console.error('상품 정보 조회 실패:', error);
+        });
+    }
+  } else {
+    console.log('currentOrder raw:', localStorage.getItem('currentOrder'));
+  }
 
   initializeBuyingPage();
   setupEventListeners();
@@ -93,7 +172,7 @@ function displayOrderItems(orderItems) {
   const item = orderItems[0]; // 단일 상품 기준
 
   // 필드 보정
-  const name = item.name || '상품';
+  const name = item.title || item.name || '상품'; // title 우선, 없으면 name 사용
   const category = item.category || '';
   const region = item.region ? ` | ${item.region}` : '';
   const qtyCount = typeof item.quantityCount === 'number' && item.quantityCount > 0 ? item.quantityCount : 1;

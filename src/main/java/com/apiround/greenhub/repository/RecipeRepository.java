@@ -21,4 +21,7 @@ public interface RecipeRepository extends JpaRepository<Recipe, Integer> {
     // RecipeRepository.java
     @Query(value = "SELECT * FROM recipe WHERE status = 'PUBLISHED' ORDER BY RAND() LIMIT :limit", nativeQuery = true)
     List<Recipe> findRandomPublishedRecipes(@Param("limit") int limit);
+
+    // 최신순으로 모든 레시피 조회
+    List<Recipe> findAllByOrderByCreatedAtDesc();
 }
