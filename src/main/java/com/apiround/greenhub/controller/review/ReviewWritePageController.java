@@ -1,4 +1,3 @@
-// src/main/java/com/apiround/greenhub/controller/review/ReviewWritePageController.java
 package com.apiround.greenhub.controller.review;
 
 import com.apiround.greenhub.service.MyReviewService;
@@ -6,40 +5,31 @@ import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 @Controller
 @RequiredArgsConstructor
+@RequestMapping("/reviews")
 public class ReviewWritePageController {
 
     private final MyReviewService myReviewService;
 
-    @GetMapping("/reviews/write")
+    @GetMapping("/write")
     public String reviewWrite(@RequestParam(required = false) Integer orderItemId,
                               @RequestParam(required = false) Integer productId,
                               HttpSession session,
                               Model model) {
 
-        // 세션 타입이 String일 수도 있으니 보강
-        Integer userId = null;
-        Object raw = session.getAttribute("userId");
-        if (raw instanceof Integer i) {
-            userId = i;
-        } else if (raw instanceof String s) {
-            try { userId = Integer.valueOf(s); } catch (Exception ignore) {}
-        }
-
+        Integer userId = (Integer) session.getAttribute("userId");
         if (userId == null) {
-            // 필요 시 에러 메시지 대신 로그인으로 보내고 싶다면: return "redirect:/login";
             model.addAttribute("errorMessage", "로그인이 필요합니다.");
-            return "review_write";
+            return "review/review_write"; // 템플릿 경로와 일치
         }
 
         var vm = myReviewService.buildWriteViewModel(userId, orderItemId, productId);
         if (!vm.isAllowed()) {
             model.addAttribute("errorMessage", vm.message());
-            return "review_write";
+            return "review/review_write";
         }
 
         model.addAttribute("orderItemId", vm.orderItemId());
@@ -49,6 +39,6 @@ public class ReviewWritePageController {
         model.addAttribute("storeName", vm.storeName());
         model.addAttribute("priceText", vm.priceText());
         model.addAttribute("deliveredAt", vm.deliveredAt());
-        return "review_write"; // ← 여기에 맞춰 템플릿 파일을 꼭 만들기!
+        return "review/review_write";
     }
 }
