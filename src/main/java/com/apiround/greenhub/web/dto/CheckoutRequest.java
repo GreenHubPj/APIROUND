@@ -44,5 +44,7 @@ public class CheckoutRequest {
         private String  itemName;      // 스냅샷용(없으면 DB에서 조회)
         private BigDecimal unitPrice;  // 선택(없으면 옵션 가격으로)
         private Integer count;         // 구매 개수 (기본 1)
+        private Integer cartId;        // 장바구니 ID (CartService 변환용)
     }
+
 }

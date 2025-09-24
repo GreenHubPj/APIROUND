@@ -196,9 +196,21 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const totalAmount = calculateTotalAmount(selectedItems);
             if (confirm(`선택한 ${selectedItems.length}개 상품을 총 ${totalAmount.toLocaleString()}원에 주문하시겠습니까?`)) {
-                // 선택된 상품들의 cartId를 orderId로 전달
-                const selectedCartIds = selectedItems.map(item => item.cartId);
-                window.location.href = `/buying?orderId=${selectedCartIds.join(',')}`;
+                // 선택된 상품들의 optionId를 orderId로 전달 (cartId 대신 option_id 사용)
+                console.log('=== shoppinglist.js 디버깅 ===');
+                console.log('selectedItems:', selectedItems);
+                selectedItems.forEach((item, index) => {
+                    console.log(`selectedItems[${index}]:`, item);
+                    console.log(`  - cartId:`, item.cartId);
+                    console.log(`  - optionId:`, item.optionId);
+                });
+                
+                const selectedOptionIds = selectedItems.map(item => {
+                    // optionId가 있으면 사용, 없으면 cartId 사용
+                    return item.optionId || item.cartId;
+                });
+                console.log('선택된 optionIds:', selectedOptionIds);
+                window.location.href = `/buying?orderId=${selectedOptionIds.join(',')}`;
             }
         } catch (error) {
             console.error('최종 주문 처리 중 오류 발생:', error);

@@ -721,6 +721,7 @@ async function addToCart(event) {
 
     const cartPayload = {
       optionId: optionId,
+      title: currentProduct.name || currentProduct.title || '상품', // 실제 상품명 추가
       quantity: quantity.toString(),
       unit: selectedPriceOption.unit
     };

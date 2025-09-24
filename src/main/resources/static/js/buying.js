@@ -9,21 +9,35 @@ document.addEventListener('DOMContentLoaded', function() {
 
   console.log('받은 orderId:', orderId);
 
-  // orderId가 있으면 상품 정보 조회
+  // orderId가 있으면 상품 정보 조회 (이제 orderId는 optionId를 의미)
   if (orderId) {
     // 단일 상품인 경우
     if (!orderId.includes(',')) {
       fetch(`/api/cart`)
         .then(response => response.json())
         .then(cartItems => {
-          const item = cartItems.find(item => item.cartId == orderId);
+          console.log('=== buying.js 디버깅 ===');
+          console.log('받은 orderId:', orderId, '타입:', typeof orderId);
+          console.log('cartItems:', cartItems);
+          cartItems.forEach((item, index) => {
+            console.log(`cartItems[${index}] - optionId:`, item.optionId, '타입:', typeof item.optionId);
+          });
+          
+          const item = cartItems.find(item => {
+            console.log(`비교: ${item.optionId} == ${orderId} (${item.optionId == orderId})`);
+            console.log(`비교: ${item.cartId} == ${orderId} (${item.cartId == orderId})`);
+            return item.optionId == orderId || item.cartId == orderId;
+          });
+          
+          console.log('찾은 item:', item);
           if (item) {
             const productData = {
               productId: item.listingId,
               optionIdx: 0,
               id: item.listingId,
-              name: item.optionName,
-              title: item.optionName,
+              name: item.title || item.optionName,
+              title: item.title || item.optionName,
+              product_name: item.title || item.optionName,
               category: "농산물",
               region: "서울",
               image: `/api/listings/${item.listingId}/thumbnail`,
@@ -34,12 +48,18 @@ document.addEventListener('DOMContentLoaded', function() {
               priceFormatted: `${item.totalPrice.toLocaleString()}원`,
               quantity: `${item.quantity}${item.unit}`,
               price: `${item.totalPrice.toLocaleString()}원`,
-              timestamp: new Date().toISOString()
+              timestamp: new Date().toISOString(),
+              cartId: item.cartId,  // 장바구니 ID 추가
+              optionId: item.optionId  // 옵션 ID 추가
             };
 
             console.log('생성된 상품 데이터:', productData);
             localStorage.setItem('currentOrder', JSON.stringify([productData]));
             console.log('currentOrder raw:', localStorage.getItem('currentOrder'));
+            
+            // localStorage에 저장한 후 UI 업데이트
+            displayOrderItems([productData]);
+            calculateTotalAmount([productData]);
           }
         })
         .catch(error => {
@@ -47,17 +67,35 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     } else {
       // 여러 상품인 경우
-      const cartIds = orderId.split(',');
+      const optionIds = orderId.split(',');
+      console.log('=== buying.js 여러 상품 디버깅 ===');
+      console.log('받은 orderId:', orderId);
+      console.log('분할된 optionIds:', optionIds);
+      
       fetch('/api/cart')
         .then(response => response.json())
         .then(cartItems => {
-          const selectedItems = cartItems.filter(item => cartIds.includes(item.cartId.toString()));
+          console.log('cartItems:', cartItems);
+          cartItems.forEach((item, index) => {
+            console.log(`cartItems[${index}] - optionId:`, item.optionId, '타입:', typeof item.optionId);
+          });
+          
+          const selectedItems = cartItems.filter(item => {
+            const isIncludedByOptionId = optionIds.includes(item.optionId.toString());
+            const isIncludedByCartId = optionIds.includes(item.cartId.toString());
+            console.log(`필터링: ${item.optionId} in ${optionIds} (${isIncludedByOptionId})`);
+            console.log(`필터링: ${item.cartId} in ${optionIds} (${isIncludedByCartId})`);
+            return isIncludedByOptionId || isIncludedByCartId;
+          });
+          
+          console.log('선택된 selectedItems:', selectedItems);
           const productDataArray = selectedItems.map(item => ({
             productId: item.listingId,
             optionIdx: 0,
             id: item.listingId,
-            name: item.optionName,
-            title: item.optionName,
+            name: item.title || item.optionName,
+            title: item.title || item.optionName,
+            product_name: item.title || item.optionName,
             category: "농산물",
             region: "서울",
             image: `/api/listings/${item.listingId}/thumbnail`,
@@ -68,12 +106,18 @@ document.addEventListener('DOMContentLoaded', function() {
             priceFormatted: `${item.totalPrice.toLocaleString()}원`,
             quantity: `${item.quantity}${item.unit}`,
             price: `${item.totalPrice.toLocaleString()}원`,
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
+            cartId: item.cartId,  // 장바구니 ID 추가
+            optionId: item.optionId  // 옵션 ID 추가
           }));
 
           console.log('생성된 상품 데이터 배열:', productDataArray);
           localStorage.setItem('currentOrder', JSON.stringify(productDataArray));
           console.log('currentOrder raw:', localStorage.getItem('currentOrder'));
+          
+          // localStorage에 저장한 후 UI 업데이트
+          displayOrderItems(productDataArray);
+          calculateTotalAmount(productDataArray);
         })
         .catch(error => {
           console.error('상품 정보 조회 실패:', error);
@@ -172,7 +216,7 @@ function displayOrderItems(orderItems) {
   const item = orderItems[0]; // 단일 상품 기준
 
   // 필드 보정
-  const name = item.title || item.name || '상품'; // title 우선, 없으면 name 사용
+  const name = item.product_name || item.title || item.name || '상품'; // product_name 우선, 없으면 title, name 순으로 사용
   const category = item.category || '';
   const region = item.region ? ` | ${item.region}` : '';
   const qtyCount = typeof item.quantityCount === 'number' && item.quantityCount > 0 ? item.quantityCount : 1;
@@ -337,23 +381,32 @@ function validateForm() {
 
 function collectOrderData() {
   const currentOrder = safeGetCurrentOrder() || [];
+  
+  console.log("=== buying.js collectOrderData 디버깅 ===");
+  console.log("currentOrder:", currentOrder);
 
   // payload(items)는 서버 DTO(CheckoutRequest.Item)에 맞춰 구성
   const itemsPayload = currentOrder.map(it => {
+    console.log("처리 중인 아이템:", it);
+    console.log("cartId:", it.cartId, "optionId:", it.optionId);
     const count = (typeof it.quantityCount === 'number' && it.quantityCount > 0) ? it.quantityCount : 1;
     const unitPrice = (typeof it.unitPrice === 'number' && !isNaN(it.unitPrice))
       ? it.unitPrice
       : parsePrice(it.price);
 
-    return {
+    const result = {
       productId: it.productId || it.id || null,       // 숫자
       listingId: it.listingId || null,                // 없으면 null
       optionId: (typeof it.optionId === 'number') ? it.optionId : null, // **문자 넣지 마세요**
       optionLabel: (it.optionText || it.quantity || '').trim() || null, // 예: "2kg"
       count: count,                                   // 수량(숫자)
       unitPrice: unitPrice,                           // 단가(숫자)
-      itemName: it.name || ''                         // 스냅샷 이름(선택)
+      itemName: it.name || '',                        // 스냅샷 이름(선택)
+      cartId: it.cartId || null                       // 장바구니 ID (CartService 변환용)
     };
+    
+    console.log("생성된 payload:", result);
+    return result;
   });
 
   return {
