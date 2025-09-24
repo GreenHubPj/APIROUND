@@ -1,10 +1,4 @@
-// 리뷰 관리(관리자) 페이지 — 서버 API 연동 버전
-// 필요한 관리자 API (예시):
-// GET    /api/admin/reviews?keyword=&type=&rating=&status=&photo=&start=&end=&reportMin=&page=&size=&sort=
-// PATCH  /api/admin/reviews/{id}                 (상태 변경/숨김/삭제/메모)
-// POST   /api/admin/reviews/{id}/reply           (답글 등록)
-// PATCH  /api/admin/reviews/{id}/reply           (답글 수정)
-// DELETE /api/admin/reviews/{id}/reply           (답글 삭제)
+// 리뷰 관리(판매자) 페이지 — 서버 API 연동 + companyId 보정 버전
 
 let currentPage = 1;
 let totalPages = 1;
@@ -12,6 +6,9 @@ const pageSize = 20;
 let sortColumn = 'date';
 let sortDirection = 'desc';
 let selected = new Set();
+
+let COMPANY_ID = null; // 반드시 채워 API에 전달
+let MISSING_COMPANY = false;
 
 const filters = {
   searchType: 'content',
@@ -25,10 +22,83 @@ const filters = {
   reportCount: ''
 };
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+  injectNoticeBox();
+  await ensureCompanyId();   // 1) companyId 확보 시도 (data-* -> _whoami 순)
   initControls();
-  queryAndRender();
+  queryAndRender();          // 2) 목록 로드(없으면 빈 목록 + 안내)
 });
+
+// 화면 상단에 안내 영역 삽입
+function injectNoticeBox() {
+  const box = document.createElement('div');
+  box.id = 'noticeBox';
+  box.style.display = 'none';
+  box.style.margin = '12px 0';
+  box.style.padding = '10px 12px';
+  box.style.borderRadius = '8px';
+  box.style.background = '#fff3cd';
+  box.style.color = '#856404';
+  box.style.border = '1px solid #ffeeba';
+  box.innerText = '';
+  const container = document.querySelector('.review-management-section .container');
+  if (container) container.prepend(box);
+}
+
+function showNotice(msg) {
+  const box = document.getElementById('noticeBox');
+  if (!box) return;
+  box.innerText = msg || '';
+  box.style.display = msg ? 'block' : 'none';
+}
+
+async function ensureCompanyId() {
+  // 0) window.__ctx.companyId 먼저
+  if (window.__ctx && typeof window.__ctx.companyId !== 'undefined' && window.__ctx.companyId !== null) {
+    const v = Number(window.__ctx.companyId);
+    if (!Number.isNaN(v) && v > 0) {
+      COMPANY_ID = v;
+      document.body.dataset.companyId = String(v);
+      return;
+    }
+  }
+
+  // 1) body data-company-id
+  const fromBody = document.body?.dataset?.companyId;
+  if (fromBody && fromBody !== 'null' && fromBody !== 'undefined' && fromBody !== '') {
+    const v = Number(fromBody);
+    if (!Number.isNaN(v) && v > 0) {
+      COMPANY_ID = v;
+      return;
+    }
+  }
+
+  // 2) 서버가 아는 값 조회(_whoami) – 로그인 필요
+  try {
+    const res = await fetch('/api/admin/reviews/_whoami', { headers: { 'Accept': 'application/json' } });
+    if (res.status === 401) {
+      // 로그인 아니면 안내만
+      MISSING_COMPANY = true;
+      showNotice('판매자 식별값(companyId)이 없어 목록을 표시할 수 없습니다. 판매자 계정으로 다시 로그인해 주세요.');
+      return;
+    }
+    if (res.ok) {
+      const j = await res.json();
+      if (j && typeof j.companyId === 'number' && j.companyId > 0) {
+        COMPANY_ID = j.companyId;
+        document.body.dataset.companyId = String(COMPANY_ID);
+        return;
+      }
+    }
+  } catch (e) {
+    // 무시하고 안내로 진행
+  }
+
+  // 3) 그래도 없으면 안내 + 빈 목록 유지
+  MISSING_COMPANY = true;
+  showNotice('판매자 식별값(companyId)이 없어 목록을 표시할 수 없습니다. 판매자 계정으로 다시 로그인해 주세요.');
+}
+
 
 function initControls() {
   // 컬럼 토글 기본 on
@@ -94,10 +164,7 @@ function initControls() {
     th.addEventListener('click', function () {
       const c = this.dataset.column;
       if (sortColumn === c) sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
-      else {
-        sortColumn = c;
-        sortDirection = 'asc';
-      }
+      else { sortColumn = c; sortDirection = 'asc'; }
       document.querySelectorAll('.sortable').forEach(el => el.classList.remove('asc', 'desc'));
       this.classList.add(sortDirection);
       currentPage = 1;
@@ -179,8 +246,20 @@ function changePage(p) {
 }
 
 async function queryAndRender() {
+  // companyId가 없으면 API를 때리지 말고 빈 목록 + 안내만
+  if (!COMPANY_ID && MISSING_COMPANY) {
+    renderTable([]);
+    renderPagination(0, 1);
+    showNotice('판매자 식별값(companyId)이 없어 목록을 표시할 수 없습니다. 판매자 계정으로 다시 로그인해 주세요.');
+    return;
+  }
+
   try {
     const params = new URLSearchParams();
+
+    // 🔴 핵심: companyId를 항상 보냄
+    if (COMPANY_ID) params.set('companyId', String(COMPANY_ID));
+
     if (filters.searchKeyword) {
       params.set('keyword', filters.searchKeyword);
       params.set('type', filters.searchType || 'content');
@@ -199,13 +278,22 @@ async function queryAndRender() {
 
     const url = `/api/admin/reviews?${params.toString()}`;
     const res = await fetch(url);
-    if (!res.ok) throw new Error('리뷰 목록을 불러오지 못했습니다.');
+
+    if (!res.ok) {
+      // 서버가 400을 주더라도 alert 대신 상단 안내만
+      const text = await res.text().catch(() => '');
+      showNotice(text || '리뷰 목록을 불러오지 못했습니다.');
+      renderTable([]);
+      renderPagination(0, 1);
+      return;
+    }
 
     const data = await res.json();
+    showNotice(''); // 안내 제거
     renderTable(data.content || []);
     renderPagination(data.totalElements ?? 0, data.totalPages ?? 1);
   } catch (e) {
-    alert(e.message ?? '목록 조회 중 오류가 발생했습니다.');
+    showNotice('목록 조회 중 오류가 발생했습니다.');
     renderTable([]);
     renderPagination(0, 1);
   }
@@ -222,11 +310,11 @@ function renderTable(rows) {
         <input type="checkbox" class="checkbox" data-review-id="${r.reviewId}"
           onchange="window.__ghReviewMgmt.onRowCheck(${r.reviewId}, this.checked)">
       </td>
-      <td class="date-col">${escapeHtml(r.createdAt)}</td>
+      <td class="date-col">${escapeHtml(r.createdAt ?? '-')}</td>
       <td class="order-col">${escapeHtml(r.orderNumber ?? '-')}</td>
       <td class="product-col">${escapeHtml(r.productName ?? '-')}</td>
       <td class="author-col">${escapeHtml(r.authorName ?? '-')}</td>
-      <td class="rating-col">${makeStars(r.rating)}</td>
+      <td class="rating-col">${makeStars(r.rating ?? 0)}</td>
       <td class="content-col">${shorten(escapeHtml(r.content ?? ''), 80)}</td>
       <td class="photo-col">${(r.photoUrls?.length ?? 0) > 0 ? '📷' : '-'}</td>
       <td class="status-col"><span class="status-badge status-${r.status}">${escapeHtml(r.status ?? '-')}</span></td>
@@ -242,7 +330,6 @@ function renderTable(rows) {
     )
     .join('');
 
-  // 전체선택 초기화
   const all = document.getElementById('selectAll');
   if (all) {
     all.checked = false;
@@ -256,10 +343,12 @@ function renderPagination(totalElements, tp) {
   totalPages = tp || 1;
   const prev = document.getElementById('prevPage');
   const next = document.getElementById('nextPage');
-  prev.disabled = currentPage <= 1;
-  next.disabled = currentPage >= totalPages;
+  if (prev) prev.disabled = currentPage <= 1;
+  if (next) next.disabled = currentPage >= totalPages;
 
   const wrap = document.getElementById('pageNumbers');
+  if (!wrap) return;
+
   const start = Math.max(1, currentPage - 2);
   const end = Math.min(totalPages, currentPage + 2);
   let html = '';
@@ -271,6 +360,7 @@ function renderPagination(totalElements, tp) {
 
 // helpers
 function makeStars(n) {
+  n = Number(n) || 0;
   let s = '';
   for (let i = 1; i <= 5; i++) s += `<span class="star ${i <= n ? '' : 'empty'}">★</span>`;
   return s;
@@ -279,12 +369,12 @@ function shorten(t, n) {
   return t.length > n ? t.slice(0, n) + '...' : t;
 }
 function escapeHtml(s) {
-  return String(s)
+  return String(s ?? '')
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;');
 }
 
-// 공개 핸들러(테이블에서 inline onclick으로 씀)
+// 공개 핸들러
 window.__ghReviewMgmt = {
   onRowCheck(id, checked) {
     if (checked) selected.add(id);
@@ -320,7 +410,7 @@ async function patchStatus(ids, status) {
         fetch(`/api/admin/reviews/${id}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ status })
+          body: JSON.stringify({ status, companyId: COMPANY_ID })
         })
       )
     );
@@ -336,7 +426,7 @@ async function patchStatus(ids, status) {
 // 상세 모달
 async function openDetailModal(reviewId) {
   try {
-    const res = await fetch(`/api/admin/reviews/${reviewId}`);
+    const res = await fetch(`/api/admin/reviews/${reviewId}?companyId=${encodeURIComponent(COMPANY_ID ?? '')}`);
     if (!res.ok) throw 0;
     const r = await res.json();
 
@@ -361,14 +451,12 @@ async function openDetailModal(reviewId) {
 
     const hist = document.getElementById('modalHistorySection');
     hist.innerHTML = (r.history ?? [])
-      .map(
-        h => `
+      .map(h => `
       <div class="history-item">
         <div class="history-date">${escapeHtml(h.date)}</div>
         <div class="history-action">${escapeHtml(h.action)}</div>
         <div class="history-description">${escapeHtml(h.description)}</div>
-      </div>`
-      )
+      </div>`)
       .join('');
 
     const existing = document.getElementById('existingReply');
@@ -427,7 +515,9 @@ async function applyReportModal() {
         fetch(`/api/admin/reviews/${id}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ reported: true, reportAction: action, reportReason: reason.value, reportMemo: memo })
+          body: JSON.stringify({
+            reported: true, reportAction: action, reportReason: reason.value, reportMemo: memo, companyId: COMPANY_ID
+          })
         })
       )
     );
@@ -449,7 +539,7 @@ async function saveAdminMemo() {
     const res = await fetch(`/api/admin/reviews/${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ adminMemo: memo })
+      body: JSON.stringify({ adminMemo: memo, companyId: COMPANY_ID })
     });
     if (!res.ok) throw 0;
     alert('관리자 메모가 저장되었습니다.');
@@ -467,11 +557,11 @@ async function saveReply() {
     const res = await fetch(`/api/admin/reviews/${id}/reply`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ content })
+      body: JSON.stringify({ content, companyId: COMPANY_ID })
     });
     if (!res.ok) throw 0;
     alert('답글이 등록되었습니다.');
-    openDetailModal(Number(id)); // 새로고침
+    openDetailModal(Number(id));
   } catch {
     alert('답글 등록 중 오류가 발생했습니다.');
   }
@@ -489,7 +579,7 @@ function deleteReply() {
   const id = document.getElementById('modalReviewId')?.dataset?.id;
   if (!id) return;
   if (!confirm('답글을 삭제하시겠습니까?')) return;
-  fetch(`/api/admin/reviews/${id}/reply`, { method: 'DELETE' })
+  fetch(`/api/admin/reviews/${id}/reply?companyId=${encodeURIComponent(COMPANY_ID ?? '')}`, { method: 'DELETE' })
     .then(res => {
       if (!res.ok) throw 0;
       alert('답글이 삭제되었습니다.');
@@ -506,15 +596,11 @@ function cancelReplyEdit() {
 }
 
 function exportCsv() {
-  // 현재 필터로 조회된 전체를 다시 요청하여 export에 쓰는게 이상적이지만
-  // 여기서는 화면의 현재 페이지 데이터를 CSV로 뽑는 간단 버전
   const rows = Array.from(document.querySelectorAll('#reviewTableBody tr')).map(tr =>
     Array.from(tr.querySelectorAll('td')).map(td => td.innerText.replace(/\n/g, ' ').trim())
   );
-
   const header = ['선택', '작성일시', '주문번호', '상품명', '작성자', '평점', '내용', '사진', '상태', '신고', '처리자', '액션'];
   const csv = [header, ...rows].map(r => r.map(cell => `"${cell.replace(/"/g, '""')}"`).join(',')).join('\n');
-
   const BOM = '\uFEFF';
   const blob = new Blob([BOM + csv], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
