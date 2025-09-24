@@ -1,5 +1,27 @@
 package com.apiround.greenhub.web.service;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.stream.Collectors;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
+
 import com.apiround.greenhub.entity.Order;
 import com.apiround.greenhub.entity.ProductListing;
 import com.apiround.greenhub.entity.item.SpecialtyProduct;
@@ -13,16 +35,6 @@ import com.apiround.greenhub.web.entity.OrderItem;
 import com.apiround.greenhub.web.repository.OrderItemRepository;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
-
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -105,6 +117,7 @@ public class VendorOrderServiceImpl implements VendorOrderService {
                         .unit(r.getUnitCodeSnap())
                         .optionText(r.getOptionLabelSnap())
                         .price(line)
+                        .listingId(r.getListingId())
                         .build());
             }
 

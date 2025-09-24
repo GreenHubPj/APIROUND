@@ -29,7 +29,6 @@ import com.apiround.greenhub.web.dto.OrderCreatedResponse;
 import com.apiround.greenhub.web.dto.OrderDetailDto;
 import com.apiround.greenhub.web.dto.OrderSummaryDto;
 import com.apiround.greenhub.web.entity.OrderItem;
-// ✅ 핵심: 존재하는 리포지토리 경로로 import
 import com.apiround.greenhub.web.repository.OrderItemRepository;
 
 import jakarta.transaction.Transactional;
@@ -280,6 +279,7 @@ public class OrderServiceImpl implements OrderService {
                         .unit(r.unitCodeSnap())
                         .optionText(r.optionLabelSnap())
                         .price(r.lineAmount() == null ? BigDecimal.ZERO : r.lineAmount())
+                        .listingId(r.listingId() != null ? r.listingId().longValue() : null)
                         .build());
             }
 

@@ -126,11 +126,17 @@ function renderOrderList() {
         const isDisabled = r.uiStatus === 'completed';
         const disabledAttr = isDisabled ? 'disabled' : '';
 
+        // 상품 정보 표시
+        const productInfo = r.items && r.items.length > 0 
+            ? r.items.map(item => `${escapeHtml(item.name)} × ${item.quantity}개`).join(', ')
+            : '상품 정보 없음';
+
         return `
         <div class="order-item" data-status="${r.uiStatus}">
             <div class="order-info">
                 <div class="order-number">#${escapeHtml(r.orderNumber)}</div>
                 <div class="order-time">${timeText}</div>
+                <div class="order-products">${productInfo}</div>
             </div>
             <div class="order-amount">${formattedAmount}</div>
             <div class="order-actions">
@@ -538,8 +544,8 @@ async function updateOrderStatusWithServer(button, orderItem) {
                 if (origin) origin.uiStatus = target.uiStatus;
             }
 
-            updateStatusCardsFromState();
-            updateDailySummaryText();
+            // 화면 다시 렌더링
+            renderAll();
             
             // mypage-company 통계 업데이트 (해당 페이지가 열려있는 경우)
             if (typeof window.updateCompanyStats === 'function') {
@@ -580,19 +586,19 @@ function updateOrderStatusFrontOnly(button, orderItem) {
         if (origin) origin.uiStatus = target.uiStatus;
     }
 
-    updateStatusCardsFromState();
-    updateDailySummaryText();
+    // 화면 다시 렌더링
+    renderAll();
     showNotification('주문 상태가 업데이트되었습니다.', 'success');
 }
 
 function nextStatusByText(text) {
     switch (text) {
-        case '신규 주문': return STATUS_BTN.confirmed;
-        case '주문 확인': return STATUS_BTN.preparing;
-        case '배송 준비': return STATUS_BTN.shipping;
-        case '배송중':   return STATUS_BTN.completed;
+        case '신규 주문': return STATUS_BTN.preparing;  // 신규 주문 -> 배송 준비
+        case '주문 확인': return STATUS_BTN.preparing;  // 주문 확인 -> 배송 준비
+        case '배송 준비': return STATUS_BTN.shipping;  // 배송 준비 -> 배송중
+        case '배송중':   return STATUS_BTN.completed;  // 배송중 -> 완료
         case '완료':     return null; // 완료된 주문은 더 이상 변경 불가
-        case '취소':     return STATUS_BTN.preparing; // 취소된 주문은 재주문 가능
+        case '재주문':   return STATUS_BTN.preparing; // 취소된 주문은 재주문 가능
         default: return null;
     }
 }
@@ -606,7 +612,6 @@ function mapButtonTextToKey(text) {
 
 function mapButtonTextToDbStatus(text) {
     switch (text) {
-        case '주문 확인': return 'PREPARING';
         case '배송 준비': return 'PREPARING';
         case '배송중': return 'SHIPPED';
         case '완료': return 'DELIVERED';

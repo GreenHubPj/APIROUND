@@ -76,6 +76,7 @@
             orderDate,
             recipientName,
             itemId,
+            listingId: it.listingId,
             uiStatus,
             name: it.name || "상품",
             spec: `${it.unit || ""} × ${it.quantity || 0}개`,
@@ -112,7 +113,7 @@
         </div>
         <div class="order-content">
           <div class="product-info">
-            <div class="product-thumb"><img src="${it.image}" alt=""></div>
+            <div class="product-icon"><img src="/api/listings/${it.listingId}/thumbnail" alt="" onerror="this.onerror=null;this.src='/images/농산물.png'"></div>
             <div class="product-details">
               <div class="product-name">${escapeHtml(it.name)}</div>
               <div class="product-spec">${escapeHtml(it.spec)}</div>

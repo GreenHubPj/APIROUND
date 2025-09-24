@@ -459,6 +459,13 @@
     gap: 0.25rem;
 }
 
+.order-products {
+    font-size: 0.9rem;
+    color: #6c757d;
+    font-weight: 500;
+    margin-top: 0.25rem;
+}
+
 .order-number {
     font-size: 1.1rem;
     font-weight: 600;
