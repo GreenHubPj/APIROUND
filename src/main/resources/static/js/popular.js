@@ -130,22 +130,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const companyName = this.querySelector('.company-name').textContent;
             const phone = this.querySelector('.company-phone').textContent;
             const email = this.querySelector('.company-email').textContent;
-            
-            console.log(`업체 연락: ${companyName}`);
-            
-            // 연락처 정보 표시
-            const contactInfo = `
-업체명: ${companyName}
-전화번호: ${phone}
-이메일: ${email}
 
-연락하시겠습니까?
-            `;
-            
-            if (confirm(contactInfo)) {
-                // 실제 연락 로직 (전화 걸기, 이메일 보내기 등)
-                alert('연락처 정보가 복사되었습니다.');
-            }
         });
         
         // 호버 효과

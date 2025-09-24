@@ -198,6 +198,84 @@ body {
     }
 }
 
+/* 추가 반응형 디자인 - 태블릿 */
+@media (max-width: 1024px) {
+    .header {
+        margin: 0 15px;
+        top: 15px;
+    }
+    
+    .header .container {
+        padding: 15px 20px;
+    }
+    
+    .nav-menu {
+        gap: 20px;
+    }
+    
+    .nav-link {
+        font-size: 15px;
+    }
+    
+    .btn-logout,
+    .btn-mypage,
+    .btn-login,
+    .btn-signup {
+        padding: 10px 18px;
+        font-size: 15px;
+    }
+}
+
+/* 추가 반응형 디자인 - 모바일 대형 */
+@media (max-width: 768px) {
+    .header {
+        margin: 0 10px;
+        top: 10px;
+        border-radius: 30px;
+    }
+    
+    .header .container {
+        padding: 12px 15px;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+    
+    .nav-brand {
+        gap: 10px;
+    }
+    
+    .brand-logo {
+        width: 35px;
+        height: 35px;
+    }
+    
+    .brand-text {
+        font-size: 1.2rem;
+    }
+    
+    .nav-menu {
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+    
+    .nav-link {
+        font-size: 14px;
+        padding: 8px 12px;
+    }
+    
+    .nav-actions {
+        gap: 8px;
+    }
+    
+    .btn-logout,
+    .btn-mypage,
+    .btn-login,
+    .btn-signup {
+        padding: 8px 14px;
+        font-size: 13px;
+    }
+}
+
 @media (max-width: 480px) {
     .header {
         margin: 0 5px;
@@ -205,23 +283,77 @@ body {
         border-radius: 25px;
     }
 
-    .container {
-        padding: 0 15px;
+    .header .container {
+        padding: 10px 12px;
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .nav-brand {
+        gap: 8px;
+    }
+    
+    .brand-logo {
+        width: 30px;
+        height: 30px;
+    }
+    
+    .brand-text {
+        font-size: 1rem;
     }
 
     .nav-menu {
-        gap: 15px;
+        gap: 10px;
+        justify-content: center;
+        width: 100%;
     }
 
     .nav-link {
-        font-size: 14px;
+        font-size: 13px;
+        padding: 6px 10px;
+    }
+    
+    .nav-actions {
+        gap: 6px;
+        justify-content: center;
+        width: 100%;
     }
 
     .btn-logout,
     .btn-mypage,
     .btn-login,
     .btn-signup {
-        padding: 8px 16px;
-        font-size: 14px;
+        padding: 6px 12px;
+        font-size: 12px;
+    }
+}
+
+/* 추가 반응형 디자인 - 모바일 초소형 */
+@media (max-width: 360px) {
+    .header {
+        margin: 0 3px;
+        top: 3px;
+        border-radius: 20px;
+    }
+    
+    .header .container {
+        padding: 8px 10px;
+    }
+    
+    .nav-menu {
+        gap: 8px;
+    }
+    
+    .nav-link {
+        font-size: 12px;
+        padding: 5px 8px;
+    }
+    
+    .btn-logout,
+    .btn-mypage,
+    .btn-login,
+    .btn-signup {
+        padding: 5px 10px;
+        font-size: 11px;
     }
 }
