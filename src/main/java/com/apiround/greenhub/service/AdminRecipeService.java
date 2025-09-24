@@ -15,9 +15,9 @@ public class AdminRecipeService {
 
     private final RecipeRepository recipeRepo;
 
-    /** 모든 레시피 조회 (관리자용) */
+    /** 모든 레시피 조회 (관리자용) - 최신순 정렬 */
     public List<Recipe> getAllRecipes() {
-        return recipeRepo.findAll();
+        return recipeRepo.findAllByOrderByCreatedAtDesc();
     }
 
     /** 상태별 레시피 조회 */
@@ -25,9 +25,9 @@ public class AdminRecipeService {
         return recipeRepo.findByStatusOrderByRecipeIdDesc(status);
     }
 
-    /** 상태와 검색어로 레시피 조회 (메모리에서 필터링) */
+    /** 상태와 검색어로 레시피 조회 (메모리에서 필터링) - 최신순 정렬 */
     public List<Recipe> getRecipesByStatusAndSearch(String status, String searchTerm) {
-        List<Recipe> allRecipes = recipeRepo.findAll();
+        List<Recipe> allRecipes = recipeRepo.findAllByOrderByCreatedAtDesc();
         
         // 상태별 필터링
         if (status != null && !status.isEmpty()) {
