@@ -73,25 +73,30 @@
             </div>
         </div>
 
-        <!-- 통계 -->
-        <div class="company-stats">
+        <!-- 업체 통계 -->
+        <div class="company-stats" style="grid-template-columns: repeat(4, 1fr);">
             <div class="stat-item">
-                <div class="stat-number" th:text="${stats != null ? stats.totalOrders : 156}">156</div>
+                <div class="stat-number"
+                     th:text="${stats != null ? stats.totalOrders : 0}">0</div>
                 <div class="stat-label">총 주문건</div>
             </div>
             <div class="stat-item">
-                <div class="stat-number" th:text="${stats != null ? stats.completedDeliveries : 142}">142</div>
+                <div class="stat-number"
+                     th:text="${stats != null ? stats.completedDeliveries : 0}">0</div>
                 <div class="stat-label">배송완료</div>
             </div>
             <div class="stat-item">
-                <div class="stat-number" th:text="${stats != null ? stats.pendingOrders : 14}">14</div>
+                <div class="stat-number"
+                     th:text="${stats != null ? stats.pendingOrders : 0}">0</div>
                 <div class="stat-label">대기중</div>
             </div>
             <div class="stat-item">
-                <div class="stat-number" th:text="${comp != null && comp.rating != null ? comp.rating : (stats != null ? stats.rating : 4.8)}">4.8</div>
+                <div class="stat-number"
+                     th:text="${stats != null ? stats.rating : 0.0}">0.0</div>
                 <div class="stat-label">평점</div>
             </div>
         </div>
+
 
         <!-- 기능 모듈 -->
         <div class="modules-grid">

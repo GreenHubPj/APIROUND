@@ -23,21 +23,22 @@ public class WebConfig implements WebMvcConfigurer {
     private static final String[] PROTECTED_PATHS = {
             "/mypage/**",
             "/order/**",
-            "/orders/**",          // ← 추가: 구매하기 API 보호
+            "/orders/**",
             "/cart/**",
             "/profile/**",
             "/profile-edit",
             "/profile-edit-company",
             "/mypage-company",
             "/user/profile/**",
-            "/company/profile/**"
+            "/company/profile/**",
+            "/seller/**"
     };
 
     private static final String[] STATIC_OPEN_PATHS = {
             "/css/**","/js/**","/images/**","/videos/**","/webjars/**","/favicon.ico","/uploads/**","/upload-dir/**"
     };
 
-    /** 공개 경로(뷰 + 공개 API prefix) */
+    /** 공개 경로(뷰 + 공개 API + OAuth) */
     private static final String[] PUBLIC_PATHS = {
             "/","/main","/popular","/seasonal","/region","/recipe","/event",
             "/login","/signup",
@@ -47,12 +48,13 @@ public class WebConfig implements WebMvcConfigurer {
             "/auth/logout", "/logout", "/company/logout",
             "/api/public/**",
             "/api/account/**",
-            "/api/random-recipe",  // ✅ 랜덤 레시피 추천 API 공개
-            "/api/related-products",  // ✅ 관련 상품 API 공개
-            "/api/product-prices/**",  // ✅ 상품 가격 정보 API 공개
+            "/api/random-recipe",
+            "/api/related-products",
+            "/api/product-prices/**",
             "/error",
-            // ✅ 상품 리뷰 뷰 페이지 공개
-            "/products/**"
+            "/products/**",
+            // ★ 소셜 로그인 공개 경로
+            "/oauth/**"
     };
 
     @Override
@@ -66,7 +68,6 @@ public class WebConfig implements WebMvcConfigurer {
                 .addPathPatterns("/**")
                 .excludePathPatterns(STATIC_OPEN_PATHS);
 
-        // /api/** 보호 + 리뷰 GET만 화이트리스트
         registry.addInterceptor(new ApiGuardInterceptor())
                 .addPathPatterns("/api/**")
                 .excludePathPatterns(STATIC_OPEN_PATHS)
@@ -88,7 +89,6 @@ public class WebConfig implements WebMvcConfigurer {
 
             // 미로그인
             if (isApiRequest(request)) {
-                // ✅ JSON 응답에 로그인 화면으로 돌아갈 redirectUrl 함께 제공 (프론트에서 그대로 location.href)
                 String query = request.getQueryString();
                 String target = request.getRequestURI() + (query != null ? "?" + query : "");
                 String loginUrl = "/login?redirectURL=" + URLEncoder.encode(target, StandardCharsets.UTF_8);
@@ -109,7 +109,6 @@ public class WebConfig implements WebMvcConfigurer {
         private boolean isApiRequest(HttpServletRequest req) {
             String uri = req.getRequestURI();
             if (uri.startsWith("/api/")) return true;
-            // Ajax/Fetch JSON 요청 구분
             String accept = req.getHeader("Accept");
             if (accept != null && accept.contains("application/json")) return true;
             String xhr = req.getHeader("X-Requested-With");
@@ -130,7 +129,6 @@ public class WebConfig implements WebMvcConfigurer {
     }
 
     private static class ApiGuardInterceptor implements HandlerInterceptor {
-
         @Override
         public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
             final String uri = request.getRequestURI();
@@ -138,25 +136,11 @@ public class WebConfig implements WebMvcConfigurer {
 
             if (isStatic(uri)) return true;
 
-            // 공개 GET API 화이트리스트: /api/products/{id}/reviews(, /summary)
-            if ("GET".equalsIgnoreCase(method) && isPublicReviewGetApi(uri)) {
-                return true;
-            }
-
-            // ✅ 랜덤 레시피 추천 API 공개
-            if ("GET".equalsIgnoreCase(method) && "/api/random-recipe".equals(uri)) {
-                return true;
-            }
-
-            // ✅ 관련 상품 API 공개
-            if ("GET".equalsIgnoreCase(method) && uri.startsWith("/api/related-products")) {
-                return true;
-            }
-
-            // ✅ 상품 가격 정보 API 공개
-            if ("GET".equalsIgnoreCase(method) && uri.startsWith("/api/product-prices/")) {
-                return true;
-            }
+            // 공개 GET API
+            if ("GET".equalsIgnoreCase(method) && isPublicReviewGetApi(uri)) return true;
+            if ("GET".equalsIgnoreCase(method) && "/api/random-recipe".equals(uri)) return true;
+            if ("GET".equalsIgnoreCase(method) && uri.startsWith("/api/related-products")) return true;
+            if ("GET".equalsIgnoreCase(method) && uri.startsWith("/api/product-prices/")) return true;
 
             // ✅ 상품 썸네일 이미지 API 공개
             if ("GET".equalsIgnoreCase(method) && uri.matches("/api/products/\\d+/thumbnail")) {
@@ -173,7 +157,6 @@ public class WebConfig implements WebMvcConfigurer {
 
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-            // ✅ 여기서도 redirectUrl 포함
             response.getWriter().write("{\"login\":false,\"redirectUrl\":\"" + loginUrl + "\"}");
             return false;
         }
@@ -218,20 +201,16 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addResourceHandler("/js/**").addResourceLocations("classpath:/static/js/");
         registry.addResourceHandler("/images/**").addResourceLocations("classpath:/static/images/");
         registry.addResourceHandler("/videos/**").addResourceLocations("classpath:/static/videos/");
-        // 업로드된 파일들 - 정적 리소스로 관리 (다른 컴퓨터에서도 접근 가능)
         registry.addResourceHandler("/uploads/**").addResourceLocations("classpath:/static/uploads/");
-        
-        // 기존 upload-dir 경로도 지원 (호환성)
         registry.addResourceHandler("/upload-dir/**").addResourceLocations("file:upload-dir/");
     }
 
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/api/**")
-                .allowedOrigins("http://localhost:8000") // 또는 프론트 주소 명확하게
+                .allowedOrigins("http://localhost:8000", "https://apiround.store") // 배포도 허용 시 추가
                 .allowedMethods("*")
                 .allowedHeaders("*")
-                .allowCredentials(true); // ✅ 핵심
+                .allowCredentials(true);
     }
-
 }

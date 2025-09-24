@@ -1,16 +1,18 @@
+// src/main/java/com/apiround/greenhub/controller/review/ReviewPageController.java
 package com.apiround.greenhub.controller.review;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
 
 @Controller
 public class ReviewPageController {
 
-    /** 상품 상세에서 “리뷰보기” → 이 뷰로 이동 (예: /products/123/reviews) */
-    @GetMapping("/products/{productId}/reviews")
-    public String reviewList(@PathVariable Integer productId, Model model) {
-        model.addAttribute("productId", productId);
-        return "reviewlist"; // templates/reviewlist.html
+    @GetMapping("/review")
+    public String reviews(Model model, HttpServletRequest req) {
+        Object currentUser = req.getSession().getAttribute("currentUser");
+        model.addAttribute("currentUser", currentUser);
+        return "review"; // templates/review.html
     }
 }
