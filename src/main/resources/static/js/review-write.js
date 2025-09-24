@@ -1,13 +1,89 @@
-document.addEventListener('DOMContentLoaded', () => {
+// src/main/resources/static/js/review-write.js
+// 로그인한 사용자가 실제로 구매(배송완료)한 상품인지 확인해서
+// 상품 정보를 상단 섹션에 채워주고, 아니면 작성 비활성 처리
+
+document.addEventListener('DOMContentLoaded', async () => {
   initializeStarRating();
   initializeTextarea();
   initializeSaveButton();
   addWritePageAnimations();
+
+  await hydrateProductInfoForWriter(); // ★ 상품 정보 채우기
 });
 
 let currentRating = 5; // 기본 별점
 let isDirty = false;
+let writableMatched = null; // 작성 가능한 목록에서 매칭된 아이템(없으면 null)
 
+// ──────────────────────────────────────────────────────────────
+// 상품 정보 주입
+// ──────────────────────────────────────────────────────────────
+async function hydrateProductInfoForWriter() {
+  const productId = new URLSearchParams(location.search).get('productId') ||
+                    document.querySelector('main[data-product-id]')?.getAttribute('data-product-id');
+
+  const $brand = document.querySelector('.store-brand');
+  const $img   = document.querySelector('.product-img');
+  const $name  = document.querySelector('.product-name');
+  const $desc  = document.querySelector('.product-description');
+  const $price = document.querySelector('.product-price');
+  const $origin= document.querySelector('.origin-label');
+  const $save  = document.querySelector('.save-btn');
+
+  if (!productId) {
+    fallback('상품 정보가 없습니다.');
+    return;
+  }
+
+  try {
+    // 내 ‘작성 가능’ 목록에서 일치하는 상품 찾기
+    const res = await fetch('/api/my/reviews/writable', { credentials: 'include' });
+    if (res.status === 401) {
+      // API가 redirectUrl을 내려주는 형식이면 따라감
+      const body = await safeJson(res);
+      if (body?.redirectUrl) { location.href = body.redirectUrl; return; }
+    }
+    if (!res.ok) throw 0;
+
+    const items = await res.json(); // [{ productId, productName, productImage, storeName, productDescription, priceText, originText, orderItemId, ... }]
+    writableMatched = (items || []).find(it => String(it.productId) === String(productId));
+
+    if (writableMatched) {
+      // 화면 채우기
+      if ($brand) $brand.textContent = writableMatched.storeName ?? '';
+      if ($img)   $img.src = writableMatched.productImage || '/images/농산물.png';
+      if ($name)  $name.textContent = writableMatched.productName ?? '';
+      if ($desc)  $desc.textContent = (writableMatched.productDescription ?? '').trim();
+      if ($price) $price.textContent = writableMatched.priceText ?? '';
+      if ($origin)$origin.textContent= writableMatched.originText ?? '';
+
+      // main 태그 data 추가(없으면)
+      const main = document.querySelector('main[data-product-id]') || document.querySelector('main');
+      if (main && !main.dataset.productId) main.setAttribute('data-product-id', String(productId));
+      if (main && writableMatched.orderItemId) main.setAttribute('data-order-item-id', String(writableMatched.orderItemId));
+    } else {
+      // 내 구매 이력의 '작성가능' 품목이 아니면 작성 버튼 잠금
+      if ($save) {
+        $save.disabled = true;
+        $save.title = '해당 상품은 리뷰 작성 대상이 아닙니다.';
+      }
+      // 그래도 상품 정보는 최소한 보여주고 싶다면(선택) 공개 상품 API가 있다면 호출해서 채워도 됨
+      if ($name)  $name.textContent = $name.textContent || '리뷰 대상 상품을 찾을 수 없습니다';
+    }
+  } catch {
+    fallback('상품 정보를 불러오지 못했습니다.');
+  }
+
+  function fallback(msg) {
+    if ($name && !$name.textContent) $name.textContent = msg;
+    if ($img && !$img.src) $img.src = '/images/농산물.png';
+    if ($save) $save.disabled = true;
+  }
+}
+
+// ──────────────────────────────────────────────────────────────
+// 별점/텍스트 UI
+// ──────────────────────────────────────────────────────────────
 function initializeStarRating() {
   const stars = document.querySelectorAll('.star[data-rating]');
   const ratingText = document.querySelector('.rating-text');
@@ -86,6 +162,9 @@ function initializeSaveButton() {
   });
 }
 
+// ──────────────────────────────────────────────────────────────
+// 저장
+// ──────────────────────────────────────────────────────────────
 async function submitReview() {
   const button = document.querySelector('.save-btn');
   const textarea = document.querySelector('.review-textarea');
@@ -101,10 +180,14 @@ async function submitReview() {
     return;
   }
 
-  // productId: <main data-product-id="..."> 우선, 없으면 쿼리스트링 사용
-  const productId = document.querySelector('main[data-product-id]')?.getAttribute('data-product-id')
-    || new URLSearchParams(location.search).get('productId');
+  // 반드시 내가 쓸 수 있는 상품이어야 함 (writableMatched 확인)
+  if (!writableMatched) {
+    alert('해당 상품은 현재 로그인한 계정으로 리뷰를 작성할 수 없습니다.');
+    return;
+  }
 
+  const productId = new URLSearchParams(location.search).get('productId') ||
+                    document.querySelector('main[data-product-id]')?.getAttribute('data-product-id');
   if (!productId) {
     alert('상품 정보가 없습니다. 다시 시도해주세요.');
     return;
@@ -118,8 +201,16 @@ async function submitReview() {
     const res = await fetch(`/api/products/${productId}/reviews`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify({ rating: currentRating, content: reviewText })
     });
+
+    // 401 → 로그인 유도
+    if (res.status === 401) {
+      const body = await safeJson(res);
+      if (body?.redirectUrl) { location.href = body.redirectUrl; return; }
+      throw new Error('로그인이 필요합니다.');
+    }
 
     if (!res.ok) {
       const msg = await safeText(res);
@@ -142,14 +233,13 @@ async function submitReview() {
 }
 
 async function safeText(res) {
-  try {
-    const t = await res.text();
-    return t;
-  } catch {
-    return '';
-  }
+  try { return await res.text(); } catch { return ''; }
+}
+async function safeJson(res) {
+  try { return await res.json(); } catch { return null; }
 }
 
+// 애니메이션/이탈 방지
 function addWritePageAnimations() {
   const productSection = document.querySelector('.product-info-section');
   if (productSection) {
@@ -174,7 +264,6 @@ function addWritePageAnimations() {
   }
 }
 
-// ESC로 뒤로가기/페이지 이탈 방지
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') history.back();
 });

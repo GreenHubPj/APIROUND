@@ -1,159 +1,117 @@
-// 마이페이지형 "작성 가능한 리뷰 / 작성한 리뷰" 탭 페이지
-document.addEventListener('DOMContentLoaded', () => {
-  initializeTabs();
-  bindButtons();
-  addProfilePageAnimations();
-  // 초기에 작성가능/작성한 리스트 로딩
-  loadWritableReviews();
-  loadWrittenReviews();
-});
+// src/main/resources/static/js/review.js
+(function(){
+  const $ = (sel, root=document) => root.querySelector(sel);
+  const writableBox = $('#writable .review-list');
+  const writtenBox  = $('#written .review-list');
 
-function initializeTabs() {
-  const tabButtons = document.querySelectorAll('.tab-button');
-  const tabContents = document.querySelectorAll('.tab-content');
-
-  tabButtons.forEach(btn => {
-    btn.addEventListener('click', function () {
-      const tab = this.getAttribute('data-tab');
-      tabButtons.forEach(b => b.classList.remove('active'));
-      tabContents.forEach(c => c.classList.remove('active'));
-      this.classList.add('active');
-      const target = document.getElementById(tab);
-      if (target) {
-        target.classList.add('active');
-        target.style.opacity = '0';
-        target.style.transform = 'translateY(20px)';
-        setTimeout(() => {
-          target.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-          target.style.opacity = '1';
-          target.style.transform = 'translateY(0)';
-        }, 50);
-      }
+  // 탭 전환
+  Array.from(document.querySelectorAll('.tab-button')).forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('.tab-button').forEach(b=>b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
+      btn.classList.add('active');
+      $('#'+btn.dataset.tab).classList.add('active');
     });
   });
-}
 
-function bindButtons() {
-  // 동적 렌더링이므로 이벤트 위임 사용
-  document.body.addEventListener('click', e => {
-    const writeBtn = e.target.closest('.write-review-btn');
-    if (writeBtn) {
-      const productId = writeBtn.dataset.productId;
-      if (productId) {
-        location.href = `/review-write?productId=${productId}`;
+  function toPrice(v){
+    try { return Number(v).toLocaleString('ko-KR')+'원'; } catch(e){ return v; }
+  }
+
+  function cardWritable(item){
+    const img = item.productImage || '/images/농산물.png';
+    const name = item.productName || '상품';
+    const store = item.storeName || '';
+    const priceText = item.priceText || '';
+    const origin = item.originText || '';
+
+    const div = document.createElement('div');
+    div.className = 'review-card';
+    div.innerHTML = `
+      <div class="card-left">
+        <img src="${img}" alt="${name}" class="thumb"/>
+      </div>
+      <div class="card-body">
+        <div class="name">${name}</div>
+        <div class="meta">
+          ${store? `<span class="store">${store}</span>`:``}
+          ${origin? `<span class="origin">${origin}</span>`:``}
+        </div>
+        <div class="price">${priceText}</div>
+      </div>
+      <div class="card-right">
+        <a class="btn" href="/reviews/write?orderItemId=${item.orderItemId}&productId=${item.productId}">리뷰 쓰기</a>
+      </div>
+    `;
+    return div;
+  }
+
+  function cardWritten(item){
+    const img = item.productImage || '/images/농산물.png';
+    const name = item.productName || '상품';
+    const rating = item.rating || 0;
+    const content = item.content || '';
+
+    const stars = '★★★★★☆☆☆☆☆'.slice(5 - Math.min(5, Math.max(0, rating))), // 간단 처리
+          starHtml = `<span class="stars">${'★'.repeat(rating)}${'☆'.repeat(5-rating)}</span>`;
+
+    const div = document.createElement('div');
+    div.className = 'review-card';
+    div.innerHTML = `
+      <div class="card-left">
+        <img src="${img}" alt="${name}" class="thumb"/>
+      </div>
+      <div class="card-body">
+        <div class="name">${name}</div>
+        <div class="rating">${starHtml}</div>
+        <div class="content">${content}</div>
+      </div>
+    `;
+    return div;
+  }
+
+  async function fetchJson(url){
+    const res = await fetch(url, {headers: {'Accept':'application/json'}});
+    if (res.status === 401) {
+      let redirect = '/login';
+      try {
+        const body = await res.json();
+        if (body && body.redirectUrl) redirect = body.redirectUrl;
+      } catch(e){}
+      window.location.href = redirect;
+      return [];
+    }
+    return res.json();
+  }
+
+  async function load(){
+    try {
+      const [writable, written] = await Promise.all([
+        fetchJson('/api/my/reviews/writable'),
+        fetchJson('/api/my/reviews')
+      ]);
+
+      // 작성 가능
+      writableBox.innerHTML = '';
+      if (!writable || writable.length === 0) {
+        writableBox.innerHTML = `<div class="empty">작성 가능한 리뷰가 없습니다.</div>`;
       } else {
-        alert('이 상품은 아직 리뷰 작성 페이지로 이동할 수 없습니다.');
+        writable.forEach(it => writableBox.appendChild(cardWritable(it)));
       }
-    }
-    const editBtn = e.target.closest('.edit-review-btn');
-    if (editBtn) {
-      const reviewId = editBtn.dataset.reviewId;
-      alert(`리뷰 수정 페이지로 이동 (reviewId=${reviewId}) — 필요시 라우팅 추가`);
-      // location.href = `/review-edit/${reviewId}`;
-    }
-    const hideBtn = e.target.closest('.hide-btn');
-    if (hideBtn) {
-      const item = hideBtn.closest('.written-review-item');
-      if (item && confirm('이 리뷰를 숨기시겠습니까?')) {
-        item.style.transition = 'opacity .3s ease, transform .3s ease';
-        item.style.opacity = '0';
-        item.style.transform = 'translateX(-100%)';
-        setTimeout(() => item.remove(), 300);
+
+      // 내가 쓴 리뷰
+      writtenBox.innerHTML = '';
+      if (!written || written.length === 0) {
+        writtenBox.innerHTML = `<div class="empty">작성한 리뷰가 없습니다.</div>`;
+      } else {
+        written.forEach(it => writtenBox.appendChild(cardWritten(it)));
       }
+    } catch (e) {
+      console.error(e);
+      writableBox.innerHTML = `<div class="empty">목록을 불러오지 못했습니다.</div>`;
+      writtenBox.innerHTML  = `<div class="empty">목록을 불러오지 못했습니다.</div>`;
     }
-  });
-}
-
-function addProfilePageAnimations() {
-  const userProfile = document.querySelector('.user-profile-section');
-  if (userProfile) {
-    userProfile.style.opacity = '0';
-    userProfile.style.transform = 'translateY(30px)';
-    setTimeout(() => {
-      userProfile.style.transition = 'opacity .6s ease, transform .6s ease';
-      userProfile.style.opacity = '1';
-      userProfile.style.transform = 'translateY(0)';
-    }, 100);
   }
-  const reviewTabs = document.querySelector('.review-tabs');
-  if (reviewTabs) {
-    reviewTabs.style.opacity = '0';
-    reviewTabs.style.transform = 'translateY(30px)';
-    setTimeout(() => {
-      reviewTabs.style.transition = 'opacity .6s ease, transform .6s ease';
-      reviewTabs.style.opacity = '1';
-      reviewTabs.style.transform = 'translateY(0)';
-    }, 200);
-  }
-}
 
-// ===== 데이터 로딩 (로그인 사용자 기준) =====
-async function loadWritableReviews() {
-  const wrap = document.querySelector('#writable .review-list');
-  if (!wrap) return;
-  try {
-    const res = await fetch('/api/my/reviews/writable');
-    if (!res.ok) throw 0;
-    const items = await res.json();
-    wrap.innerHTML = items.map(it => `
-      <div class="review-item">
-        <div class="product-image"><img src="${it.productImage ?? ''}" alt="${it.productName ?? ''}" class="product-img"></div>
-        <div class="product-info">
-          <div class="store-name">${it.storeName ?? '-'}</div>
-          <div class="product-name">${it.productName ?? '-'}</div>
-          <div class="product-description">${escapeHtml(it.productDescription ?? '')}</div>
-          <div class="product-details">
-            <span class="price">${it.priceText ?? ''}</span>
-            <span class="origin">${it.originText ?? ''}</span>
-          </div>
-        </div>
-        <div class="review-actions">
-          <button class="write-review-btn" data-product-id="${it.productId ?? ''}">리뷰 작성하기</button>
-        </div>
-      </div>
-    `).join('');
-  } catch {
-    wrap.innerHTML = '<div class="empty-message">작성 가능한 리뷰가 없습니다.</div>';
-  }
-}
-
-async function loadWrittenReviews() {
-  const wrap = document.querySelector('#written .review-list');
-  if (!wrap) return;
-  try {
-    const res = await fetch('/api/my/reviews');
-    if (!res.ok) throw 0;
-    const items = await res.json();
-    wrap.innerHTML = items.map(it => `
-      <div class="written-review-item">
-        <div class="product-image"><img src="${it.productImage ?? ''}" alt="${it.productName ?? ''}" class="product-img"></div>
-        <div class="review-content">
-          <div class="product-info">
-            <div class="store-name">${it.storeName ?? '-'}</div>
-            <div class="product-name">${it.productName ?? '-'}</div>
-            <div class="delivery-date">${it.deliveryCompletedAt ?? ''} 배송완료</div>
-          </div>
-          <div class="review-preview">
-            <div class="star-rating">${makeStars(it.rating ?? 0)}</div>
-            <p class="review-text">${escapeHtml(it.content ?? '')}</p>
-          </div>
-        </div>
-        <div class="review-actions">
-          <button class="edit-review-btn" data-review-id="${it.reviewId ?? ''}">리뷰 수정하기</button>
-          <button class="hide-btn">숨기기</button>
-        </div>
-      </div>
-    `).join('');
-  } catch {
-    wrap.innerHTML = '<div class="empty-message">작성한 리뷰가 없습니다.</div>';
-  }
-}
-
-function makeStars(n) {
-  let s = '';
-  for (let i = 1; i <= 5; i++) s += `<span class="star ${i <= n ? 'active' : ''}">★</span>`;
-  return s;
-}
-function escapeHtml(t) {
-  return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;');
-}
+  load();
+})();

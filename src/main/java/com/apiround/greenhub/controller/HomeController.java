@@ -1,8 +1,11 @@
 package com.apiround.greenhub.controller;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -27,7 +30,6 @@ import lombok.RequiredArgsConstructor;
 public class HomeController {
 
     private final RecipeService recipeService;
-
     private final SeasonalService seasonalService;
     private final CartService cartService;
 
@@ -42,7 +44,6 @@ public class HomeController {
 
             if (recipe == null) {
                 System.out.println("레시피가 null입니다. 기본 데이터 반환");
-                // 기본 레시피 데이터 반환
                 Map<String, Object> defaultResponse = Map.of(
                         "name", "김치찌개",
                         "region", "전국 지역 특산품",
@@ -54,7 +55,6 @@ public class HomeController {
                 return ResponseEntity.ok(defaultResponse);
             }
 
-            // 응답 데이터 구성
             List<String> ingredients = getRecipeIngredients(recipe.getRecipeId());
             System.out.println("재료 목록: " + ingredients);
 
@@ -77,7 +77,7 @@ public class HomeController {
 
     @GetMapping("/")
     public String home(Model model) {
-        List<Region> seasonal = seasonalService.getRandomSeasonalForMain(8); // ✅ 인스턴스 호출
+        List<Region> seasonal = seasonalService.getRandomSeasonalForMain(8);
         model.addAttribute("seasonalProducts", seasonal);
 
         List<Recipe> randomRecipes = recipeService.getRandomRecipesForMain();
@@ -87,7 +87,6 @@ public class HomeController {
 
     @GetMapping("/seasonal")
     public String seasonal() {
-        // SeasonalController로 리다이렉트
         return "redirect:/specialties/monthly";
     }
 
@@ -116,7 +115,7 @@ public class HomeController {
             return recipeService.getIngredients(recipeId)
                     .stream()
                     .map(ingredient -> ingredient.getNameText())
-                    .limit(4) // 최대 4개만
+                    .limit(4)
                     .toList();
         } catch (Exception e) {
             return List.of("신선한 재료");
@@ -125,8 +124,6 @@ public class HomeController {
 
     @GetMapping("/newrecipe")
     public String newrecipe() { return "newrecipe"; }
-
-
 
     @GetMapping("/myrecipe-detail")
     public String myrecipeDetail(@RequestParam(required = false) String id,
@@ -143,13 +140,11 @@ public class HomeController {
                 return "redirect:/login";
             }
 
-            // 장바구니 데이터 가져오기
             List<CartDto.Response> cartItems = cartService.getCartItems(user);
             model.addAttribute("cartItems", cartItems);
 
             return "shoppinglist";
         } catch (Exception e) {
-            // 에러 발생 시 빈 장바구니로 처리
             model.addAttribute("cartItems", new ArrayList<>());
             return "shoppinglist";
         }
@@ -158,11 +153,14 @@ public class HomeController {
     @GetMapping("/orderdetails")
     public String orderdetails(@RequestParam(required = false) String id) { return "orderdetails"; }
 
-    @GetMapping("/review")
-    public String review() { return "review"; }
 
     @GetMapping("/review-write")
-    public String reviewWrite() { return "review-write"; }
+    public String legacyReviewWrite(@RequestParam java.util.Map<String,String> params) {
+        var qs = params.entrySet().stream()
+                .map(e -> e.getKey() + "=" + java.net.URLEncoder.encode(e.getValue(), java.nio.charset.StandardCharsets.UTF_8))
+                .collect(java.util.stream.Collectors.joining("&"));
+        return "redirect:/reviews/write" + (qs.isEmpty()? "" : "?" + qs);
+    }
 
     @GetMapping("/event")
     public String event() { return "event"; }

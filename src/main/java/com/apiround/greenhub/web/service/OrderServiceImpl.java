@@ -29,6 +29,7 @@ import com.apiround.greenhub.web.dto.OrderCreatedResponse;
 import com.apiround.greenhub.web.dto.OrderDetailDto;
 import com.apiround.greenhub.web.dto.OrderSummaryDto;
 import com.apiround.greenhub.web.entity.OrderItem;
+// ✅ 핵심: 존재하는 리포지토리 경로로 import
 import com.apiround.greenhub.web.repository.OrderItemRepository;
 
 import jakarta.transaction.Transactional;
@@ -41,6 +42,7 @@ import lombok.extern.slf4j.Slf4j;
 public class OrderServiceImpl implements OrderService {
 
     private final OrderRepository orderRepository;
+    // ✅ 타입 일치
     private final OrderItemRepository orderItemRepository;
     private final SpecialtyProductRepository specialtyProductRepository;
     private final ProductPriceOptionRepository productPriceOptionRepository;
@@ -152,7 +154,7 @@ public class OrderServiceImpl implements OrderService {
                 throw new IllegalArgumentException("판매자 정보를 찾을 수 없습니다. (productId=" + resolvedProductId + ")");
             }
 
-            // 5) 단가 확정: option → 요청값 → listing.price_value → (보조) 옵션 최저가
+            // 5) 단가 확정
             BigDecimal unitPrice = null;
             if (option != null && option.getPrice() != null) unitPrice = toBigDecimal(option.getPrice());
             if (unitPrice == null && ci.getUnitPrice() != null) unitPrice = ci.getUnitPrice();
@@ -170,7 +172,7 @@ public class OrderServiceImpl implements OrderService {
 
             BigDecimal lineAmount = unitPrice.multiply(BigDecimal.valueOf(count));
 
-            // 6) 스냅샷 텍스트/단위: 요청명 → SpecialtyProduct → listing.title
+            // 6) 스냅샷 텍스트/단위
             String itemName = null;
             if (StringUtils.hasText(ci.getItemName())) itemName = ci.getItemName();
             else if (sp != null && StringUtils.hasText(sp.getProductName())) itemName = sp.getProductName();
@@ -181,11 +183,11 @@ public class OrderServiceImpl implements OrderService {
             if (option != null && StringUtils.hasText(option.getUnit())) unitSnap = option.getUnit();
             else if (listing != null && StringUtils.hasText(listing.getUnitCode())) unitSnap = listing.getUnitCode();
 
-            // 7) 라인 생성 (product_id는 스냅샷 용 — FK 없음 가정)
+            // 7) 라인 생성
             OrderItem item = new OrderItem();
             item.setOrder(order);
-            item.setProductId(resolvedProductId);                // 없어도 됨 (NULL 가능)
-            item.setListingId(listing != null ? listing.getListingId() : null); // 가능하면 반드시 세팅
+            item.setProductId(resolvedProductId);
+            item.setListingId(listing != null ? listing.getListingId() : null);
             item.setOptionId(option != null ? option.getOptionId() : ci.getOptionId());
             item.setCompanyId(sellerCompanyId);
             item.setProductNameSnap(itemName);
@@ -225,6 +227,8 @@ public class OrderServiceImpl implements OrderService {
         if (orders.isEmpty()) return List.of();
 
         var orderIds = orders.stream().map(Order::getOrderId).toList();
+
+        // (선택) JPA로도 아이템을 불러올 수 있음: orderItemRepository.findByOrder_OrderIdIn(orderIds)
         Map<Integer, List<ItemRow>> itemsByOrderId = loadItemsByOrderIds(orderIds);
 
         Set<Integer> listingIds = itemsByOrderId.values().stream()
