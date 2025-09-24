@@ -1,4 +1,3 @@
-// src/main/resources/static/js/review-write.js
 // 로그인한 사용자가 실제로 구매(배송완료)한 상품인지 확인해서
 // 상품 정보를 상단 섹션에 채워주고, 아니면 작성 비활성 처리
 
@@ -67,7 +66,6 @@ async function hydrateProductInfoForWriter() {
         $save.disabled = true;
         $save.title = '해당 상품은 리뷰 작성 대상이 아닙니다.';
       }
-      // 그래도 상품 정보는 최소한 보여주고 싶다면(선택) 공개 상품 API가 있다면 호출해서 채워도 됨
       if ($name)  $name.textContent = $name.textContent || '리뷰 대상 상품을 찾을 수 없습니다';
     }
   } catch {
@@ -201,7 +199,7 @@ async function submitReview() {
     const res = await fetch(`/api/products/${productId}/reviews`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
+      credentials: 'include', // 세션 쿠키 사용 (스프링 시큐리티 미사용이어도 세션 로그인이면 필요)
       body: JSON.stringify({ rating: currentRating, content: reviewText })
     });
 

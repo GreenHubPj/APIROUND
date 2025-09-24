@@ -38,14 +38,20 @@ public class PasswordUtil {
         }
     }
 
-    /** 비밀번호 정책: 8자 이상, 영문/숫자/특수문자 각각 1개 이상 포함 */
+    /**
+     * 비밀번호 정책: 8자 이상, 영문/숫자/특수문자 각각 1자 이상
+     * - 특수문자 판정: Java의 \\p{Punct} (ASCII 구두점 포함, '_' 포함)
+     *   서버/프론트 규칙을 최대한 맞추기 위해 서버는 넉넉히 허용합니다.
+     */
     public static boolean isStrong(String raw) {
         if (raw == null) return false;
-        String s = raw.trim();
+        String s = raw; // 앞뒤 공백도 하나의 문자로 취급 (폼에서 트리밍 권장)
         if (s.length() < 8) return false;
+
         boolean hasLetter  = s.matches(".*[A-Za-z].*");
         boolean hasDigit   = s.matches(".*\\d.*");
-        boolean hasSpecial = s.matches(".*[~!@#$%^&*()_+\\-=`\\[\\]{}|;':\",.<>/?].*");
+        boolean hasSpecial = s.matches(".*\\p{Punct}.*"); // !"#$%&'()*+,-./:;<=>?@[\]^_`{|}~ 등
+
         return hasLetter && hasDigit && hasSpecial;
     }
 

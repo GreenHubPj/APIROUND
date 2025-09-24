@@ -1,12 +1,34 @@
 /* 관리자용 레시피 관리 페이지 스타일 */
 
+/* 배너 섹션 스타일 */
+.banner-section {
+    position: relative;
+}
+
+.banner-content {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.banner-title {
+    margin-bottom: 20px;
+    align-self: flex-start;
+}
+
 /* 관리자 컨트롤 섹션 */
 .admin-controls {
-    margin: 20px 0;
+    margin: 20px auto;
     padding: 20px;
     background: #f8f9fa;
     border-radius: 12px;
     border: 1px solid #e9ecef;
+    max-width: 1200px;
+    width: 100%;
+    align-self: center;
 }
 
 .admin-controls-container {
@@ -43,12 +65,63 @@
     box-shadow: 0 0 0 2px rgba(255, 107, 53, 0.2);
 }
 
+/* 검색 섹션 스타일 */
+.search-section {
+    flex-grow: 1;
+}
+
+.search-container {
+    width: 100%;
+}
+
+.search-bar {
+    display: flex;
+    width: 100%;
+    max-width: 400px;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.search-input {
+    flex-grow: 1;
+    padding: 8px 12px;
+    border: none;
+    outline: none;
+    font-size: 14px;
+}
+
+.search-input:focus {
+    outline: none;
+}
+
+.search-btn {
+    padding: 8px 12px;
+    background: #ff6b35;
+    border: none;
+    color: white;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.search-btn:hover {
+    background: #e55a2b;
+}
+
+.search-icon {
+    width: 16px;
+    height: 16px;
+}
+
 /* 관리자용 레시피 그리드 */
 .admin-recipes-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
     gap: 20px;
-    margin: 20px 0;
+    margin: 20px auto;
+    max-width: 1200px;
+    width: 100%;
 }
 
 .admin-recipe-card {
@@ -277,8 +350,10 @@
 
 /* 페이징 스타일 개선 */
 .pagination-container {
-    margin: 30px 0;
+    margin: 30px auto;
     text-align: center;
+    max-width: 1200px;
+    width: 100%;
 }
 
 .pagination {
@@ -335,6 +410,16 @@
 
 /* 반응형 디자인 */
 @media (max-width: 768px) {
+    .banner-content {
+        padding: 0 10px;
+    }
+    
+    .admin-controls {
+        margin: 20px 10px;
+        max-width: none;
+        align-self: stretch;
+    }
+    
     .admin-controls-container {
         flex-direction: column;
         align-items: stretch;
@@ -347,10 +432,12 @@
     .admin-recipes-grid {
         grid-template-columns: 1fr;
         gap: 15px;
+        margin: 20px 10px;
+        max-width: none;
     }
     
     .admin-recipe-card {
-        margin: 0 10px;
+        margin: 0;
     }
     
     .status-actions {
@@ -370,12 +457,177 @@
         padding: 6px 10px;
         font-size: 14px;
     }
+    
+    .pagination-container {
+        margin: 30px 10px;
+        max-width: none;
+    }
+}
+
+/* 아이폰 14 Pro Max (430px) 및 작은 모바일 기기 */
+@media (max-width: 430px) {
+    .banner-content {
+        padding: 0 10px;
+    }
+    
+    .banner-title {
+        margin-bottom: 15px;
+    }
+    
+    .admin-controls {
+        margin: 15px 5px;
+        padding: 15px;
+        max-width: none;
+        align-self: stretch;
+    }
+    
+    .admin-controls-container {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .status-filter {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    
+    .status-filter label {
+        font-size: 14px;
+    }
+    
+    .status-filter select {
+        width: 100%;
+        padding: 10px 12px;
+        font-size: 16px; /* iOS 줌 방지 */
+    }
+    
+    .search-section {
+        width: 100%;
+    }
+    
+    .search-container {
+        width: 100%;
+    }
+    
+    .search-bar {
+        width: 100%;
+    }
+    
+    .search-input {
+        width: 100%;
+        padding: 10px 12px;
+        font-size: 16px; /* iOS 줌 방지 */
+    }
+    
+    .search-btn {
+        padding: 10px 15px;
+    }
+    
+    .admin-recipes-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+        margin: 15px 5px;
+        max-width: none;
+    }
+    
+    .admin-recipe-card {
+        margin: 0;
+    }
+    
+    .recipe-image-container {
+        height: 180px;
+    }
+    
+    .recipe-info {
+        padding: 15px;
+    }
+    
+    .recipe-name {
+        font-size: 16px;
+        margin-bottom: 8px;
+    }
+    
+    .recipe-description {
+        font-size: 13px;
+        margin-bottom: 10px;
+    }
+    
+    .recipe-meta {
+        gap: 6px;
+        margin-bottom: 10px;
+    }
+    
+    .recipe-time,
+    .recipe-servings,
+    .recipe-difficulty {
+        font-size: 11px;
+        padding: 3px 6px;
+    }
+    
+    .status-badge {
+        font-size: 11px;
+        padding: 3px 8px;
+    }
+    
+    .admin-actions {
+        padding: 12px 15px;
+    }
+    
+    .status-actions {
+        flex-direction: column;
+        gap: 6px;
+    }
+    
+    .action-btn {
+        width: 100%;
+        padding: 10px 16px;
+        font-size: 14px;
+        min-width: auto;
+    }
+    
+    .pagination-container {
+        margin: 20px 5px;
+        max-width: none;
+    }
+    
+    .pagination {
+        flex-wrap: wrap;
+        gap: 4px;
+        justify-content: center;
+    }
+    
+    .page-btn, .page-number {
+        padding: 8px 12px;
+        font-size: 14px;
+        min-width: 35px;
+    }
+    
+    .page-numbers {
+        gap: 3px;
+    }
 }
 
 @media (max-width: 480px) {
+    .banner-content {
+        padding: 0 5px;
+    }
+    
     .admin-controls {
         margin: 10px;
         padding: 15px;
+        max-width: none;
+        align-self: stretch;
+    }
+    
+    .admin-recipes-grid {
+        margin: 20px 10px;
+        max-width: none;
+    }
+    
+    .pagination-container {
+        margin: 30px 10px;
+        max-width: none;
     }
     
     .recipe-info {

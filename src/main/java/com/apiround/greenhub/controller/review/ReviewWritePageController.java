@@ -20,6 +20,7 @@ public class ReviewWritePageController {
                               HttpSession session,
                               Model model) {
 
+        // 시큐리티 미사용: 세션에서 직접 userId 확인
         Integer userId = (Integer) session.getAttribute("userId");
         if (userId == null) {
             model.addAttribute("errorMessage", "로그인이 필요합니다.");
