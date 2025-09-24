@@ -340,19 +340,6 @@ document.addEventListener('DOMContentLoaded', function () {
     window.updateCompanyStats = updateStats;
 
 
-    if (window.innerWidth <= 480) {
-      modulesGrid.style.gridTemplateColumns = '1fr';
-      companyStats.style.gridTemplateColumns = '1fr';
-    } else if (window.innerWidth <= 768) {
-      modulesGrid.style.gridTemplateColumns = 'repeat(2, 1fr)';
-      companyStats.style.gridTemplateColumns = 'repeat(2, 1fr)';
-    } else {
-      modulesGrid.style.gridTemplateColumns = 'repeat(3, 1fr)';
-      companyStats.style.gridTemplateColumns = 'repeat(4, 1fr)';
-    }
-  }
-  window.addEventListener('resize', handleResize);
-  handleResize();
 
   // ====== 등장 애니메이션 ======
   function addAnimation() {
