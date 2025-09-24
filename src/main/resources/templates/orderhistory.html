@@ -87,7 +87,16 @@
                                 <span th:text="${#temporals.format(o.date, 'yyyy-MM-dd HH:mm')}">2025-01-01</span>
                             </div>
                         </div>
-                        <div class="order-status" th:text="${o.status}">preparing</div>
+
+                        <!-- templates/orderhistory.html 일부 -->
+                        <span class="order-status"
+                              th:classappend="' status-' + ${o != null and o.status != null ? o.status : 'preparing'}"
+                              th:text="${o != null and o.status == 'shipping' ? '배송중' :
+                                (o != null and o.status == 'completed' ? '배송완료' : 
+                                (o != null and o.status == 'cancelled' ? '취소됨' : '배송 준비중'))}">
+                                배송 준비중
+                        </span>
+
                     </div>
                     <div class="order-body">
                         <div class="order-items" th:if="${!#lists.isEmpty(o.items)}">

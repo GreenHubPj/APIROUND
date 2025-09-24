@@ -1,5 +1,21 @@
 package com.apiround.greenhub.web.service;
 
+import java.math.BigDecimal;
+import java.sql.ResultSet;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
+
 import com.apiround.greenhub.entity.Order;
 import com.apiround.greenhub.entity.ProductListing;
 import com.apiround.greenhub.entity.item.ProductPriceOption;
@@ -19,16 +35,6 @@ import com.apiround.greenhub.web.repository.OrderItemRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
-
-import java.math.BigDecimal;
-import java.sql.ResultSet;
-import java.time.LocalDateTime;
-import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -293,15 +299,20 @@ public class OrderServiceImpl implements OrderService {
     // ===== 내부 유틸/조회 =====
 
     private String mapUiStatus(String db) {
-        if (db == null) return "preparing";
-        switch (db.toUpperCase()) {
+        if (db == null || db.trim().isEmpty()) return "preparing";
+        switch (db.toUpperCase().trim()) {
             case "DELIVERED": return "completed";
             case "SHIPPED": return "shipping";
             case "CANCELLED":
             case "CANCEL_REQUESTED":
             case "REFUND_REQUESTED":
             case "REFUNDED": return "cancelled";
-            default: return "preparing";
+            case "PREPARING":
+            case "PENDING":
+            case "PAID": return "preparing";
+            default: 
+                log.warn("[mapUiStatus] 알 수 없는 상태값: '{}', 기본값 'preparing' 반환", db);
+                return "preparing";
         }
     }
 
@@ -489,4 +500,89 @@ public class OrderServiceImpl implements OrderService {
     }
 
     private BigDecimal nz(BigDecimal v) { return v == null ? BigDecimal.ZERO : v; }
+
+    @Override
+    @Transactional
+    public boolean updateOrderStatus(String orderNumber, String newStatus) {
+        if (!StringUtils.hasText(orderNumber) || !StringUtils.hasText(newStatus)) {
+            return false;
+        }
+
+        Optional<Order> orderOpt = orderRepository.findByOrderNumber(orderNumber);
+        if (orderOpt.isEmpty()) {
+            log.warn("[updateOrderStatus] 주문을 찾을 수 없습니다. orderNumber={}", orderNumber);
+            return false;
+        }
+
+        Order order = orderOpt.get();
+        String currentStatus = order.getStatus();
+        
+        // 기존 긴 상태값을 짧은 상태값으로 변환
+        String normalizedCurrentStatus = normalizeStatus(currentStatus);
+        String normalizedNewStatus = normalizeStatus(newStatus);
+        
+        // 상태 변경 검증
+        if (!isValidStatusTransition(normalizedCurrentStatus, normalizedNewStatus)) {
+            log.warn("[updateOrderStatus] 유효하지 않은 상태 전환. current={}, new={}", normalizedCurrentStatus, normalizedNewStatus);
+            return false;
+        }
+
+        order.setStatus(normalizedNewStatus);
+        order.setUpdatedAt(LocalDateTime.now());
+        orderRepository.save(order);
+
+        // OrderItem의 상태도 함께 업데이트
+        updateOrderItemStatus(order.getOrderId(), normalizedNewStatus);
+
+        log.info("[updateOrderStatus] 주문 상태 업데이트 완료. orderNumber={}, {} -> {}", 
+                orderNumber, currentStatus, normalizedNewStatus);
+        return true;
+    }
+
+    private String normalizeStatus(String status) {
+        if (status == null) return "PREPARING";
+        
+        String upper = status.toUpperCase();
+        return switch (upper) {
+            case "P" -> "PREPARING";
+            case "S" -> "SHIPPED";
+            case "D" -> "DELIVERED";
+            case "C" -> "CANCELLED";
+            case "PREPARING", "SHIPPED", "DELIVERED", "CANCELLED", "PENDING", "PAID", "CANCEL_REQUESTED", "REFUND_REQUESTED", "REFUNDED" -> upper;
+            default -> "PREPARING";
+        };
+    }
+
+    private void updateOrderItemStatus(Integer orderId, String newStatus) {
+        try {
+            String sql = "UPDATE order_item SET item_status = :status, updated_at = NOW() WHERE order_id = :orderId";
+            MapSqlParameterSource params = new MapSqlParameterSource()
+                    .addValue("status", newStatus)
+                    .addValue("orderId", orderId);
+            
+            int updatedRows = jdbc.update(sql, params);
+            log.info("[updateOrderItemStatus] OrderItem 상태 업데이트 완료. orderId={}, status={}, updatedRows={}", 
+                    orderId, newStatus, updatedRows);
+        } catch (Exception e) {
+            log.error("[updateOrderItemStatus] OrderItem 상태 업데이트 실패. orderId={}, status={}", orderId, newStatus, e);
+        }
+    }
+
+    private boolean isValidStatusTransition(String currentStatus, String newStatus) {
+        if (currentStatus == null || newStatus == null) return false;
+        
+        String current = currentStatus.toUpperCase();
+        String newStatusUpper = newStatus.toUpperCase();
+        
+        // 상태 전환 규칙 정의 (enum 값 사용)
+        return switch (current) {
+            case "PREPARING" -> newStatusUpper.equals("SHIPPED") || newStatusUpper.equals("CANCELLED");
+            case "SHIPPED" -> newStatusUpper.equals("DELIVERED") || newStatusUpper.equals("CANCELLED");
+            case "DELIVERED" -> false; // 완료된 주문은 더 이상 변경 불가
+            case "CANCELLED" -> newStatusUpper.equals("PREPARING"); // 취소된 주문은 재주문 가능
+            case "PENDING" -> newStatusUpper.equals("PAID") || newStatusUpper.equals("CANCELLED");
+            case "PAID" -> newStatusUpper.equals("PREPARING") || newStatusUpper.equals("CANCELLED");
+            default -> false;
+        };
+    }
 }

@@ -156,7 +156,10 @@
         <!-- 기존 하드코딩 대신 -->
         <div class="recipes-grid">
             <div th:each="recipe : ${randomRecipes}" class="recipe-item" th:onclick="|location.href='/recipe/detail?id=${recipe.recipeId}'|" style="cursor: pointer;">
-                <img th:src="${recipe.heroImageUrl}" th:alt="${recipe.title}" class="recipe-image">
+                <img th:src="${recipe.heroImageUrl != null and !#strings.isEmpty(recipe.heroImageUrl) ? recipe.heroImageUrl : '/images/고기 트럭.png'}" 
+                     th:alt="${recipe.title}" 
+                     class="recipe-image"
+                     th:onerror="|this.onerror=null;this.src='@{/images/고기 트럭.png}'|">
                 <div class="recipe-info">
                     <h4 class="recipe-name" th:text="${recipe.title}">레시피 제목</h4>
                 </div>

@@ -4,19 +4,7 @@ package com.apiround.greenhub.entity;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
-
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.PreUpdate;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Data;
 
 @Entity
@@ -41,8 +29,18 @@ public class ProductListing {
     @Column(name = "title", length = 200, nullable = false)
     private String title;
 
+    // 과거 호환용(남겨둠). 이제 화면엔 전용 엔드포인트를 쓰므로 없어도 표시 가능
     @Column(name = "thumbnail_url", length = 500)
     private String thumbnailUrl;
+
+    // ✅ 새로 추가된 DB 저장 칼럼
+    @Lob
+    @Basic(fetch = FetchType.LAZY)
+    @Column(name = "thumbnail_data", columnDefinition = "LONGBLOB")
+    private byte[] thumbnailData;
+
+    @Column(name = "thumbnail_mime", length = 100)
+    private String thumbnailMime;
 
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;

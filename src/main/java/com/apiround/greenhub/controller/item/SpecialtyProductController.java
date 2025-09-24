@@ -7,6 +7,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -29,22 +32,63 @@ public class SpecialtyProductController {
     @GetMapping("/region")
     public String listSpecialties(Model model,
                                   @RequestParam(required = false) String type,
-                                  @RequestParam(required = false) String region) {
+                                  @RequestParam(required = false) String region,
+                                  @RequestParam(required = false) String search,
+                                  @RequestParam(defaultValue = "0") int page,
+                                  @RequestParam(defaultValue = "5") int size) {
         List<Region> products;
+        int totalPages = 0;
+        long totalElements = 0;
 
-        if (type != null && !type.isEmpty()) {
-            // 타입별 필터링된 UNION 조회
-            products = safeList(regionService.getCombinedProductsByTypeWithUnion(type));
-        } else if (region != null && !region.isEmpty()) {
-            // 지역별 필터링된 UNION 조회
-            products = safeList(regionService.getCombinedProductsByRegionWithUnion(region));
+        // 기본 전체 조회
+        products = safeList(regionService.getCombinedProductsWithUnion());
+        
+        // 카테고리 필터링 적용
+        if (type != null && !type.isEmpty() && !type.equals("all")) {
+            products = products.stream()
+                               .filter(p -> p.getProductType() != null && p.getProductType().equals(type))
+                               .collect(Collectors.toList());
+        }
+        
+        // 지역 필터링 적용
+        if (region != null && !region.isEmpty() && !region.equals("all")) {
+            // 영어 지역 코드를 한글 지역명으로 변환
+            String koreanRegionName = convertEnglishRegionToKorean(region);
+            products = products.stream()
+                               .filter(p -> p.getRegionText() != null && p.getRegionText().toLowerCase().contains(koreanRegionName.toLowerCase()))
+                               .collect(Collectors.toList());
+        }
+
+        // 검색어 필터링 추가
+        if (search != null && !search.isEmpty()) {
+            String searchTermLower = search.toLowerCase();
+            products = products.stream()
+                               .filter(p -> p.getProductName().toLowerCase().contains(searchTermLower) ||
+                                            (p.getDescription() != null && p.getDescription().toLowerCase().contains(searchTermLower)))
+                               .collect(Collectors.toList());
+        }
+
+        // 서버 사이드 페이징 적용
+        totalElements = products.size();
+        totalPages = (int) Math.ceil((double) totalElements / size);
+        
+        int startIndex = page * size;
+        int endIndex = Math.min(startIndex + size, products.size());
+        
+        if (startIndex < products.size()) {
+            products = products.subList(startIndex, endIndex);
         } else {
-            // 전체 UNION 조회
-            products = safeList(regionService.getCombinedProductsWithUnion());
+            products = new ArrayList<>();
         }
 
         model.addAttribute("products", products);
         model.addAttribute("selectedRegion", region);
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", totalPages);
+        model.addAttribute("totalElements", totalElements);
+        model.addAttribute("pageSize", size);
+        model.addAttribute("selectedType", type);
+        model.addAttribute("searchTerm", search);
         return "region";
     }
 
@@ -208,6 +252,87 @@ public class SpecialtyProductController {
             System.err.println("관련 상품 조회 오류: " + e.getMessage());
             e.printStackTrace();
             return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    // 썸네일 이미지 API 엔드포인트
+    @GetMapping("/api/products/{id}/thumbnail")
+    public ResponseEntity<byte[]> getProductThumbnail(@PathVariable Integer id) {
+        try {
+            // 상품 정보 조회
+            Region product = regionService.getCombinedProductByIdWithUnion(id);
+            if (product == null) {
+                return ResponseEntity.notFound().build();
+            }
+
+            // 1. ProductListing에서 thumbnail_data가 있는지 확인
+            if (product.getThumbnailData() != null && product.getThumbnailData().length > 0) {
+                HttpHeaders headers = new HttpHeaders();
+                headers.setContentType(MediaType.parseMediaType(
+                    product.getThumbnailMime() != null ? product.getThumbnailMime() : "image/jpeg"
+                ));
+                headers.setContentLength(product.getThumbnailData().length);
+                return new ResponseEntity<>(product.getThumbnailData(), headers, HttpStatus.OK);
+            }
+
+            // 2. SpecialtyProduct에서 thumbnail_url이 있는지 확인
+            if (product.getThumbnailUrl() != null && !product.getThumbnailUrl().trim().isEmpty() 
+                && !product.getThumbnailUrl().equals("null") && !product.getThumbnailUrl().equals("#")) {
+                
+                // URL이 data:로 시작하는지 확인 (base64 인코딩된 이미지)
+                if (product.getThumbnailUrl().startsWith("data:")) {
+                    try {
+                        // data:image/jpeg;base64, 부분 제거하고 base64 디코딩
+                        String base64Data = product.getThumbnailUrl().substring(product.getThumbnailUrl().indexOf(",") + 1);
+                        byte[] imageBytes = java.util.Base64.getDecoder().decode(base64Data);
+                        
+                        HttpHeaders headers = new HttpHeaders();
+                        headers.setContentType(MediaType.parseMediaType(
+                            product.getThumbnailUrl().substring(5, product.getThumbnailUrl().indexOf(";"))
+                        ));
+                        headers.setContentLength(imageBytes.length);
+                        return new ResponseEntity<>(imageBytes, headers, HttpStatus.OK);
+                    } catch (Exception e) {
+                        System.err.println("Base64 디코딩 오류: " + e.getMessage());
+                    }
+                } else {
+                    // 일반 URL인 경우 - 리다이렉트로 처리
+                    return ResponseEntity.status(HttpStatus.FOUND)
+                            .header("Location", product.getThumbnailUrl())
+                            .build();
+                }
+            }
+
+            // 3. 기본 이미지 반환 (이미지가 없는 경우)
+            return ResponseEntity.notFound().build();
+
+        } catch (Exception e) {
+            System.err.println("썸네일 조회 오류: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+    
+    // 영어 지역 코드를 한글 지역명으로 변환 (LIKE 검색을 위해 핵심 키워드 반환)
+    private String convertEnglishRegionToKorean(String englishRegion) {
+        switch (englishRegion.toLowerCase()) {
+            case "seoul": return "서울"; // 서울, 서울특별시, 서울시 모두 매칭
+            case "gyeonggi": return "경기"; // 경기도, 경기 등 매칭
+            case "incheon": return "인천"; // 인천, 인천광역시 등 매칭
+            case "gangwon": return "강원"; // 강원도, 강원 등 매칭
+            case "chungbuk": return "충북"; // 충청북도, 충북 등 매칭
+            case "chungnam": return "충남"; // 충청남도, 충남 등 매칭
+            case "daejeon": return "대전"; // 대전, 대전광역시 등 매칭
+            case "jeonbuk": return "전북"; // 전라북도, 전북 등 매칭
+            case "jeonnam": return "전남"; // 전라남도, 전남 등 매칭
+            case "gwangju": return "광주"; // 광주, 광주광역시 등 매칭
+            case "gyeongbuk": return "경북"; // 경상북도, 경북 등 매칭
+            case "gyeongnam": return "경남"; // 경상남도, 경남 등 매칭
+            case "daegu": return "대구"; // 대구, 대구광역시 등 매칭
+            case "busan": return "부산"; // 부산, 부산광역시 등 매칭
+            case "ulsan": return "울산"; // 울산, 울산광역시 등 매칭
+            case "jeju": return "제주"; // 제주도, 제주 등 매칭
+            default: return englishRegion; // 변환할 수 없으면 원본 반환
         }
     }
 }

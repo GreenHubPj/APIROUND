@@ -20,6 +20,17 @@ public interface RegionRepository extends JpaRepository<Region, Integer> {
     // 수확철 검색
     List<Region> findByHarvestSeasonContaining(String harvestSeason);
 
+    // harvest_season을 기반으로 해당 월의 상품 조회 (product_listing 테이블)
+    @Query(value = """
+        SELECT product_id, title, product_type, region_text, harvest_season, is_deleted, status, thumbnail_url, description, thumbnail_data, thumbnail_mime 
+        FROM product_listing 
+        WHERE status = 'ACTIVE' 
+          AND is_deleted = 'N' 
+          AND harvest_season LIKE CONCAT('%', :month, '%')
+        ORDER BY product_id DESC
+        """, nativeQuery = true)
+    List<Object[]> findProductsByHarvestSeason(@Param("month") int month);
+
     // 지역별 검색 (다양한 형태의 지역명 지원)
     @Query("""
         SELECT r FROM Region r
@@ -47,6 +58,24 @@ public interface RegionRepository extends JpaRepository<Region, Integer> {
          ORDER BY r.productId DESC
     """)
     List<Region> findAllOrderByProductIdDesc();
+
+    // 페이징된 상품 조회
+    @Query(value = """
+        SELECT r FROM Region r
+         WHERE (r.isDeleted IS NULL OR r.isDeleted <> 'Y')
+         ORDER BY r.productId DESC
+    """, countQuery = """
+        SELECT COUNT(r) FROM Region r
+         WHERE (r.isDeleted IS NULL OR r.isDeleted <> 'Y')
+    """)
+    List<Region> findAllOrderByProductIdDesc(int page, int size);
+
+    // 전체 상품 수 조회
+    @Query("""
+        SELECT COUNT(r) FROM Region r
+         WHERE (r.isDeleted IS NULL OR r.isDeleted <> 'Y')
+    """)
+    int getTotalProductsCount();
 
     // 활성 상품만 조회 (동일: 미삭제 조건)
     @Query("""
@@ -134,13 +163,13 @@ public interface RegionRepository extends JpaRepository<Region, Integer> {
 
     // product_listing과 specialty_product를 UNION으로 조합하여 조회 (페이지네이션)
     @Query(value = """
-        SELECT product_id, title, product_type, region_text, harvest_season, is_deleted, status, thumbnail_url, description 
+        SELECT product_id, title, product_type, region_text, harvest_season, is_deleted, status, thumbnail_url, description, thumbnail_data, thumbnail_mime 
         FROM (
-            SELECT product_id, title, product_type, region_text, harvest_season, is_deleted, status, thumbnail_url, description, 1 AS src_order 
+            SELECT product_id, title, product_type, region_text, harvest_season, is_deleted, status, thumbnail_url, description, thumbnail_data, thumbnail_mime, 1 AS src_order 
             FROM product_listing 
             WHERE status = 'ACTIVE' AND is_deleted = 'N'
             UNION ALL 
-            SELECT product_id, product_name AS title, product_type, region_text, harvest_season, is_deleted, '' AS status, thumbnail_url, description, 2 AS src_order 
+            SELECT product_id, product_name AS title, product_type, region_text, harvest_season, is_deleted, '' AS status, thumbnail_url, description, NULL AS thumbnail_data, NULL AS thumbnail_mime, 2 AS src_order 
             FROM specialty_product
         ) t 
         ORDER BY src_order ASC, 
@@ -152,13 +181,13 @@ public interface RegionRepository extends JpaRepository<Region, Integer> {
 
     // product_listing과 specialty_product를 UNION으로 조합하여 조회 (전체)
     @Query(value = """
-        SELECT product_id, title, product_type, region_text, harvest_season, is_deleted, status, thumbnail_url, description 
+        SELECT product_id, title, product_type, region_text, harvest_season, is_deleted, status, thumbnail_url, description, thumbnail_data, thumbnail_mime 
         FROM (
-            SELECT product_id, title, product_type, region_text, harvest_season, is_deleted, status, thumbnail_url, description, 1 AS src_order 
+            SELECT product_id, title, product_type, region_text, harvest_season, is_deleted, status, thumbnail_url, description, thumbnail_data, thumbnail_mime, 1 AS src_order 
             FROM product_listing 
             WHERE status = 'ACTIVE' AND is_deleted = 'N'
             UNION ALL 
-            SELECT product_id, product_name AS title, product_type, region_text, harvest_season, is_deleted, '' AS status, thumbnail_url, description, 2 AS src_order 
+            SELECT product_id, product_name AS title, product_type, region_text, harvest_season, is_deleted, '' AS status, thumbnail_url, description, NULL AS thumbnail_data, NULL AS thumbnail_mime, 2 AS src_order 
             FROM specialty_product
         ) t 
         ORDER BY src_order ASC, 
@@ -169,13 +198,13 @@ public interface RegionRepository extends JpaRepository<Region, Integer> {
 
     // 타입별로 필터링된 UNION 조회
     @Query(value = """
-        SELECT product_id, title, product_type, region_text, harvest_season, is_deleted, status, thumbnail_url, description 
+        SELECT product_id, title, product_type, region_text, harvest_season, is_deleted, status, thumbnail_url, description, thumbnail_data, thumbnail_mime 
         FROM (
-            SELECT product_id, title, product_type, region_text, harvest_season, is_deleted, status, thumbnail_url, description, 1 AS src_order 
+            SELECT product_id, title, product_type, region_text, harvest_season, is_deleted, status, thumbnail_url, description, thumbnail_data, thumbnail_mime, 1 AS src_order 
             FROM product_listing 
             WHERE status = 'ACTIVE' AND is_deleted = 'N' AND product_type = :productType
             UNION ALL 
-            SELECT product_id, product_name AS title, product_type, region_text, harvest_season, is_deleted, '' AS status, thumbnail_url, description, 2 AS src_order 
+            SELECT product_id, product_name AS title, product_type, region_text, harvest_season, is_deleted, '' AS status, thumbnail_url, description, NULL AS thumbnail_data, NULL AS thumbnail_mime, 2 AS src_order 
             FROM specialty_product
             WHERE product_type = :productType
         ) t 
@@ -187,13 +216,13 @@ public interface RegionRepository extends JpaRepository<Region, Integer> {
 
     // 지역별로 필터링된 UNION 조회
     @Query(value = """
-        SELECT product_id, title, product_type, region_text, harvest_season, is_deleted, status, thumbnail_url, description 
+        SELECT product_id, title, product_type, region_text, harvest_season, is_deleted, status, thumbnail_url, description, thumbnail_data, thumbnail_mime 
         FROM (
-            SELECT product_id, title, product_type, region_text, harvest_season, is_deleted, status, thumbnail_url, description, 1 AS src_order 
+            SELECT product_id, title, product_type, region_text, harvest_season, is_deleted, status, thumbnail_url, description, thumbnail_data, thumbnail_mime, 1 AS src_order 
             FROM product_listing 
             WHERE status = 'ACTIVE' AND is_deleted = 'N' AND region_text LIKE CONCAT('%', :regionText, '%')
             UNION ALL 
-            SELECT product_id, product_name AS title, product_type, region_text, harvest_season, is_deleted, '' AS status, thumbnail_url, description, 2 AS src_order 
+            SELECT product_id, product_name AS title, product_type, region_text, harvest_season, is_deleted, '' AS status, thumbnail_url, description, NULL AS thumbnail_data, NULL AS thumbnail_mime, 2 AS src_order 
             FROM specialty_product
             WHERE region_text LIKE CONCAT('%', :regionText, '%')
         ) t 
@@ -205,13 +234,13 @@ public interface RegionRepository extends JpaRepository<Region, Integer> {
 
     // 특정 ID로 UNION 조회 (product_listing과 specialty_product에서 찾기)
     @Query(value = """
-        SELECT product_id, title, product_type, region_text, harvest_season, is_deleted, status, thumbnail_url, description 
+        SELECT product_id, title, product_type, region_text, harvest_season, is_deleted, status, thumbnail_url, description, thumbnail_data, thumbnail_mime 
         FROM (
-            SELECT product_id, title, product_type, region_text, harvest_season, is_deleted, status, thumbnail_url, description, 1 AS src_order 
+            SELECT product_id, title, product_type, region_text, harvest_season, is_deleted, status, thumbnail_url, description, thumbnail_data, thumbnail_mime, 1 AS src_order 
             FROM product_listing 
             WHERE product_id = :productId AND status = 'ACTIVE' AND is_deleted = 'N'
             UNION ALL 
-            SELECT product_id, product_name AS title, product_type, region_text, harvest_season, is_deleted, '' AS status, thumbnail_url, description, 2 AS src_order 
+            SELECT product_id, product_name AS title, product_type, region_text, harvest_season, is_deleted, '' AS status, thumbnail_url, description, NULL AS thumbnail_data, NULL AS thumbnail_mime, 2 AS src_order 
             FROM specialty_product
             WHERE product_id = :productId
         ) t 
@@ -278,7 +307,7 @@ public interface RegionRepository extends JpaRepository<Region, Integer> {
         ORDER BY random_order ASC
         LIMIT :limit
         """, nativeQuery = true)
-    List<Object[]> findCombinedProductsByRegionFlexible(@Param("regionText") String regionText, 
-                                                        @Param("excludeId") Integer excludeId, 
+    List<Object[]> findCombinedProductsByRegionFlexible(@Param("regionText") String regionText,
+                                                        @Param("excludeId") Integer excludeId,
                                                         @Param("limit") int limit);
 }

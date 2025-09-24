@@ -14,4 +14,3 @@ public class RegionDto {
     private String harvestSeason;
     private Integer minPrice;  // 상품 목록용 최저가
 }
-

@@ -26,7 +26,7 @@
             <section class="search-section">
                 <div class="search-container">
                     <div class="search-bar">
-                        <input type="text" placeholder="검색어를 입력하세요" class="search-input" id="searchInput">
+                        <input type="text" placeholder="검색어를 입력하세요" class="search-input" id="searchInput" th:value="${searchTerm}">
                         <button class="search-btn" id="searchBtn">
                             <img src="/images/돋보기 아이콘.png" alt="검색" class="search-icon">
                         </button>
@@ -40,13 +40,13 @@
     <div class="recipes-grid" id="recipesGrid">
         <div th:each="recipe : ${recipes}" class="recipe-card" th:data-recipe-id="${recipe.recipeId}">
             <a th:href="@{/recipe/{id}(id=${recipe.recipeId})}" class="recipe-link">
-                <!-- 이미지: heroImageUrl 있으면 사용, 없으면 기본이미지 -->
+                <!-- 이미지: heroImageUrl 있으면 사용, 없으면 고기트럭 -->
                 <img class="recipe-image"
                      th:alt="${recipe.title}"
-                     th:with="imgUrl=${#strings.isEmpty(recipe.heroImageUrl)} ? '/images/recipe-default.jpg' : ${recipe.heroImageUrl}"
+                     th:with="imgUrl=${#strings.isEmpty(recipe.heroImageUrl)} ? '/images/고기 트럭.png' : ${recipe.heroImageUrl}"
                      th:src="@{${imgUrl}}"
                      loading="lazy"
-                     onerror="this.onerror=null;this.src='/images/recipe-default.jpg';">
+                     th:onerror="|this.onerror=null;this.src='@{/images/고기 트럭.png}'|">
                 <div class="recipe-info">
                     <h3 class="recipe-name" th:text="${recipe.title}">레시피명</h3>
                     <p class="recipe-description" th:if="${recipe.summary != null}" th:text="${recipe.summary}"></p>
@@ -63,8 +63,42 @@
         </div>
     </div>
 
-    <!-- 페이징 UI 자리 -->
-    <div class="pagination-container" id="paginationContainer"></div>
+    <!-- 서버 사이드 페이징 UI -->
+    <div class="pagination-container" th:if="${totalPages > 1}">
+        <div class="pagination-info">
+            <span th:text="'총 ' + ${totalElements} + '개 레시피 (' + ${currentPage + 1} + '/' + ${totalPages} + ' 페이지)'"></span>
+        </div>
+        <div class="pagination">
+            <!-- 이전 버튼 -->
+            <a th:if="${currentPage > 0}" 
+               th:href="@{/recipe(page=${currentPage - 1}, size=${pageSize}, search=${searchTerm})}"
+               class="page-btn prev-btn">
+                <span>← 이전</span>
+            </a>
+            <span th:unless="${currentPage > 0}" class="page-btn prev-btn disabled">
+                <span>← 이전</span>
+            </span>
+            
+            <!-- 페이지 번호들 -->
+            <div class="page-numbers">
+                <a th:each="pageNum : ${#numbers.sequence(0, totalPages - 1)}"
+                   th:if="${pageNum >= currentPage - 2 and pageNum <= currentPage + 2}"
+                   th:href="@{/recipe(page=${pageNum}, size=${pageSize}, search=${searchTerm})}"
+                   th:text="${pageNum + 1}"
+                   th:class="${pageNum == currentPage} ? 'page-number active' : 'page-number'"></a>
+            </div>
+            
+            <!-- 다음 버튼 -->
+            <a th:if="${currentPage < totalPages - 1}" 
+               th:href="@{/recipe(page=${currentPage + 1}, size=${pageSize}, search=${searchTerm})}"
+               class="page-btn next-btn">
+                <span>다음 →</span>
+            </a>
+            <span th:unless="${currentPage < totalPages - 1}" class="page-btn next-btn disabled">
+                <span>다음 →</span>
+            </span>
+        </div>
+    </div>
 </main>
 
 <!-- 푸터 include -->
@@ -73,10 +107,20 @@
 <!-- 페이지 스크립트 -->
 <script>
     document.getElementById('searchBtn')?.addEventListener('click', function () {
-      const kw = document.getElementById('searchInput')?.value || '';
-      if (kw.trim().length > 0) {
-        window.location.href = '/view/recipes?kw=' + encodeURIComponent(kw.trim());
+      const searchTerm = document.getElementById('searchInput')?.value || '';
+      if (searchTerm.trim().length > 0) {
+        window.location.href = '/recipe?search=' + encodeURIComponent(searchTerm.trim());
       }
+    });
+    
+    // 엔터키 검색
+    document.getElementById('searchInput')?.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            const searchTerm = this.value.trim();
+            if (searchTerm) {
+                window.location.href = '/recipe?search=' + encodeURIComponent(searchTerm);
+            }
+        }
     });
 </script>
 <script src="/js/recipe.js" defer></script>

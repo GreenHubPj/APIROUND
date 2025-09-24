@@ -242,10 +242,12 @@
                     <td class="id-col" th:text="${listing.listingId}"></td>
                     <td class="name-col">
                         <div class="product-name">
-                            <img th:src="${listing.thumbnailUrl ?: '/images/따봉 트럭.png'}"
+                            <img loading="lazy"
+                                 th:src="@{/api/listings/{id}/thumbnail(id=${listing.listingId})}"
                                  th:alt="${listing.title}"
                                  class="product-thumbnail"
-                                 onerror="this.src='/images/따봉 트럭.png'">
+                                 onerror="this.onerror=null;this.src='/images/따봉 트럭.png'">
+
                             <span th:text="${listing.title}"></span>
                         </div>
                     </td>

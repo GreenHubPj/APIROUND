@@ -18,7 +18,7 @@ const STATUS_BTN = {
     preparing:  { text: '배송 준비',  cls: 'preparing' },
     shipping:   { text: '배송중',    cls: 'shipping' },
     completed:  { text: '완료',      cls: 'completed' },
-    cancelled:  { text: '취소',      cls: 'cancelled' },
+    cancelled:  { text: '재주문',    cls: 'cancelled' },
 };
 
 document.addEventListener('DOMContentLoaded', async function() {
@@ -121,6 +121,10 @@ function renderOrderList() {
         const btn = STATUS_BTN[r.uiStatus] || STATUS_BTN.preparing;
         const timeText = renderTimeInfo(r.createdAt);
         const formattedAmount = '₩' + r.amount.toLocaleString();
+        
+        // 완료된 주문만 버튼 비활성화 (취소된 주문은 재주문 가능)
+        const isDisabled = r.uiStatus === 'completed';
+        const disabledAttr = isDisabled ? 'disabled' : '';
 
         return `
         <div class="order-item" data-status="${r.uiStatus}">
@@ -130,7 +134,7 @@ function renderOrderList() {
             </div>
             <div class="order-amount">${formattedAmount}</div>
             <div class="order-actions">
-                <button class="status-button ${btn.cls}">${btn.text}</button>
+                <button class="status-button ${btn.cls}" ${disabledAttr}>${btn.text}</button>
             </div>
         </div>`;
     }).join('');
@@ -476,7 +480,7 @@ function filterByStatus(list, status) {
     return list.filter(o => o.uiStatus === status);
 }
 
-// ========================= 상태 버튼 동작(프론트 전환만) =========================
+// ========================= 상태 버튼 동작(서버 연동) =========================
 function initializeOrderStatusUpdates() {
     const statusButtons = document.querySelectorAll('.status-button');
     statusButtons.forEach(button => {
@@ -484,10 +488,76 @@ function initializeOrderStatusUpdates() {
             const orderItem = this.closest('.order-item');
             const orderNumber = orderItem?.querySelector('.order-number')?.textContent || '';
             if (confirm(`주문 ${orderNumber}의 상태를 변경하시겠습니까?`)) {
-                updateOrderStatusFrontOnly(this, orderItem);
+                updateOrderStatusWithServer(this, orderItem);
             }
         });
     });
+}
+
+// 서버 API를 통한 주문 상태 업데이트
+async function updateOrderStatusWithServer(button, orderItem) {
+    const currentText = button.textContent.trim();
+    const next = nextStatusByText(currentText);
+    if (!next) return;
+
+    const orderNumber = orderItem?.querySelector('.order-number')?.textContent?.replace('#', '')?.trim();
+    if (!orderNumber) {
+        showNotification('주문번호를 찾을 수 없습니다.', 'error');
+        return;
+    }
+
+    // 버튼 비활성화 (중복 클릭 방지)
+    button.disabled = true;
+    button.textContent = '처리중...';
+
+    try {
+        const response = await fetch(`/orders/${orderNumber}/status`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                status: mapButtonTextToDbStatus(next.text)
+            })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            // 성공 시 UI 업데이트
+            button.className = `status-button ${next.cls}`;
+            button.textContent = next.text;
+            orderItem?.setAttribute('data-status', mapButtonTextToKey(next.text));
+
+            // 내부 상태도 갱신
+            const target = state.filtered.find(o => o.orderNumber === orderNumber);
+            if (target) {
+                target.uiStatus = mapButtonTextToKey(next.text);
+                // 원본 orders에서도 동일 변경
+                const origin = state.orders.find(o => o.orderNumber === target.orderNumber);
+                if (origin) origin.uiStatus = target.uiStatus;
+            }
+
+            updateStatusCardsFromState();
+            updateDailySummaryText();
+            
+            // mypage-company 통계 업데이트 (해당 페이지가 열려있는 경우)
+            if (typeof window.updateCompanyStats === 'function') {
+                window.updateCompanyStats();
+            }
+            
+            showNotification('주문 상태가 업데이트되었습니다.', 'success');
+        } else {
+            showNotification(result.message || '상태 업데이트에 실패했습니다.', 'error');
+            button.disabled = false;
+            button.textContent = currentText;
+        }
+    } catch (error) {
+        console.error('상태 업데이트 오류:', error);
+        showNotification('서버와의 통신 중 오류가 발생했습니다.', 'error');
+        button.disabled = false;
+        button.textContent = currentText;
+    }
 }
 
 // 서버 반영 없이 프론트에서만 다음 상태로 전환 (필요 시 API 연결)
@@ -521,6 +591,8 @@ function nextStatusByText(text) {
         case '주문 확인': return STATUS_BTN.preparing;
         case '배송 준비': return STATUS_BTN.shipping;
         case '배송중':   return STATUS_BTN.completed;
+        case '완료':     return null; // 완료된 주문은 더 이상 변경 불가
+        case '취소':     return STATUS_BTN.preparing; // 취소된 주문은 재주문 가능
         default: return null;
     }
 }
@@ -530,6 +602,18 @@ function mapButtonTextToKey(text) {
         if (STATUS_BTN[k].text === text) return k;
     }
     return 'preparing';
+}
+
+function mapButtonTextToDbStatus(text) {
+    switch (text) {
+        case '주문 확인': return 'PREPARING';
+        case '배송 준비': return 'PREPARING';
+        case '배송중': return 'SHIPPED';
+        case '완료': return 'DELIVERED';
+        case '재주문': return 'PREPARING'; // 취소된 주문을 재주문으로 변경
+        case '취소': return 'CANCELLED';
+        default: return 'PREPARING';
+    }
 }
 
 // ========================= 유틸 =========================

@@ -44,6 +44,13 @@ public class Region {
     @Column(name = "thumbnail_url", length = 500)
     private String thumbnailUrl;
 
+    // ProductListing에서 가져올 썸네일 데이터
+    @Transient
+    private byte[] thumbnailData;
+    
+    @Transient
+    private String thumbnailMime;
+
     @Column(name = "region_text", length = 120)
     private String regionText;
 

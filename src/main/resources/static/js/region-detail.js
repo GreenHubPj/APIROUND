@@ -73,14 +73,12 @@ function goBackToList() {
 function loadProductDetail() {
   const productId = getProductIdFromUrl();
   if (!productId) {
-    showMessage('상품 정보를 찾을 수 없습니다.', 'error');
     return;
   }
 
   // 서버에서 렌더된 DOM을 읽어서 객체화
   currentProduct = getProductFromServer();
   if (!currentProduct) {
-    showMessage('상품을 찾을 수 없습니다.', 'error');
     return;
   }
 
@@ -549,12 +547,6 @@ function setupReviewButton() {
 
 // 리뷰 데이터 로드(데모)
 function loadReviews() {
-  const allReviews = [
-    { id: 1, reviewerName: '김사과', rating: 5, date: '2025-09-05', text: '정말 맛있는 사과였어요!' },
-    { id: 2, reviewerName: '이과일', rating: 4, date: '2025-09-03', text: '품질이 좋네요.' },
-    { id: 3, reviewerName: '박농부', rating: 5, date: '2025-09-01', text: '아삭하고 달콤합니다.' },
-    { id: 4, reviewerName: '최고객', rating: 4, date: '2025-08-28', text: '신선하고 맛있어요.' }
-  ];
 
   const recentReviews = allReviews.slice(0, 3);
   renderReviews(recentReviews);
