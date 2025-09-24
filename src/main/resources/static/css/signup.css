@@ -400,30 +400,214 @@
 }
 
 /* 반응형 디자인 */
+@media (max-width: 1024px) {
+    .signup-container {
+        max-width: 90%;
+        padding: 30px 20px;
+    }
+    
+    .signup-title {
+        font-size: 2.2rem;
+    }
+    
+    .signup-form {
+        padding: 30px;
+    }
+}
+
 @media (max-width: 768px) {
     .signup-container {
-        padding: 20px 10px;
+        padding: 20px 15px;
+        max-width: 95%;
+        margin: 20px auto;
+        border-radius: 20px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    }
+    
+    .signup-title {
+        font-size: 2rem;
+        margin-bottom: 8px;
+    }
+    
+    .signup-subtitle {
+        font-size: 1rem;
+    }
+    
+    .member-type-tabs {
+        margin-bottom: 30px;
+    }
+    
+    .member-type-tab {
+        padding: 15px;
+        font-size: 1rem;
+    }
+    
+    .signup-form {
+        padding: 25px;
+        border-radius: 15px;
+    }
+    
+    .section-title {
+        font-size: 1.2rem;
+        margin-bottom: 15px;
+    }
+    
+    .form-row {
+        flex-direction: column;
+        gap: 0;
+        margin-bottom: 15px;
+    }
+    
+    .form-group {
+        margin-bottom: 15px;
+    }
+    
+    .form-input {
+        padding: 12px;
+        font-size: 16px; /* iOS 줌 방지 */
+    }
+    
+    .social-buttons {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .social-btn {
+        padding: 12px 20px;
+        font-size: 0.9rem;
+        min-width: auto;
+    }
+    
+    .verification-container {
+        gap: 8px;
+    }
+    
+    .verification-btn {
+        padding: 12px 15px;
+        font-size: 0.85rem;
+    }
+    
+    .agreement-section {
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    
+    .agreement-all {
+        padding: 12px;
+        margin-bottom: 15px;
+    }
+    
+    .retention-section {
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    
+    .retention-options {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .signup-btn {
+        padding: 15px;
+        font-size: 1.1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .signup-container {
+        padding: 15px 10px;
+        margin: 10px auto;
+        border-radius: 15px;
+        max-width: 98%;
+    }
+    
+    .signup-title {
+        font-size: 1.8rem;
+    }
+    
+    .signup-subtitle {
+        font-size: 0.9rem;
+    }
+    
+    .member-type-tab {
+        padding: 12px;
+        font-size: 0.9rem;
     }
     
     .signup-form {
         padding: 20px;
     }
     
-    .form-row {
-        flex-direction: column;
-        gap: 0;
+    .section-title {
+        font-size: 1.1rem;
     }
     
-    .social-buttons {
-        flex-direction: column;
+    .form-input {
+        padding: 10px;
+        font-size: 16px;
     }
     
-    .verification-container {
-        flex-direction: column;
+    .social-btn {
+        padding: 10px 15px;
+        font-size: 0.85rem;
     }
     
-    .retention-options {
-        flex-direction: column;
-        gap: 10px;
+    .verification-btn {
+        padding: 10px 12px;
+        font-size: 0.8rem;
+    }
+    
+    .agreement-section,
+    .retention-section {
+        padding: 15px;
+    }
+    
+    .signup-btn {
+        padding: 12px;
+        font-size: 1rem;
+    }
+}
+
+@media (max-width: 360px) {
+    .signup-container {
+        padding: 10px 8px;
+        margin: 5px auto;
+    }
+    
+    .signup-title {
+        font-size: 1.6rem;
+    }
+    
+    .member-type-tab {
+        padding: 10px;
+        font-size: 0.85rem;
+    }
+    
+    .signup-form {
+        padding: 15px;
+    }
+    
+    .form-input {
+        padding: 8px;
+    }
+    
+    .social-btn {
+        padding: 8px 12px;
+        font-size: 0.8rem;
+    }
+    
+    .verification-btn {
+        padding: 8px 10px;
+        font-size: 0.75rem;
+    }
+    
+    .agreement-section,
+    .retention-section {
+        padding: 12px;
+    }
+    
+    .signup-btn {
+        padding: 10px;
+        font-size: 0.9rem;
     }
 }
