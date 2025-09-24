@@ -101,7 +101,10 @@
                     <div class="order-body">
                         <div class="order-items" th:if="${!#lists.isEmpty(o.items)}">
                             <div class="order-item" th:each="it : ${o.items}">
-                                <img class="item-image" th:src="${it.image != null ? it.image : '/images/농산물.png'}" alt="" />
+                                <img class="item-image" 
+                                     th:src="@{/api/listings/{id}/thumbnail(id=${it.listingId})}"
+                                     th:alt="${it.name}"
+                                     th:onerror="|this.onerror=null;this.src='@{/images/농산물.png}'|" />
                                 <div class="item-info">
                                     <div class="item-name" th:text="${it.name}">상품명</div>
                                     <div class="item-details">

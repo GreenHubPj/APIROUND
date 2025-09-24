@@ -1,10 +1,14 @@
 package com.apiround.greenhub.web.dto;
 
-import lombok.*;
-
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Getter @Setter
 @NoArgsConstructor
@@ -29,5 +33,6 @@ public class OrderSummaryDto {
         private String unit;           // 표시용 단위(예: 개, kg)
         private String optionText;     // 옵션 라벨(예: 100g, 2kg)
         private BigDecimal price;      // 라인 합계(= 단가 * 수량)
+        private Long listingId;        // 상품 리스팅 ID
     }
 }

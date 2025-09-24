@@ -1,4 +1,9 @@
 /* 마이페이지 스타일 */
+
+a {
+    text-decoration: none;
+}
+
 .mypage-section {
     padding: 40px 0;
     background-color: #f8f9fa;
