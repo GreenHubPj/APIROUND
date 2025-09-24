@@ -13,7 +13,7 @@
   // ──────────────────────────────────────────────────────────────
   // 유틸
   // ──────────────────────────────────────────────────────────────
-  const $ = (sel, root = document) => root.querySelector(sel);
+  const $  = (sel, root = document) => root.querySelector(sel);
   const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
 
   async function postJSON(url, data) {
@@ -25,17 +25,21 @@
     });
     return res;
   }
+
   async function safeJson(res) {
     try { return await res.json(); } catch { return null; }
   }
+
   async function safeText(res) {
     try { return await res.text(); } catch { return ""; }
   }
+
   function toInt(v) {
     if (v == null) return null;
     const n = parseInt(String(v), 10);
     return Number.isFinite(n) ? n : null;
   }
+
   function showErr(msg) {
     const box = $("#saveError");
     if (box) {
@@ -46,47 +50,29 @@
     }
   }
 
-  // 이미지 404 폴백
-  function guardImageFallback() {
-    const imgs = $$(".product-img");
-    imgs.forEach(img => {
-      if (!img) return;
-      img.addEventListener("error", () => {
-        if (img.dataset.fallbackApplied) return;
-        img.dataset.fallbackApplied = "1";
-        img.src = "/images/농산물.png";
-      }, { once: true });
-    });
-  }
-
   // ──────────────────────────────────────────────────────────────
-  // 상태/DOM
+  // DOM 참조
   // ──────────────────────────────────────────────────────────────
-  let isDirty = false;
-  let currentRating = 0;
-
-  const main = $("main");
-  const datasetProductId = main?.getAttribute("data-product-id");
-  const datasetOrderItemId = main?.getAttribute("data-order-item-id");
-  const qsProductId = new URLSearchParams(location.search).get("productId");
-
-  // productId는 main data > 쿼리스트링 > (없으면 null)
-  const productId = toInt(datasetProductId) ?? toInt(qsProductId);
-  const orderItemId = toInt(datasetOrderItemId);
-
-  const ratingInput = $("#ratingValue");
-  const ratingError = $("#ratingError");
-  const textarea = $("#reviewTextarea");
+  const container    = document.querySelector("main.container");
+  const productId    = toInt(container?.getAttribute("data-product-id"));
+  const orderItemId  = toInt(container?.getAttribute("data-order-item-id"));
+  const stars        = $$(".star-rating .star");
+  const ratingInput  = $("#ratingValue");
+  const ratingError  = $("#ratingError");
+  const textarea     = $("#reviewTextarea");
+  const charCount    = $("#charCount");
   const contentError = $("#contentError");
-  const charCount = $("#charCount");
-  const saveBtn = $("#saveBtn");
+  const saveBtn      = $("#saveBtn");
+
+  let currentRating = 0;
+  let isDirty = false;
+
 
   // ──────────────────────────────────────────────────────────────
   // 별점 UI
   // ──────────────────────────────────────────────────────────────
   function initStars() {
-    const stars = $$(".star-rating .star");
-    const apply = (val) => {
+    function apply(val) {
       currentRating = val;
       if (ratingInput) ratingInput.value = String(val);
       stars.forEach(s => {
@@ -95,7 +81,8 @@
         s.setAttribute("aria-checked", r === val ? "true" : "false");
       });
       if (val >= 1 && ratingError) ratingError.style.display = "none";
-    };
+    }
+
     stars.forEach(s => {
       s.addEventListener("click", () => {
         const val = toInt(s.getAttribute("data-rating")) || 0;
@@ -103,7 +90,8 @@
         isDirty = true;
       });
     });
-    // 기본 선택을 5로 하고 싶다면 아래 주석 해제
+
+    // 기본 선택을 5로 하고 싶다면 주석 해제
     // apply(5);
   }
 
@@ -127,7 +115,7 @@
   // 저장 로직
   // ──────────────────────────────────────────────────────────────
   function validateForm() {
-    const rating = toInt(ratingInput?.value) || currentRating || 0;
+    const rating  = toInt(ratingInput?.value) || currentRating || 0;
     const content = (textarea?.value || "").trim();
 
     let ok = true;
@@ -251,11 +239,11 @@
     });
   }
 
+
   // ──────────────────────────────────────────────────────────────
   // 초기화
   // ──────────────────────────────────────────────────────────────
   document.addEventListener("DOMContentLoaded", () => {
-    guardImageFallback();
     initStars();
     initTextarea();
     initGuards();

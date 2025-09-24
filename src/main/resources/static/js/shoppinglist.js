@@ -386,10 +386,11 @@ document.addEventListener('DOMContentLoaded', function() {
             if (cartItems.length === 0) {
                 cartContainer.innerHTML = `
                     <div class="empty-cart">
-                        <div class="empty-icon">🛒</div>
-                        <h3>장바구니가 비어있습니다</h3>
-                        <p>상품을 추가해보세요!</p>
-                        <button onclick="window.location.href='/'" class="shop-btn">쇼핑하러 가기</button>
+                        <div class="empty-cart-content">
+                            <h3>장바구니가 비어있습니다</h3>
+                            <p>상품을 추가해보세요!</p>
+                            <button onclick="window.location.href='/'" class="go-shopping-btn">쇼핑하러 가기</button>
+                        </div>
                     </div>
                 `;
                 return;

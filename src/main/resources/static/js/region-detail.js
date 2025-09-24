@@ -541,26 +541,103 @@ function setupReviewButton() {
   if (viewAllReviewsBtn) {
     viewAllReviewsBtn.addEventListener('click', function() {
       const productId = getProductIdFromUrl();
-      localStorage.setItem('currentProductId', productId);
-      window.location.href = '/reviewlist';
+      if (productId) {
+        window.location.href = `/reviews/list?productId=${productId}`;
+      }
     });
   }
 }
 
-// 리뷰 데이터 로드(데모)
-function loadReviews() {
-  const allReviews = [
-    { id: 1, reviewerName: '김사과', rating: 5, date: '2025-09-05', text: '정말 맛있는 사과였어요!' },
-    { id: 2, reviewerName: '이과일', rating: 4, date: '2025-09-03', text: '품질이 좋네요.' },
-    { id: 3, reviewerName: '박농부', rating: 5, date: '2025-09-01', text: '아삭하고 달콤합니다.' },
-    { id: 4, reviewerName: '최고객', rating: 4, date: '2025-08-28', text: '신선하고 맛있어요.' }
-  ];
 
-  const recentReviews = allReviews.slice(0, 3);
-  renderReviews(recentReviews);
+// 모든 리뷰 로드 (리뷰보기 버튼 클릭 시)
+async function loadAllReviews() {
+  const productId = getProductIdFromUrl();
+  if (!productId) {
+    console.log('상품 ID가 없어서 리뷰를 로드할 수 없습니다.');
+    return;
+  }
 
-  localStorage.setItem('allReviews', JSON.stringify(allReviews));
-  updateReviewSummaryMini(allReviews);
+  try {
+    // 모든 리뷰 가져오기 (페이지네이션 없이)
+    const reviewsResponse = await fetch(`/api/products/${productId}/reviews?page=0&size=100&sort=createdAt,desc`);
+    if (reviewsResponse.ok) {
+      const reviewsData = await reviewsResponse.json();
+      const reviews = reviewsData.content || [];
+      
+      if (reviews.length === 0) {
+        renderEmptyReviews();
+      } else {
+        renderReviews(reviews);
+        // 버튼 텍스트 변경
+        const viewAllBtn = document.getElementById('viewAllReviewsBtn');
+        if (viewAllBtn) {
+          viewAllBtn.textContent = '리뷰 접기';
+          viewAllBtn.onclick = function() {
+            loadReviews(); // 다시 3개만 로드
+            viewAllBtn.textContent = '리뷰보기';
+            viewAllBtn.onclick = loadAllReviews;
+          };
+        }
+      }
+    } else {
+      console.error('리뷰 로드 실패:', reviewsResponse.status);
+      renderEmptyReviews();
+    }
+  } catch (error) {
+    console.error('리뷰 로드 중 오류:', error);
+    renderEmptyReviews();
+  }
+}
+
+// 리뷰 데이터 로드(최근 3개)
+async function loadReviews() {
+  const productId = getProductIdFromUrl();
+  if (!productId) {
+    console.log('상품 ID가 없어서 리뷰를 로드할 수 없습니다.');
+    return;
+  }
+
+  try {
+    // 리뷰 요약 정보 가져오기
+    const summaryResponse = await fetch(`/api/products/${productId}/reviews/summary`);
+    if (summaryResponse.ok) {
+      const summary = await summaryResponse.json();
+      updateReviewSummaryMini(summary);
+    }
+
+    // 최근 리뷰 3개 가져오기
+    const reviewsResponse = await fetch(`/api/products/${productId}/reviews?page=0&size=3&sort=createdAt,desc`);
+    if (reviewsResponse.ok) {
+      const reviewsData = await reviewsResponse.json();
+      const reviews = reviewsData.content || [];
+      
+      if (reviews.length === 0) {
+        renderEmptyReviews();
+      } else {
+        renderReviews(reviews);
+      }
+    } else {
+      console.error('리뷰 로드 실패:', reviewsResponse.status);
+      renderEmptyReviews();
+    }
+  } catch (error) {
+    console.error('리뷰 로드 중 오류:', error);
+    renderEmptyReviews();
+  }
+}
+
+// 빈 리뷰 상태 렌더링
+function renderEmptyReviews() {
+  const reviewList = document.getElementById('reviewList');
+  if (!reviewList) return;
+
+  reviewList.innerHTML = `
+    <div class="empty-reviews">
+      <div class="empty-reviews-icon">📝</div>
+      <h3>아직 리뷰가 없습니다</h3>
+      <p>첫 번째 리뷰를 작성해주세요!</p>
+    </div>
+  `;
 }
 
 // 리뷰 렌더링
@@ -575,16 +652,23 @@ function renderReviews(reviews) {
     reviewItem.className = 'review-item';
 
     const stars = '★'.repeat(review.rating) + '☆'.repeat(5 - review.rating);
+    
+    // 날짜 포맷팅
+    const reviewDate = new Date(review.createdAt).toLocaleDateString('ko-KR', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    });
 
     reviewItem.innerHTML = `
       <div class="review-header">
-        <span class="reviewer-name">${review.reviewerName}</span>
-        <span class="review-date">${review.date}</span>
+        <span class="reviewer-name">사용자${review.userId || '익명'}</span>
+        <span class="review-date">${reviewDate}</span>
       </div>
       <div class="review-rating">
         ${stars.split('').map(star => `<span class="star">${star}</span>`).join('')}
       </div>
-      <div class="review-text">${review.text}</div>
+      <div class="review-text">${review.content || review.text || ''}</div>
     `;
 
     reviewList.appendChild(reviewItem);
@@ -807,22 +891,16 @@ function buyNow(event) {
 }
 
 // ===== 리뷰 요약 미니 위젯 갱신 =====
-function updateReviewSummaryMini(reviews) {
+function updateReviewSummaryMini(summary) {
   const avgEl = document.getElementById('avgRatingMini');
   const starsEl = document.getElementById('avgStarsMini');
   const countEl = document.getElementById('totalReviewCountMini');
   if (!avgEl || !starsEl || !countEl) return;
 
-  const count = Array.isArray(reviews) ? reviews.length : 0;
-  if (count === 0) {
-    avgEl.textContent = '0.0';
-    countEl.textContent = '0';
-    starsEl.innerHTML = createStarsHtml(0);
-    return;
-  }
+  // API 응답에서 summary 객체의 필드 사용
+  const count = summary.totalCount || 0;
+  const avg = summary.averageRating || 0;
 
-  const sum = reviews.reduce((acc, r) => acc + (Number(r.rating) || 0), 0);
-  const avg = sum / count;
   avgEl.textContent = avg.toFixed(1);
   countEl.textContent = String(count);
   starsEl.innerHTML = createStarsHtml(Math.round(avg));

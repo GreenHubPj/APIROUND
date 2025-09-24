@@ -46,18 +46,24 @@
     </div>
 
     <section class="product-info-section" th:if="${errorMessage == null}">
-        <div>
-            <img class="product-img"
-                 th:src="${productImage != null ? productImage : '/images/농산물.png'}"
-                 th:alt="${productName != null ? productName : '상품 이미지'}"
-                 alt="상품 이미지" />
-        </div>
-        <div class="product-info">
-            <div class="store-brand" th:text="${storeName != null ? storeName : '스토어'}">스토어</div>
-            <h1 class="product-name" th:text="${productName != null ? productName : '상품명'}">상품명</h1>
-            <div class="product-price" th:text="${priceText != null ? priceText : ''}">-</div>
-            <div class="hint" th:if="${deliveredAt != null}"
-                 th:text="${'배송완료: ' + #temporals.format(deliveredAt, 'yyyy-MM-dd HH:mm')}">배송완료</div>
+        <div class="product-header">
+            <div class="store-info">
+                <span class="store-brand" th:text="${storeName != null ? storeName : '스토어'}">스토어</span>
+            </div>
+            <h1 class="product-title" th:text="${productName != null ? productName : '상품명'}">상품명</h1>
+            <div class="product-details">
+                <div class="price-info">
+                    <span class="price-label">가격</span>
+                    <span class="product-price"
+                         th:text="${#strings.contains(priceText, '.')
+                       ? #strings.substringBefore(priceText, '.') + '원'
+                       : priceText}">-</span>
+                </div>
+                <div class="delivery-info" th:if="${deliveredAt != null}">
+                    <span class="delivery-label">배송완료</span>
+                    <span class="delivery-date" th:text="${#temporals.format(deliveredAt, 'yyyy-MM-dd HH:mm')}">배송완료일</span>
+                </div>
+            </div>
         </div>
     </section>
 
