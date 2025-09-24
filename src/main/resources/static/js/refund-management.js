@@ -241,8 +241,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 <span class="status-badge status-${refund.status}">${refund.status}</span>
             </td>
             <td class="file-col">
-                ${refund.attachment ? 
-                    `<button class="file-download-btn" onclick="downloadFile('${refund.attachment}')">다운로드</button>` : 
+                ${refund.attachment ?
+                    `<button class="file-download-btn" onclick="downloadFile('${refund.attachment}')">다운로드</button>` :
                     '-'
                 }
             </td>
@@ -271,10 +271,10 @@ document.addEventListener('DOMContentLoaded', function() {
     function handleDateFilter() {
         const filter = document.getElementById('dateFilter').value;
         const today = new Date();
-        
+
         filteredData = sampleRefundData.filter(refund => {
             const refundDate = new Date(refund.requestDate);
-            
+
             switch(filter) {
                 case 'today':
                     return refundDate.toDateString() === today.toDateString();
@@ -288,7 +288,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     return true;
             }
         });
-        
+
         currentPage = 1;
         renderTable();
         updatePagination();
@@ -298,19 +298,19 @@ document.addEventListener('DOMContentLoaded', function() {
     function applyCustomDateFilter() {
         const startDate = document.getElementById('startDate').value;
         const endDate = document.getElementById('endDate').value;
-        
+
         if (!startDate || !endDate) {
             alert('시작일과 종료일을 모두 선택해주세요.');
             return;
         }
-        
+
         filteredData = sampleRefundData.filter(refund => {
             const refundDate = new Date(refund.requestDate);
             const start = new Date(startDate);
             const end = new Date(endDate);
             return refundDate >= start && refundDate <= end;
         });
-        
+
         currentPage = 1;
         renderTable();
         updatePagination();
@@ -319,13 +319,13 @@ document.addEventListener('DOMContentLoaded', function() {
     // 유형 필터 처리
     function handleTypeFilter() {
         const filter = document.getElementById('typeFilter').value;
-        
+
         if (filter === '') {
             filteredData = [...sampleRefundData];
         } else {
             filteredData = sampleRefundData.filter(refund => refund.type === filter);
         }
-        
+
         currentPage = 1;
         renderTable();
         updatePagination();
@@ -334,13 +334,13 @@ document.addEventListener('DOMContentLoaded', function() {
     // 상태 필터 처리
     function handleStatusFilter() {
         const filter = document.getElementById('statusFilter').value;
-        
+
         if (filter === '') {
             filteredData = [...sampleRefundData];
         } else {
             filteredData = sampleRefundData.filter(refund => refund.status === filter);
         }
-        
+
         currentPage = 1;
         renderTable();
         updatePagination();
@@ -349,12 +349,12 @@ document.addEventListener('DOMContentLoaded', function() {
     // 검색 처리
     function handleSearch() {
         const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-        
-        filteredData = sampleRefundData.filter(refund => 
+
+        filteredData = sampleRefundData.filter(refund =>
             refund.orderNumber.toLowerCase().includes(searchTerm) ||
             refund.customerName.toLowerCase().includes(searchTerm)
         );
-        
+
         currentPage = 1;
         renderTable();
         updatePagination();
@@ -364,11 +364,11 @@ document.addEventListener('DOMContentLoaded', function() {
     function handleSelectAll() {
         const selectAllCheckbox = document.getElementById('selectAll');
         const rowCheckboxes = document.querySelectorAll('.row-checkbox');
-        
+
         rowCheckboxes.forEach(checkbox => {
             checkbox.checked = selectAllCheckbox.checked;
             const refundId = parseInt(checkbox.dataset.id);
-            
+
             if (selectAllCheckbox.checked) {
                 selectedRefunds.add(refundId);
             } else {
@@ -382,7 +382,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const selectAllCheckbox = document.getElementById('selectAll');
         const rowCheckboxes = document.querySelectorAll('.row-checkbox');
         const checkedCheckboxes = document.querySelectorAll('.row-checkbox:checked');
-        
+
         if (rowCheckboxes.length === 0) {
             selectAllCheckbox.checked = false;
             selectAllCheckbox.indeterminate = false;
@@ -404,10 +404,10 @@ document.addEventListener('DOMContentLoaded', function() {
             alert('처리할 항목을 선택해주세요.');
             return;
         }
-        
+
         const actionText = action === 'approve' ? '승인' : action === 'reject' ? '반려' : action === 'exchange' ? '교환' : '완료';
         const confirmMessage = `선택한 ${selectedRefunds.size}개 항목을 ${actionText}하시겠습니까?`;
-        
+
         if (confirm(confirmMessage)) {
             if (action === 'reject') {
                 showRejectModal();
@@ -425,7 +425,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 updateRefundStatus(refund, action);
             }
         });
-        
+
         selectedRefunds.clear();
         filteredData = [...sampleRefundData];
         renderTable();
@@ -437,10 +437,10 @@ document.addEventListener('DOMContentLoaded', function() {
     function handleSingleAction(refundId, action) {
         const refund = sampleRefundData.find(r => r.id === refundId);
         if (!refund) return;
-        
+
         const actionText = action === 'approve' ? '승인' : action === 'reject' ? '반려' : action === 'exchange' ? '교환' : '완료';
         const confirmMessage = `이 ${refund.type}을 ${actionText}하시겠습니까?`;
-        
+
         if (confirm(confirmMessage)) {
             if (action === 'reject') {
                 currentRefundData = refund;
@@ -458,10 +458,10 @@ document.addEventListener('DOMContentLoaded', function() {
     function updateRefundStatus(refund, action) {
         const now = new Date();
         const timestamp = now.toISOString().slice(0, 16).replace('T', ' ');
-        
+
         let newStatus = '';
         let description = '';
-        
+
         switch(action) {
             case 'approve':
                 newStatus = '승인대기';
@@ -480,7 +480,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 description = `${refund.type} 처리가 완료되었습니다.`;
                 break;
         }
-        
+
         refund.status = newStatus;
         refund.history.push({
             date: timestamp,
@@ -493,9 +493,9 @@ document.addEventListener('DOMContentLoaded', function() {
     function showRefundDetail(refundId) {
         const refund = sampleRefundData.find(r => r.id === refundId);
         if (!refund) return;
-        
+
         currentRefundData = refund;
-        
+
         // 모달 데이터 채우기
         document.getElementById('modalOrderNumber').textContent = refund.orderNumber;
         document.getElementById('modalOrderDate').textContent = formatDate(refund.orderDate);
@@ -509,7 +509,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('modalCustomerPhone').textContent = refund.customerPhone;
         document.getElementById('modalCustomerEmail').textContent = refund.customerEmail;
         document.getElementById('modalAccountNumber').textContent = refund.accountNumber || '-';
-        
+
         // 첨부 파일 섹션
         const fileSection = document.getElementById('modalFileSection');
         if (refund.attachment) {
@@ -523,7 +523,7 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             fileSection.innerHTML = '<p class="no-file">첨부된 파일이 없습니다.</p>';
         }
-        
+
         // 처리 이력 섹션
         const historySection = document.getElementById('modalHistorySection');
         historySection.innerHTML = '';
@@ -537,7 +537,7 @@ document.addEventListener('DOMContentLoaded', function() {
             `;
             historySection.appendChild(historyItem);
         });
-        
+
         // 모달 표시
         document.getElementById('refundDetailModal').classList.add('show');
     }
@@ -545,10 +545,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // 모달 액션 처리
     function handleModalAction(action) {
         if (!currentRefundData) return;
-        
+
         const actionText = action === 'approve' ? '승인' : action === 'reject' ? '반려' : action === 'exchange' ? '교환' : '완료';
         const confirmMessage = `이 ${currentRefundData.type}을 ${actionText}하시겠습니까?`;
-        
+
         if (confirm(confirmMessage)) {
             if (action === 'reject') {
                 showRejectModal();
@@ -576,12 +576,12 @@ document.addEventListener('DOMContentLoaded', function() {
     // 반려 확인
     function confirmReject() {
         const reason = document.getElementById('rejectReason').value.trim();
-        
+
         if (!reason) {
             alert('반려 사유를 입력해주세요.');
             return;
         }
-        
+
         if (currentRefundData) {
             // 단일 반려
             updateRefundStatus(currentRefundData, 'reject');
@@ -600,7 +600,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     refund.history[refund.history.length - 1].description += ` (사유: ${reason})`;
                 }
             });
-            
+
             selectedRefunds.clear();
             filteredData = [...sampleRefundData];
             renderTable();
@@ -619,7 +619,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // 페이지 변경
     function changePage(page) {
         if (page < 1 || page > totalPages) return;
-        
+
         currentPage = page;
         renderTable();
         updatePagination();
@@ -628,19 +628,19 @@ document.addEventListener('DOMContentLoaded', function() {
     // 페이지네이션 업데이트
     function updatePagination() {
         totalPages = Math.ceil(filteredData.length / 10);
-        
+
         const prevBtn = document.getElementById('prevPage');
         const nextBtn = document.getElementById('nextPage');
         const pageNumbers = document.getElementById('pageNumbers');
-        
+
         prevBtn.disabled = currentPage === 1;
         nextBtn.disabled = currentPage === totalPages;
-        
+
         pageNumbers.innerHTML = '';
-        
+
         const startPage = Math.max(1, currentPage - 2);
         const endPage = Math.min(totalPages, currentPage + 2);
-        
+
         for (let i = startPage; i <= endPage; i++) {
             const pageBtn = document.createElement('button');
             pageBtn.className = `page-number ${i === currentPage ? 'active' : ''}`;
