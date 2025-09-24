@@ -79,7 +79,7 @@
                         <div class="recipe-servings" th:if="${recipe.servings != null}" th:text="${recipe.servings}"></div>
                         <div class="recipe-difficulty" th:if="${recipe.difficulty != null}" th:text="'난이도: ' + ${recipe.difficulty}"></div>
                     </div>
-                    
+
                     <!-- 상태 표시 -->
                     <div class="recipe-status">
                         <span class="status-badge" th:class="'status-' + ${recipe.status}" th:text="${recipe.status}"></span>
@@ -89,25 +89,25 @@
                 <!-- 관리자 액션 버튼들 -->
                 <div class="admin-actions">
                     <button class="action-btn view-btn" th:onclick="|viewRecipe(${recipe.recipeId})|">상세보기</button>
-                    
+
                     <!-- 상태별 액션 버튼 -->
                     <div class="status-actions" th:if="${recipe.status == 'PENDING'}">
                         <button class="action-btn approve-btn" th:onclick="|approveRecipe(${recipe.recipeId})|">승인</button>
                         <button class="action-btn reject-btn" th:onclick="|rejectRecipe(${recipe.recipeId})|">거부</button>
                     </div>
-                    
+
                     <div class="status-actions" th:if="${recipe.status == 'APPROVED'}">
                         <button class="action-btn publish-btn" th:onclick="|publishRecipe(${recipe.recipeId})|">게시</button>
                     </div>
-                    
+
                     <div class="status-actions" th:if="${recipe.status == 'PUBLISHED'}">
                         <button class="action-btn unpublish-btn" th:onclick="|unpublishRecipe(${recipe.recipeId})|">게시 중단</button>
                     </div>
-                    
+
                     <div class="status-actions" th:if="${recipe.status == 'STOP'}">
                         <button class="action-btn re-publish-btn" th:onclick="|rePublishRecipe(${recipe.recipeId})|">게시 재개</button>
                     </div>
-                    
+
                     <!-- 삭제 버튼 (모든 상태에서 가능) -->
                     <button class="action-btn delete-btn" th:onclick="|deleteRecipe(${recipe.recipeId})|">삭제</button>
                 </div>
@@ -127,7 +127,7 @@
         </div>
         <div class="pagination">
             <!-- 이전 버튼 -->
-            <a th:if="${currentPage > 0}" 
+            <a th:if="${currentPage > 0}"
                th:href="@{/admin/recipe-management(page=${currentPage - 1}, size=${pageSize}, search=${searchTerm}, status=${statusFilter})}"
                class="page-btn prev-btn">
                 <span>← 이전</span>
@@ -135,7 +135,7 @@
             <span th:unless="${currentPage > 0}" class="page-btn prev-btn disabled">
                 <span>← 이전</span>
             </span>
-            
+
             <!-- 페이지 번호들 -->
             <div class="page-numbers">
                 <a th:each="pageNum : ${#numbers.sequence(0, totalPages - 1)}"
@@ -145,10 +145,10 @@
                    th:class="${pageNum == currentPage} ? 'page-number active' : 'page-number'"
                    th:title="'페이지 ' + ${pageNum + 1} + '로 이동'"></a>
             </div>
-            
-            
+
+
             <!-- 다음 버튼 -->
-            <a th:if="${currentPage < totalPages - 1}" 
+            <a th:if="${currentPage < totalPages - 1}"
                th:href="@{/admin/recipe-management(page=${currentPage + 1}, size=${pageSize}, search=${searchTerm}, status=${statusFilter})}"
                class="page-btn next-btn">
                 <span>다음 →</span>
