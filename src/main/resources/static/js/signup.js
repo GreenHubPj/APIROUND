@@ -28,12 +28,15 @@
     });
   });
 
-  // 공통 비밀번호 정책
+  // 공통 비밀번호 정책 (서버와 최대한 일치)
+  // - 영문: /[A-Za-z]/
+  // - 숫자: /\d/
+  // - 특수: ASCII 구두점(언더스코어 포함) → 정규식 범위 [!-/:-@[-`{-~]
   function isStrong(pw) {
     if (!pw || pw.length < 8) return false;
-    const hasLetter = /[A-Za-z]/.test(pw);
-    const hasDigit = /\d/.test(pw);
-    const hasSpecial = /[~!@#$%^&*()_+\-=`[\]{}|;':",.<>/?]/.test(pw);
+    const hasLetter  = /[A-Za-z]/.test(pw);
+    const hasDigit   = /\d/.test(pw);
+    const hasSpecial = /[!-/:-@[-`{-~]/.test(pw); // !"#$%&'()*+,-./:;<=>?@[\]^_`{|}~
     return hasLetter && hasDigit && hasSpecial;
   }
   const policyMsg = "비밀번호는 8자 이상이며, 영문/숫자/특수문자를 각각 1자 이상 포함해야 합니다.";
@@ -48,6 +51,7 @@
   let lastSentTo = '';
 
   function setMsg(el, text, cls) {
+    if (!el) return;
     el.textContent = text || '';
     el.className = 'verification-message ' + (cls || '');
   }
@@ -76,7 +80,7 @@
         if (res.ok && (text === 'OK' || text === 'TRUE')) {
           lastSentTo = email;
           emailVerified = false;
-          codeInput.value = '';
+          if (codeInput) codeInput.value = '';
           setMsg(emailMsg, '인증번호가 발송되었습니다. 메일함(스팸함 포함)을 확인해 주세요.', 'info');
         } else {
           setMsg(emailMsg, '인증번호 발송에 실패했습니다. 잠시 후 다시 시도해주세요.', 'error');
@@ -114,7 +118,7 @@
         if (ok) {
           emailVerified = true;
           setMsg(emailMsg, '이메일 인증이 완료되었습니다.', 'success');
-          codeInput.setAttribute('disabled', 'disabled');
+          if (codeInput) codeInput.setAttribute('disabled', 'disabled');
         } else {
           emailVerified = false;
           setMsg(emailMsg, '인증번호가 올바르지 않거나 만료되었습니다.', 'error');
@@ -161,7 +165,7 @@
         if (res.ok && (text === 'OK' || text === 'TRUE')) {
           lastCompanySentTo = email;
           companyEmailVerified = false;
-          companyCodeInput.value = '';
+          if (companyCodeInput) companyCodeInput.value = '';
           setMsg(companyEmailMsg, '인증번호가 발송되었습니다. 메일함(스팸함 포함)을 확인해 주세요.', 'info');
         } else {
           setMsg(companyEmailMsg, '인증번호 발송에 실패했습니다. 잠시 후 다시 시도해주세요.', 'error');
@@ -199,7 +203,7 @@
         if (ok) {
           companyEmailVerified = true;
           setMsg(companyEmailMsg, '회사 이메일 인증이 완료되었습니다.', 'success');
-          companyCodeInput.setAttribute('disabled', 'disabled');
+          if (companyCodeInput) companyCodeInput.setAttribute('disabled', 'disabled');
         } else {
           companyEmailVerified = false;
           setMsg(companyEmailMsg, '인증번호가 올바르지 않거나 만료되었습니다.', 'error');
@@ -231,7 +235,7 @@
     const loginId = document.getElementById('individualId').value.trim();
     const pw = document.getElementById('individualPassword').value;
     const pw2 = document.getElementById('individualPasswordConfirm').value;
-    const email = (emailInput.value || '').trim();
+    const email = (document.getElementById('individualEmail').value || '').trim();
     const phone = document.getElementById('individualPhone').value.trim();
 
     let allRequiredAgreed = true;

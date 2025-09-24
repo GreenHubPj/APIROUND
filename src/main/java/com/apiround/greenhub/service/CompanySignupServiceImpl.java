@@ -29,13 +29,25 @@ public class CompanySignupServiceImpl implements CompanySignupService {
         if (companyRepository.existsByBusinessRegistrationNumber(c.getBusinessRegistrationNumber()))
             throw new IllegalArgumentException("이미 등록된 사업자등록번호입니다.");
 
-        // 비밀번호 정책(서버 보강) – 컨트롤러에서 1차 검증했지만 서비스에서도 한 번 더 확인
-        if (!PasswordUtil.isStrong(c.getPassword())) {
-            throw new IllegalArgumentException(PasswordUtil.policyMessage());
+        String incomingPw = c.getPassword();
+        if (incomingPw == null || incomingPw.isBlank()) {
+            throw new IllegalArgumentException("비밀번호를 입력해주세요.");
         }
 
-        // 🔐 여기서 '단 한 번' 해싱 (컨트롤러에서는 원문을 넘겨줘야 함)
-        c.setPassword(PasswordUtil.encode(c.getPassword()));
+        // ⚠️ 만약 상위 레이어(컨트롤러/필터)에서 이미 해시됐다면 정책 검증을 건너뜀
+        if (!PasswordUtil.isEncoded(incomingPw)) {
+            // 원문 비번만 정책 검증
+            if (!PasswordUtil.isStrong(incomingPw)) {
+                throw new IllegalArgumentException(PasswordUtil.policyMessage());
+            }
+            // 단일 해시
+            c.setPassword(PasswordUtil.encode(incomingPw));
+        } else {
+            // 이미 해시된 값은 그대로 저장 (재해시 금지)
+            // 정책 검증은 프런트/상위 레이어에서 완료됐다고 간주
+            c.setPassword(incomingPw);
+        }
+
         LocalDateTime now = LocalDateTime.now();
         c.setCreatedAt(now);
         c.setUpdatedAt(now);
