@@ -1,275 +1,264 @@
-// 로그인한 사용자가 실제로 구매(배송완료)한 상품인지 확인해서
-// 상품 정보를 상단 섹션에 채워주고, 아니면 작성 비활성 처리
+// src/main/resources/static/js/review-write.js
+// 리뷰 작성 페이지 전용 스크립트 (검증 + 저장 + 실패 시 자동 구제 경로)
+// - YML 토글 없이도 동작하도록 구현
+// - 우선순위: orderItemId가 있으면 /api/my/reviews 로 저장 → 실패 시 /api/products/{productId}/reviews 로 1회 재시도
+// - orderItemId가 없으면 곧바로 /api/products/{productId}/reviews 사용
+// - 401(미로그인) 응답에 redirectUrl 있으면 바로 이동
+// - "이미 작성" 등 메시지는 안내 후 리뷰 목록/상세로 이동
 
-document.addEventListener('DOMContentLoaded', async () => {
-  initializeStarRating();
-  initializeTextarea();
-  initializeSaveButton();
-  addWritePageAnimations();
+(function () {
+  // fallback 스크립트가 중복 실행되지 않도록 플래그 설정
+  window.__REVIEW_WRITE_READY__ = true;
 
-  await hydrateProductInfoForWriter(); // ★ 상품 정보 채우기
-});
+  // ──────────────────────────────────────────────────────────────
+  // 유틸
+  // ──────────────────────────────────────────────────────────────
+  const $ = (sel, root = document) => root.querySelector(sel);
+  const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
 
-let currentRating = 5; // 기본 별점
-let isDirty = false;
-let writableMatched = null; // 작성 가능한 목록에서 매칭된 아이템(없으면 null)
-
-// ──────────────────────────────────────────────────────────────
-// 상품 정보 주입
-// ──────────────────────────────────────────────────────────────
-async function hydrateProductInfoForWriter() {
-  const productId = new URLSearchParams(location.search).get('productId') ||
-                    document.querySelector('main[data-product-id]')?.getAttribute('data-product-id');
-
-  const $brand = document.querySelector('.store-brand');
-  const $img   = document.querySelector('.product-img');
-  const $name  = document.querySelector('.product-name');
-  const $desc  = document.querySelector('.product-description');
-  const $price = document.querySelector('.product-price');
-  const $origin= document.querySelector('.origin-label');
-  const $save  = document.querySelector('.save-btn');
-
-  if (!productId) {
-    fallback('상품 정보가 없습니다.');
-    return;
+  async function postJSON(url, data) {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify(data ?? {}),
+    });
+    return res;
   }
-
-  try {
-    // 내 ‘작성 가능’ 목록에서 일치하는 상품 찾기
-    const res = await fetch('/api/my/reviews/writable', { credentials: 'include' });
-    if (res.status === 401) {
-      // API가 redirectUrl을 내려주는 형식이면 따라감
-      const body = await safeJson(res);
-      if (body?.redirectUrl) { location.href = body.redirectUrl; return; }
-    }
-    if (!res.ok) throw 0;
-
-    const items = await res.json(); // [{ productId, productName, productImage, storeName, productDescription, priceText, originText, orderItemId, ... }]
-    writableMatched = (items || []).find(it => String(it.productId) === String(productId));
-
-    if (writableMatched) {
-      // 화면 채우기
-      if ($brand) $brand.textContent = writableMatched.storeName ?? '';
-      if ($img)   $img.src = writableMatched.productImage || '/images/농산물.png';
-      if ($name)  $name.textContent = writableMatched.productName ?? '';
-      if ($desc)  $desc.textContent = (writableMatched.productDescription ?? '').trim();
-      if ($price) $price.textContent = writableMatched.priceText ?? '';
-      if ($origin)$origin.textContent= writableMatched.originText ?? '';
-
-      // main 태그 data 추가(없으면)
-      const main = document.querySelector('main[data-product-id]') || document.querySelector('main');
-      if (main && !main.dataset.productId) main.setAttribute('data-product-id', String(productId));
-      if (main && writableMatched.orderItemId) main.setAttribute('data-order-item-id', String(writableMatched.orderItemId));
+  async function safeJson(res) {
+    try { return await res.json(); } catch { return null; }
+  }
+  async function safeText(res) {
+    try { return await res.text(); } catch { return ""; }
+  }
+  function toInt(v) {
+    if (v == null) return null;
+    const n = parseInt(String(v), 10);
+    return Number.isFinite(n) ? n : null;
+  }
+  function showErr(msg) {
+    const box = $("#saveError");
+    if (box) {
+      box.style.display = "block";
+      box.textContent = msg || "오류가 발생했습니다. 잠시 후 다시 시도해 주세요.";
     } else {
-      // 내 구매 이력의 '작성가능' 품목이 아니면 작성 버튼 잠금
-      if ($save) {
-        $save.disabled = true;
-        $save.title = '해당 상품은 리뷰 작성 대상이 아닙니다.';
-      }
-      if ($name)  $name.textContent = $name.textContent || '리뷰 대상 상품을 찾을 수 없습니다';
+      alert(msg || "오류가 발생했습니다.");
     }
-  } catch {
-    fallback('상품 정보를 불러오지 못했습니다.');
   }
 
-  function fallback(msg) {
-    if ($name && !$name.textContent) $name.textContent = msg;
-    if ($img && !$img.src) $img.src = '/images/농산물.png';
-    if ($save) $save.disabled = true;
+  // 이미지 404 폴백
+  function guardImageFallback() {
+    const imgs = $$(".product-img");
+    imgs.forEach(img => {
+      if (!img) return;
+      img.addEventListener("error", () => {
+        if (img.dataset.fallbackApplied) return;
+        img.dataset.fallbackApplied = "1";
+        img.src = "/images/농산물.png";
+      }, { once: true });
+    });
   }
-}
 
-// ──────────────────────────────────────────────────────────────
-// 별점/텍스트 UI
-// ──────────────────────────────────────────────────────────────
-function initializeStarRating() {
-  const stars = document.querySelectorAll('.star[data-rating]');
-  const ratingText = document.querySelector('.rating-text');
-  const ratingTexts = { 1: '별로에요', 2: '아쉬워요', 3: '보통이에요', 4: '좋아요', 5: '최고에요' };
+  // ──────────────────────────────────────────────────────────────
+  // 상태/DOM
+  // ──────────────────────────────────────────────────────────────
+  let isDirty = false;
+  let currentRating = 0;
 
-  const highlight = rating => {
-    stars.forEach((s, idx) => s.classList.toggle('active', idx < rating));
-    if (ratingText) {
-      ratingText.textContent = ratingTexts[rating] ?? '';
-      ratingText.style.color = getRatingColor(rating);
-    }
-  };
+  const main = $("main");
+  const datasetProductId = main?.getAttribute("data-product-id");
+  const datasetOrderItemId = main?.getAttribute("data-order-item-id");
+  const qsProductId = new URLSearchParams(location.search).get("productId");
 
-  stars.forEach(star => {
-    star.addEventListener('click', () => {
-      const r = parseInt(star.getAttribute('data-rating'), 10);
-      if (r !== currentRating) {
-        currentRating = r;
+  // productId는 main data > 쿼리스트링 > (없으면 null)
+  const productId = toInt(datasetProductId) ?? toInt(qsProductId);
+  const orderItemId = toInt(datasetOrderItemId);
+
+  const ratingInput = $("#ratingValue");
+  const ratingError = $("#ratingError");
+  const textarea = $("#reviewTextarea");
+  const contentError = $("#contentError");
+  const charCount = $("#charCount");
+  const saveBtn = $("#saveBtn");
+
+  // ──────────────────────────────────────────────────────────────
+  // 별점 UI
+  // ──────────────────────────────────────────────────────────────
+  function initStars() {
+    const stars = $$(".star-rating .star");
+    const apply = (val) => {
+      currentRating = val;
+      if (ratingInput) ratingInput.value = String(val);
+      stars.forEach(s => {
+        const r = toInt(s.getAttribute("data-rating")) || 0;
+        s.classList.toggle("active", r <= val);
+        s.setAttribute("aria-checked", r === val ? "true" : "false");
+      });
+      if (val >= 1 && ratingError) ratingError.style.display = "none";
+    };
+    stars.forEach(s => {
+      s.addEventListener("click", () => {
+        const val = toInt(s.getAttribute("data-rating")) || 0;
+        apply(val);
         isDirty = true;
-      }
-      highlight(currentRating);
+      });
     });
-    star.addEventListener('mouseenter', () => {
-      const r = parseInt(star.getAttribute('data-rating'), 10);
-      highlight(r);
+    // 기본 선택을 5로 하고 싶다면 아래 주석 해제
+    // apply(5);
+  }
+
+  // ──────────────────────────────────────────────────────────────
+  // 텍스트/글자수 UI
+  // ──────────────────────────────────────────────────────────────
+  function initTextarea() {
+    const update = () => {
+      const len = (textarea?.value || "").length;
+      if (charCount) charCount.textContent = `${len}/500`;
+      if (len >= 10 && contentError) contentError.style.display = "none";
+    };
+    textarea?.addEventListener("input", () => {
+      isDirty = true;
+      update();
     });
-  });
-
-  document.querySelector('.star-rating')?.addEventListener('mouseleave', () => {
-    highlight(currentRating);
-  });
-
-  highlight(currentRating);
-}
-
-function getRatingColor(rating) {
-  const colors = { 1: '#dc3545', 2: '#fd7e14', 3: '#ffc107', 4: '#20c997', 5: '#28a745' };
-  return colors[rating] || '#6c757d';
-}
-
-function initializeTextarea() {
-  const textarea = document.querySelector('.review-textarea');
-  const charCount = document.querySelector('.char-count');
-  if (!textarea || !charCount) return;
-
-  const update = () => {
-    const max = Number(textarea.getAttribute('maxlength')) || 500;
-    const len = textarea.value.length;
-    charCount.textContent = `${len}/${max}`;
-    charCount.style.color = len > max * 0.9 ? '#dc3545' : len > max * 0.7 ? '#ffc107' : '#6c757d';
-  };
-
-  update();
-  textarea.addEventListener('input', () => {
-    isDirty = true;
     update();
-  });
-  textarea.addEventListener('focus', function () {
-    this.style.borderColor = '#0056b3';
-    this.style.boxShadow = '0 0 0 3px rgba(0, 123, 255, 0.1)';
-  });
-  textarea.addEventListener('blur', function () {
-    this.style.borderColor = '#007bff';
-    this.style.boxShadow = 'none';
-  });
-}
-
-function initializeSaveButton() {
-  const saveBtn = document.querySelector('.save-btn');
-  saveBtn?.addEventListener('click', submitReview);
-  saveBtn?.addEventListener('mouseenter', function () {
-    this.style.transform = 'translateY(-1px)';
-  });
-  saveBtn?.addEventListener('mouseleave', function () {
-    this.style.transform = 'translateY(0)';
-  });
-}
-
-// ──────────────────────────────────────────────────────────────
-// 저장
-// ──────────────────────────────────────────────────────────────
-async function submitReview() {
-  const button = document.querySelector('.save-btn');
-  const textarea = document.querySelector('.review-textarea');
-  const reviewText = (textarea?.value ?? '').trim();
-
-  if (!currentRating || currentRating < 1 || currentRating > 5) {
-    alert('별점을 선택해주세요.');
-    return;
-  }
-  if (reviewText.length < 10) {
-    alert('리뷰는 최소 10자 이상 작성해주세요.');
-    textarea?.focus();
-    return;
   }
 
-  // 반드시 내가 쓸 수 있는 상품이어야 함 (writableMatched 확인)
-  if (!writableMatched) {
-    alert('해당 상품은 현재 로그인한 계정으로 리뷰를 작성할 수 없습니다.');
-    return;
+  // ──────────────────────────────────────────────────────────────
+  // 저장 로직
+  // ──────────────────────────────────────────────────────────────
+  function validateForm() {
+    const rating = toInt(ratingInput?.value) || currentRating || 0;
+    const content = (textarea?.value || "").trim();
+
+    let ok = true;
+    if (rating < 1 || rating > 5) {
+      ratingError && (ratingError.style.display = "block");
+      ok = false;
+    }
+    if (content.length < 10) {
+      contentError && (contentError.style.display = "block");
+      ok = false;
+    }
+    return { ok, rating, content };
   }
 
-  const productId = new URLSearchParams(location.search).get('productId') ||
-                    document.querySelector('main[data-product-id]')?.getAttribute('data-product-id');
-  if (!productId) {
-    alert('상품 정보가 없습니다. 다시 시도해주세요.');
-    return;
+  async function submitReview() {
+    // 버튼 UI 잠금
+    const btn = saveBtn;
+    const backupText = btn?.textContent;
+    btn && (btn.disabled = true, btn.textContent = "저장 중...");
+
+    try {
+      const { ok, rating, content } = validateForm();
+      if (!ok) return;
+
+      if (!productId) {
+        // 이 경우는 거의 없음(템플릿에서 data-product-id 내려줌)
+        throw new Error("상품 정보가 올바르지 않습니다. (productId 없음)");
+      }
+
+      // 1순위: orderItemId가 있으면 내 주문항목으로 저장
+      if (orderItemId) {
+        const res = await postJSON("/api/my/reviews", { orderItemId, rating, content });
+        if (res.status === 401) {
+          const body = await safeJson(res);
+          if (body?.redirectUrl) { location.href = body.redirectUrl; return; }
+          throw new Error("로그인이 필요합니다.");
+        }
+        if (res.ok) {
+          const body = await safeJson(res);
+          isDirty = false;
+          const redirect = body?.redirectUrl || `/products/${productId}/reviews`;
+          location.href = redirect;
+          return;
+        }
+
+        // 409 등 실패 → 메시지 확인 후 구제 경로 시도
+        const msg = (await safeJson(res))?.message || (await safeText(res)) || "";
+        // 이미 작성함 → 안내 후 리뷰 페이지로
+        if (msg.includes("이미") && msg.includes("리뷰")) {
+          alert(msg);
+          isDirty = false;
+          location.href = `/products/${productId}/reviews`;
+          return;
+        }
+        // 그 외 → product 경로로 1회 재시도
+        const retry = await postJSON(`/api/products/${productId}/reviews`, { rating, content, orderItemId });
+        if (retry.status === 401) {
+          const b = await safeJson(retry);
+          if (b?.redirectUrl) { location.href = b.redirectUrl; return; }
+          throw new Error("로그인이 필요합니다.");
+        }
+        if (retry.ok) {
+          const b = await safeJson(retry);
+          isDirty = false;
+          const redirect = b?.redirectUrl || `/products/${productId}/reviews`;
+          location.href = redirect;
+          return;
+        }
+        const retryMsg = (await safeJson(retry))?.message || (await safeText(retry)) || "";
+        throw new Error(retryMsg || msg || "리뷰 저장에 실패했습니다.");
+      }
+
+      // 2순위: orderItemId가 없으면 product 경로로 저장
+      const res2 = await postJSON(`/api/products/${productId}/reviews`, { rating, content });
+      if (res2.status === 401) {
+        const body = await safeJson(res2);
+        if (body?.redirectUrl) { location.href = body.redirectUrl; return; }
+        throw new Error("로그인이 필요합니다.");
+      }
+      if (res2.ok) {
+        const body = await safeJson(res2);
+        isDirty = false;
+        const redirect = body?.redirectUrl || `/products/${productId}/reviews`;
+        location.href = redirect;
+        return;
+      }
+      const msg2 = (await safeJson(res2))?.message || (await safeText(res2)) || "";
+      // 이미 작성함 → 안내 후 리뷰 페이지로
+      if (msg2.includes("이미") && msg2.includes("리뷰")) {
+        alert(msg2);
+        isDirty = false;
+        location.href = `/products/${productId}/reviews`;
+        return;
+      }
+      throw new Error(msg2 || "리뷰 저장에 실패했습니다.");
+
+    } catch (err) {
+      const msg = (err && err.message) ? err.message : "리뷰 저장 중 오류가 발생했습니다.";
+      showErr(msg);
+      // "상품을 찾을 수 없습니다"가 떠도 사용자는 작성 폼에 머물게만 함 (팝업 난사 방지)
+    } finally {
+      btn && (btn.disabled = false, btn.textContent = backupText || "저장하기");
+    }
   }
 
-  try {
-    button.disabled = true;
-    button.textContent = '저장 중...';
-    button.style.transform = 'scale(0.95)';
-
-    const res = await fetch(`/api/products/${productId}/reviews`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include', // 세션 쿠키 사용 (스프링 시큐리티 미사용이어도 세션 로그인이면 필요)
-      body: JSON.stringify({ rating: currentRating, content: reviewText })
+  // ──────────────────────────────────────────────────────────────
+  // 이탈 방지 & 단축키
+  // ──────────────────────────────────────────────────────────────
+  function initGuards() {
+    window.addEventListener("beforeunload", (e) => {
+      const txt = (textarea?.value || "").trim();
+      if (isDirty || txt.length > 0) {
+        e.preventDefault();
+        e.returnValue = "작성 중인 리뷰가 있습니다. 페이지를 벗어나시겠습니까?";
+      }
     });
-
-    // 401 → 로그인 유도
-    if (res.status === 401) {
-      const body = await safeJson(res);
-      if (body?.redirectUrl) { location.href = body.redirectUrl; return; }
-      throw new Error('로그인이 필요합니다.');
-    }
-
-    if (!res.ok) {
-      const msg = await safeText(res);
-      throw new Error(msg || '저장에 실패했습니다.');
-    }
-
-    isDirty = false; // 저장 성공 → 이탈 경고 해제
-    button.style.background = 'linear-gradient(135deg, #28a745 0%, #34ce57 100%)';
-    button.textContent = '저장 완료!';
-    setTimeout(() => {
-      alert('리뷰가 성공적으로 저장되었습니다.');
-      location.href = `/products/${productId}/reviews`;
-    }, 600);
-  } catch (e) {
-    alert(e.message ?? '리뷰 저장 중 오류가 발생했습니다.');
-  } finally {
-    button.disabled = false;
-    button.style.transform = 'scale(1)';
-  }
-}
-
-async function safeText(res) {
-  try { return await res.text(); } catch { return ''; }
-}
-async function safeJson(res) {
-  try { return await res.json(); } catch { return null; }
-}
-
-// 애니메이션/이탈 방지
-function addWritePageAnimations() {
-  const productSection = document.querySelector('.product-info-section');
-  if (productSection) {
-    productSection.style.opacity = '0';
-    productSection.style.transform = 'translateY(30px)';
-    setTimeout(() => {
-      productSection.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
-      productSection.style.opacity = '1';
-      productSection.style.transform = 'translateY(0)';
-    }, 100);
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        history.back();
+      }
+    });
   }
 
-  const reviewSection = document.querySelector('.review-write-section');
-  if (reviewSection) {
-    reviewSection.style.opacity = '0';
-    reviewSection.style.transform = 'translateY(30px)';
-    setTimeout(() => {
-      reviewSection.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
-      reviewSection.style.opacity = '1';
-      reviewSection.style.transform = 'translateY(0)';
-    }, 200);
-  }
-}
-
-document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') history.back();
-});
-window.addEventListener('beforeunload', e => {
-  const textarea = document.querySelector('.review-textarea');
-  const hasText = (textarea?.value?.trim()?.length ?? 0) > 0;
-  if (isDirty || hasText) {
-    e.preventDefault();
-    e.returnValue = '작성 중인 리뷰가 있습니다. 정말 나가시겠습니까?';
-  }
-});
+  // ──────────────────────────────────────────────────────────────
+  // 초기화
+  // ──────────────────────────────────────────────────────────────
+  document.addEventListener("DOMContentLoaded", () => {
+    guardImageFallback();
+    initStars();
+    initTextarea();
+    initGuards();
+    saveBtn?.addEventListener("click", submitReview);
+  });
+})();

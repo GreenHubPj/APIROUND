@@ -162,8 +162,19 @@ public class WebConfig implements WebMvcConfigurer {
         }
 
         private boolean isPublicReviewGetApi(String uri) {
-            if (!uri.startsWith("/api/products/")) return false;
-            return uri.endsWith("/reviews") || uri.endsWith("/reviews/") || uri.endsWith("/reviews/summary");
+            // 제품 리뷰 GET
+            if (uri.startsWith("/api/products/")) {
+                return uri.endsWith("/reviews")
+                        || uri.endsWith("/reviews/")
+                        || uri.endsWith("/reviews/summary");
+            }
+            // 특산품 리뷰 GET
+            if (uri.startsWith("/api/specialties/")) {
+                return uri.endsWith("/reviews")
+                        || uri.endsWith("/reviews/")
+                        || uri.endsWith("/reviews/summary");
+            }
+            return false;
         }
 
         private boolean isStatic(String uri) {
@@ -208,7 +219,7 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/api/**")
-                .allowedOrigins("http://localhost:8000", "https://apiround.store") // 배포도 허용 시 추가
+                .allowedOrigins("http://localhost:8000", "https://apiround.store")
                 .allowedMethods("*")
                 .allowedHeaders("*")
                 .allowCredentials(true);

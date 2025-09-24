@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>리뷰 작성 - GreenHub</title>
 
-    <!-- ※ 시큐리티/CSRF 미사용: _csrf 메타 태그 제거 -->
+    <!-- 시큐리티/CSRF 미사용: 관련 메타 제거 -->
 
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" th:href="@{/css/header.css}" />
@@ -13,21 +13,24 @@
     <link rel="stylesheet" th:href="@{/css/review-write.css}" />
 
     <style>
+        /* 폴백용 경량 스타일 (외부 CSS 없을 때 최소 동작) */
         .container{max-width:1040px;margin:0 auto;padding:24px}
-        .product-info-section{display:flex;gap:20px;margin-bottom:24px}
+        .product-info-section{display:flex;gap:20px;margin-bottom:24px;background:#fff;border-radius:16px;padding:20px;box-shadow:0 4px 20px rgba(0,0,0,.05)}
         .product-img{width:140px;height:140px;object-fit:cover;border-radius:12px;border:1px solid #eee}
         .product-info h1{margin:0 0 8px;font-size:22px}
         .product-price{margin-top:6px;color:#555}
-        .review-textarea{width:100%;min-height:160px;padding:14px;border:1px solid #007bff;border-radius:10px}
+        .review-write-section{background:#fff;border-radius:16px;padding:20px;box-shadow:0 4px 20px rgba(0,0,0,.05)}
+        .review-textarea{width:100%;min-height:160px;padding:14px;border:2px solid #007bff;border-radius:10px;background:linear-gradient(135deg,#fff8f0 0%,#fef7ed 100%)}
         .textarea-footer{display:flex;justify-content:space-between;align-items:center;margin-top:10px}
-        .save-btn{padding:.6rem 1.2rem;border-radius:10px;border:0;background:#007bff;color:#fff;cursor:pointer}
+        .save-btn{padding:.6rem 1.2rem;border-radius:10px;border:0;background:#28a745;color:#fff;cursor:pointer;box-shadow:0 2px 8px rgba(40,167,69,.3)}
         .save-btn:disabled{opacity:.6;cursor:not-allowed}
-        .star{font-size:24px;cursor:pointer;opacity:.35;user-select:none}
-        .star.active{opacity:1}
-        .error-box{background:#fff4f4;border:1px solid #ffd4d4;color:#b30000;padding:12px;border-radius:10px;margin:12px 0}
-        .hint{color:#6c757d;margin:4px 0 0}
+        .star-rating{display:flex;gap:8px;align-items:center;margin:6px 0 4px}
+        .star{font-size:28px;cursor:pointer;opacity:.35;user-select:none;transition:transform .15s ease}
+        .star.active,.star:hover{opacity:1;transform:scale(1.05)}
         .form-error{color:#b30000;margin-top:8px;display:none}
+        .error-box{background:#fff4f4;border:1px solid #ffd4d4;color:#b30000;padding:12px;border-radius:10px;margin:12px 0}
         .back-link{display:inline-block;margin:4px 0 16px;color:#1a73e8;text-decoration:none}
+        body{font-family:'Noto Sans KR',sans-serif;background:#f8f9fa}
     </style>
 </head>
 <body>
@@ -37,7 +40,7 @@
       th:attr="data-order-item-id=${orderItemId}, data-product-id=${productId}">
     <a class="back-link" href="/review">← 리뷰 목록으로</a>
 
-    <!-- 서버에서 온 에러(권한/조건 불일치 등) -->
+    <!-- 서버에서 온 에러 -->
     <div class="error-box" th:if="${errorMessage != null}" th:text="${errorMessage}">
         권한이 없거나 대상이 없습니다.
     </div>
@@ -75,7 +78,8 @@
         <div class="review-content-section">
             <h2>리뷰 작성</h2>
             <div class="review-textarea-container">
-                <textarea id="reviewTextarea" class="review-textarea" maxlength="500" placeholder="상품에 대한 솔직한 후기를 남겨주세요. 최소 10자"></textarea>
+          <textarea id="reviewTextarea" class="review-textarea" maxlength="500"
+                    placeholder="상품에 대한 솔직한 후기를 남겨주세요. 최소 10자"></textarea>
                 <div class="textarea-footer">
                     <span class="char-count" id="charCount">0/500</span>
                     <button id="saveBtn" class="save-btn" type="button">저장하기</button>
@@ -90,29 +94,23 @@
 
 <div th:replace="~{common/footer :: footer}"></div>
 
-<!-- 외부 review-write.js 없이, 이 페이지에서 바로 저장까지 처리 -->
-<script th:inline="javascript">
-    /*<![CDATA[*/
-    (function () {
-      const root = document.querySelector('main.container');
-      if (!root) return;
+<!-- 메인 스크립트 (있으면 이것만 실행) -->
+<script th:src="@{/js/review-write.js}"></script>
 
-      // 서버에서 전달된 값(없으면 data-*에서 읽음)
-      const orderItemId = Number(/*[[${orderItemId}]]*/ null) || Number(root.dataset.orderItemId || 0);
-      const productId   = Number(/*[[${productId}]]*/ null)   || Number(root.dataset.productId   || 0);
+<!-- 폴백: /js/review-write.js 가 없거나 로드 실패시 최소 동작 -->
+<script>
+    (function () {
+      if (window.__REVIEW_WRITE_READY__) return;
 
       const stars = Array.from(document.querySelectorAll('.star-rating .star'));
       const ratingInput = document.getElementById('ratingValue');
       const ratingError = document.getElementById('ratingError');
-
       const ta = document.getElementById('reviewTextarea');
       const charCount = document.getElementById('charCount');
       const contentError = document.getElementById('contentError');
-
       const saveBtn = document.getElementById('saveBtn');
-      const saveError = document.getElementById('saveError');
 
-      // 별점 클릭
+      // 별점
       stars.forEach(el => {
         el.addEventListener('click', () => {
           const val = Number(el.getAttribute('data-rating') || '0');
@@ -126,57 +124,28 @@
         });
       });
 
-      // 글자수 카운트
+      // 글자수
       const updateCount = () => {
-        const len = ta.value.length;
+        const len = (ta?.value || '').length;
         charCount.textContent = `${len}/500`;
         if (len >= 10) contentError.style.display = 'none';
       };
-      ta.addEventListener('input', updateCount);
+      ta?.addEventListener('input', updateCount);
       updateCount();
 
-      // 저장 (시큐리티/CSRF 미사용 → 헤더에 CSRF 안 넣음)
-      saveBtn.addEventListener('click', async () => {
-        const rating  = Number(ratingInput.value || '0');
-        const content = (ta.value || '').trim();
+      // 저장(검증만)
+      saveBtn?.addEventListener('click', () => {
+        const rating = Number(ratingInput?.value || '0');
+        const content = (ta?.value || '').trim();
 
         let ok = true;
         if (rating < 1) { ratingError.style.display = 'block'; ok = false; }
         if (content.length < 10) { contentError.style.display = 'block'; ok = false; }
         if (!ok) return;
 
-        saveBtn.disabled = true;
-        saveError.style.display = 'none';
-        saveError.textContent = '';
-
-        try {
-          const payload = { rating, content };
-          if (orderItemId) payload.orderItemId = orderItemId;
-          if (productId)   payload.productId   = productId;
-
-          const res = await fetch('/api/my/reviews', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-          });
-
-          if (!res.ok) {
-            let msg = `저장 실패 (${res.status})`;
-            try { msg = (await res.json()).message || msg; } catch (_) {}
-            throw new Error(msg);
-          }
-
-          // 성공 시 목록으로 이동
-          window.location.href = '/review';
-        } catch (e) {
-          saveError.textContent = e?.message || '오류가 발생했습니다.';
-          saveError.style.display = 'block';
-        } finally {
-          saveBtn.disabled = false;
-        }
+        alert('검증 통과. 실제 저장은 /js/review-write.js 에 구현하세요.');
       });
     })();
-    /*]]>*/
 </script>
 </body>
 </html>
