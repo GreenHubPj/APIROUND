@@ -27,42 +27,90 @@ document.addEventListener('DOMContentLoaded', async function() {
     initializeChartToggle();
     initializeAnimations();
 
-    // ✅ 서버에서 판매사 주문 불러오기
+    // 1) 데이터 로드 (회사 로그인 필요)
     await loadVendorOrders();
 
-    // 초기 렌더
-    if (state.orders.length > 0) {
-        // 기본 기간: 최근 30일
-        const today = new Date();
-        const oneMonthAgo = new Date(today.getTime() - (30 * 24 * 60 * 60 * 1000));
-        setDateInputs(oneMonthAgo, today);
-        applyDateFilter(oneMonthAgo, today);
+    // 2) 기간 기본값은 최근 30일 — ★항상 적용
+    const today = new Date();
+    const oneMonthAgo = new Date(today.getTime() - (30 * 24 * 60 * 60 * 1000));
+    setDateInputs(oneMonthAgo, today);
+    applyDateFilter(oneMonthAgo, today);
 
-        renderAll();
-    } else {
-        // 실패거나 데이터 없음: 화면에 안내
-        showNotification('표시할 주문이 없습니다.', 'info');
-    }
+    // 3) 렌더 — ★항상 호출 (0건이어도 더미 제거)
+    initializeChart();
+    renderAll();
+
+    // 4) 라이브 동기화
+    subscribeOrderStatusStream();
 });
+
+// ====== SSE 구독 ======
+function subscribeOrderStatusStream() {
+    let es;
+    const connect = () => {
+        try {
+            const url = '/api/seller/orders/stream';
+            es = new EventSource(url);
+
+            es.addEventListener('ping', () => {/* keep-alive */});
+
+            es.addEventListener('order-status', (ev) => {
+                try {
+                    const msg = JSON.parse(ev.data); // { orderNumber, uiStatus }
+                    if (!msg || !msg.orderNumber) return;
+
+                    const key = (msg.uiStatus || 'preparing').toLowerCase();
+
+                    // 상태 메모리 갱신
+                    const t1 = state.orders.find(o => o.orderNumber === msg.orderNumber);
+                    const t2 = state.filtered.find(o => o.orderNumber === msg.orderNumber);
+                    if (t1) t1.uiStatus = key;
+                    if (t2) t2.uiStatus = key;
+
+                    // 화면 갱신
+                    renderAll();
+                    showNotification(`#${msg.orderNumber} 상태가 '${key}'로 변경되었습니다.`, 'success');
+                } catch (_) {}
+            });
+
+            es.onerror = () => {
+                try { es.close(); } catch (_) {}
+                setTimeout(connect, 3000);
+            };
+        } catch (_) {
+            // SSE 미지원/차단 시 무시
+        }
+    };
+    connect();
+}
 
 // ========================= 서버 연동 =========================
 async function loadVendorOrders() {
     try {
         const res = await fetch('/api/seller/orders/my', { credentials: 'include' });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const json = await res.json();
-
-        if (!json.success || !Array.isArray(json.orders)) {
-            throw new Error('API 응답 형식이 올바르지 않습니다.');
+        if (!res.ok) {
+            if (res.status === 401) {
+                showNotification('판매사 로그인이 필요합니다.', 'error');
+            } else {
+                showNotification(`주문 조회 실패 (HTTP ${res.status})`, 'error');
+            }
+            state.orders = [];
+            return;
         }
 
-        // 서버 DTO: VendorOrderSummaryDto { id(date/status/vendorSubtotal/...) }
+        const json = await res.json();
+        if (!json.success || !Array.isArray(json.orders)) {
+            showNotification('API 응답 형식이 올바르지 않습니다.', 'error');
+            state.orders = [];
+            return;
+        }
+
+        // 서버 DTO: VendorOrderSummaryDto
         state.orders = json.orders.map(o => {
             const created = o.date ? new Date(o.date) : new Date();
             const amt = toNumber(o.vendorSubtotal ?? o.finalAmount ?? 0);
             const uiStatus = (o.status || 'preparing').toLowerCase();
 
-            // ✅ 주문의 아이템들까지 보관 (상품명/수량/금액)
             const items = Array.isArray(o.items) ? o.items.map(it => ({
                 name: it.name,
                 quantity: Number(it.quantity ?? 0),
@@ -74,18 +122,11 @@ async function loadVendorOrders() {
                 createdAt: created,
                 amount: amt,
                 uiStatus,
-                items, // ✅ 추가
+                items,
             };
         });
-
-
-
-        // 차트 초기화는 데이터 들어온 뒤
-        initializeChart();
-
     } catch (err) {
         console.warn('주문 로드 실패:', err);
-        // 더미 유지 없이 빈 상태로 둠 (HTML에 하드코딩된 더미를 덮어쓰기 위해 아래에서 렌더 시 전부 교체)
         state.orders = [];
     }
 }
@@ -96,14 +137,13 @@ function renderAll() {
     updateStatusCardsFromState();
     updateDailySummaryText();
     updateChartsFromState();
-    renderSalesSummary(); // ✅ 매출 요약 갱신
+    renderSalesSummary();
 }
 
 function renderOrderList() {
     const list = document.querySelector('.order-list');
     if (!list) return;
 
-    // 현재 필터: 상태 탭 + 날짜 범위
     const rows = filterByStatus(state.filtered, state.activeStatusTab);
 
     if (rows.length === 0) {
@@ -114,20 +154,16 @@ function renderOrderList() {
         return;
     }
 
-    // 시간 최근순 정렬
     rows.sort((a, b) => b.createdAt - a.createdAt);
 
     list.innerHTML = rows.map(r => {
         const btn = STATUS_BTN[r.uiStatus] || STATUS_BTN.preparing;
         const timeText = renderTimeInfo(r.createdAt);
         const formattedAmount = '₩' + r.amount.toLocaleString();
-        
-        // 완료된 주문만 버튼 비활성화 (취소된 주문은 재주문 가능)
         const isDisabled = r.uiStatus === 'completed';
         const disabledAttr = isDisabled ? 'disabled' : '';
 
-        // 상품 정보 표시
-        const productInfo = r.items && r.items.length > 0 
+        const productInfo = r.items && r.items.length > 0
             ? r.items.map(item => `${escapeHtml(item.name)} × ${item.quantity}개`).join(', ')
             : '상품 정보 없음';
 
@@ -145,17 +181,12 @@ function renderOrderList() {
         </div>`;
     }).join('');
 
-    // 상태 버튼 이벤트 바인딩(프론트 전용 전환)
     initializeOrderStatusUpdates();
 }
 
 function updateStatusCardsFromState() {
-    const counts = {
-        new: 0, confirmed: 0, preparing: 0, shipping: 0, completed: 0, cancelled: 0,
-    };
-    state.filtered.forEach(o => {
-        if (counts[o.uiStatus] !== undefined) counts[o.uiStatus]++;
-    });
+    const counts = { new:0, confirmed:0, preparing:0, shipping:0, completed:0, cancelled:0 };
+    state.filtered.forEach(o => { if (counts[o.uiStatus] !== undefined) counts[o.uiStatus]++; });
 
     const newOrdersCard       = document.querySelector('.new-orders .card-number');
     const confirmedOrdersCard = document.querySelector('.confirmed-orders .card-number');
@@ -177,65 +208,49 @@ function updateDailySummaryText() {
     summaryText.textContent = `주문 ${orders.length}건 매출 ₩${total.toLocaleString()}`;
 }
 
-// ✅ 매출 요약(우측 카드) 업데이트: 현재 탭 + 날짜필터가 적용된 주문으로 집계
+// 매출 요약(우측 카드)
 function renderSalesSummary() {
     const section = document.querySelector('.sales-summary-section');
     if (!section) return;
-
-    // HTML에 있는 6개 값 순서: 총 매출, 총 주문건, 평균 주문금액, 주문 완료율, 최다 주문시간, 베스트 상품
     const values = section.querySelectorAll('.summary-grid .summary-item .summary-value');
     if (values.length < 6) return;
+    const setVal = (i, t) => { if (values[i]) values[i].textContent = t; };
 
-    const setVal = (idx, text) => { if (values[idx]) values[idx].textContent = text; };
-
-    // 현재 기간/탭 필터 적용된 목록 기준
     const orders = state.filtered;
-
-    // 총 매출 / 총 주문건 / 평균 주문금액
     const totalSales  = orders.reduce((sum, o) => sum + (Number(o.amount) || 0), 0);
     const totalOrders = orders.length;
     const avgAmount   = totalOrders > 0 ? Math.round(totalSales / totalOrders) : 0;
 
-    // 완료율: 상태가 'completed' 인 주문 비율
     const completed = orders.filter(o => o.uiStatus === 'completed').length;
     const completionRate = totalOrders > 0 ? (completed * 100) / totalOrders : 0;
 
-    // 최다 주문시간(시간대별 주문 "건수" 기준)
     const hourCounts = Array(24).fill(0);
     orders.forEach(o => { hourCounts[o.createdAt.getHours()]++; });
-    const peakHour = hourCounts.reduce((bestIdx, v, idx, arr) => v > arr[bestIdx] ? idx : bestIdx, 0);
+    const peakHour = hourCounts.reduce((best, v, i, arr) => v > arr[best] ? i : best, 0);
     const peakHourLabel = `${String(peakHour).padStart(2,'0')}:00-${String((peakHour+1)%24).padStart(2,'0')}:00`;
 
-    // ✅ 베스트 상품: 현재 필터 범위의 모든 주문 아이템 중 "수량 합"이 가장 큰 상품명
     let bestProduct = '-';
     const productQty = new Map();
-    orders.forEach(o => {
-        (o.items || []).forEach(it => {
-            const key = it.name || '상품';
-            const q = Number(it.quantity) || 0;
-            productQty.set(key, (productQty.get(key) || 0) + q);
-        });
-    });
-    if (productQty.size > 0) {
-        bestProduct = [...productQty.entries()].sort((a, b) => b[1] - a[1])[0][0];
-    }
+    orders.forEach(o => (o.items || []).forEach(it => {
+        const key = it.name || '상품';
+        const q = Number(it.quantity) || 0;
+        productQty.set(key, (productQty.get(key) || 0) + q);
+    }));
+    if (productQty.size > 0) bestProduct = [...productQty.entries()].sort((a,b)=>b[1]-a[1])[0][0];
 
-    // 값 반영 (인덱스는 현재 HTML 순서와 1:1)
-    setVal(0, `₩${totalSales.toLocaleString()}`);  // 총 매출
-    setVal(1, `${totalOrders}건`);                 // 총 주문건
-    setVal(2, `₩${avgAmount.toLocaleString()}`);   // 평균 주문금액
-    setVal(3, `${completionRate.toFixed(1)}%`);    // 주문 완료율
-    setVal(4, peakHourLabel);                      // 최다 주문시간
-    setVal(5, bestProduct);                        // ✅ 베스트 상품
+    setVal(0, `₩${totalSales.toLocaleString()}`);
+    setVal(1, `${totalOrders}건`);
+    setVal(2, `₩${avgAmount.toLocaleString()}`);
+    setVal(3, `${completionRate.toFixed(1)}%`);
+    setVal(4, peakHourLabel);
+    setVal(5, bestProduct);
 }
-
 
 // ========================= 차트 =========================
 function initializeChart() {
     const ctx = document.getElementById('salesChart');
     if (!ctx) return;
 
-    // 기본 빈 차트
     salesChart = new Chart(ctx, {
         type: 'line',
         data: {
@@ -273,7 +288,6 @@ function initializeChartToggle() {
 
 function changeChartView(view) {
     if (!salesChart) return;
-
     if (view === 'daily') {
         const { labels, data } = buildDailySeries(state.filtered);
         salesChart.data.labels = labels;
@@ -289,38 +303,25 @@ function changeChartView(view) {
 }
 
 function updateChartsFromState() {
-    // 기본은 일별 뷰
     const dailyBtn = document.querySelector('.toggle-btn[data-view="daily"]');
-    if (dailyBtn) {
-        dailyBtn.classList.add('active');
-    }
+    if (dailyBtn) dailyBtn.classList.add('active');
     changeChartView('daily');
 }
 
 function buildDailySeries(rows) {
-    // 최근 7일 또는 현재 필터 기간 전체
-    // 여기서는 필터된 rows를 날짜별 합계로 그룹
     const map = new Map(); // 'M/D' -> total
     rows.forEach(o => {
         const d = o.createdAt;
         const key = `${d.getMonth() + 1}/${d.getDate()}`;
         map.set(key, (map.get(key) || 0) + o.amount);
     });
-
-    // 정렬
     const entries = Array.from(map.entries()).sort((a, b) => toMonthDay(a[0]) - toMonthDay(b[0]));
-    const labels = entries.map(e => e[0]);
-    const data = entries.map(e => e[1]);
-    return { labels, data };
+    return { labels: entries.map(e => e[0]), data: entries.map(e => e[1]) };
 }
 
 function buildHourlySeries(rows) {
-    // 0~23시 그룹
     const buckets = Array(24).fill(0);
-    rows.forEach(o => {
-        const h = o.createdAt.getHours();
-        buckets[h] += o.amount;
-    });
+    rows.forEach(o => { buckets[o.createdAt.getHours()] += o.amount; });
     return {
         labels: Array.from({ length: 24 }, (_, i) => (i < 10 ? `0${i}:00` : `${i}:00`)),
         data: buckets
@@ -335,11 +336,7 @@ function baseChartOptions(border, fill) {
             legend: {
                 display: true,
                 position: 'top',
-                labels: {
-                    usePointStyle: true,
-                    padding: 20,
-                    font: { family: 'Noto Sans KR', size: 12, weight: '500' }
-                }
+                labels: { usePointStyle: true, padding: 20, font: { family: 'Noto Sans KR', size: 12, weight: '500' } }
             },
             tooltip: {
                 backgroundColor: 'rgba(0, 0, 0, 0.8)',
@@ -353,18 +350,11 @@ function baseChartOptions(border, fill) {
             }
         },
         scales: {
-            x: {
-                grid: { display: false },
-                ticks: { font: { family: 'Noto Sans KR', size: 11 }, color: '#6c757d' }
-            },
+            x: { grid: { display: false }, ticks: { font: { family: 'Noto Sans KR', size: 11 }, color: '#6c757d' } },
             y: {
                 beginAtZero: true,
                 grid: { color: 'rgba(0, 0, 0, 0.1)', drawBorder: false },
-                ticks: {
-                    font: { family: 'Noto Sans KR', size: 11 },
-                    color: '#6c757d',
-                    callback: v => '₩' + (v || 0).toLocaleString()
-                }
+                ticks: { font: { family: 'Noto Sans KR', size: 11 }, color: '#6c757d', callback: v => '₩' + (v || 0).toLocaleString() }
             }
         },
         interaction: { intersect: false, mode: 'index' },
@@ -386,37 +376,22 @@ function initializeTabs() {
             const target = this.getAttribute('data-tab');
 
             if (target === 'new') {
-                // ✅ '신규 주문' 탭 클릭 시: 오늘 날짜로 기간을 강제 적용
                 const today = new Date();
                 const s = startOfDay(today);
                 const e = endOfDay(today);
-
-                // 날짜 입력 UI도 오늘로 맞춰줌(선택)
                 setDateInputs(s, e);
-
-                // 상태의 기간 필터만 오늘로 재적용
                 applyDateFilter(s, e);
-
-                // 오늘의 "모든 상태" 주문을 보이게 하려면:
                 state.activeStatusTab = 'all';
-
-                // 만약 "오늘 + 신규 상태만" 보고 싶다면 위 줄 대신 아래 한 줄을 쓰면 됨
-                // state.activeStatusTab = 'new';
             } else {
-                // 다른 탭은 기존 동작 유지 (상태 기반 필터)
                 state.activeStatusTab = target;
             }
 
-            // 탭 하이라이트 유지
             tabButtons.forEach(btn => btn.classList.remove('active'));
             this.classList.add('active');
-
-            // 화면 다시 그리기 (리스트/요약/차트 모두 반영)
             renderAll();
         });
     });
 }
-
 
 function initializeDateFilters() {
     const applyBtn = document.querySelector('.apply-btn');
@@ -445,25 +420,12 @@ function initializeQuickDateButtons() {
             let s, e;
 
             switch (this.getAttribute('data-period')) {
-                case 'today':
-                    s = startOfDay(today); e = endOfDay(today); break;
-                case 'yesterday':
-                    const y = new Date(today.getTime() - 86400000);
-                    s = startOfDay(y); e = endOfDay(y); break;
-                case 'thisWeek':
-                    const startW = startOfWeek(today);
-                    s = startOfDay(startW); e = endOfDay(today); break;
-                case 'lastWeek':
-                    const lwEnd = new Date(startOfWeek(today).getTime() - 86400000);
-                    const lwStart = new Date(lwEnd.getTime() - 6 * 86400000);
-                    s = startOfDay(lwStart); e = endOfDay(lwEnd); break;
-                case 'thisMonth':
-                    const startM = new Date(today.getFullYear(), today.getMonth(), 1);
-                    s = startOfDay(startM); e = endOfDay(today); break;
-                case 'lastMonth':
-                    const lmStart = new Date(today.getFullYear(), today.getMonth() - 1, 1);
-                    const lmEnd = new Date(today.getFullYear(), today.getMonth(), 0);
-                    s = startOfDay(lmStart); e = endOfDay(lmEnd); break;
+                case 'today':     s = startOfDay(today); e = endOfDay(today); break;
+                case 'yesterday': const y = new Date(today.getTime() - 86400000); s = startOfDay(y); e = endOfDay(y); break;
+                case 'thisWeek':  const startW = startOfWeek(today); s = startOfDay(startW); e = endOfDay(today); break;
+                case 'lastWeek':  const lwEnd = new Date(startOfWeek(today).getTime() - 86400000); const lwStart = new Date(lwEnd.getTime() - 6 * 86400000); s = startOfDay(lwStart); e = endOfDay(lwEnd); break;
+                case 'thisMonth': const startM = new Date(today.getFullYear(), today.getMonth(), 1); s = startOfDay(startM); e = endOfDay(today); break;
+                case 'lastMonth': const lmStart = new Date(today.getFullYear(), today.getMonth() - 1, 1); const lmEnd = new Date(today.getFullYear(), today.getMonth(), 0); s = startOfDay(lmStart); e = endOfDay(lmEnd); break;
             }
 
             setDateInputs(s, e);
@@ -500,7 +462,6 @@ function initializeOrderStatusUpdates() {
     });
 }
 
-// 서버 API를 통한 주문 상태 업데이트
 async function updateOrderStatusWithServer(button, orderItem) {
     const currentText = button.textContent.trim();
     const next = nextStatusByText(currentText);
@@ -512,46 +473,35 @@ async function updateOrderStatusWithServer(button, orderItem) {
         return;
     }
 
-    // 버튼 비활성화 (중복 클릭 방지)
     button.disabled = true;
     button.textContent = '처리중...';
 
     try {
         const response = await fetch(`/orders/${orderNumber}/status`, {
             method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                status: mapButtonTextToDbStatus(next.text)
-            })
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: mapButtonTextToDbStatus(next.text) })
         });
 
         const result = await response.json();
 
         if (result.success) {
-            // 성공 시 UI 업데이트
             button.className = `status-button ${next.cls}`;
             button.textContent = next.text;
             orderItem?.setAttribute('data-status', mapButtonTextToKey(next.text));
 
-            // 내부 상태도 갱신
             const target = state.filtered.find(o => o.orderNumber === orderNumber);
             if (target) {
                 target.uiStatus = mapButtonTextToKey(next.text);
-                // 원본 orders에서도 동일 변경
                 const origin = state.orders.find(o => o.orderNumber === target.orderNumber);
                 if (origin) origin.uiStatus = target.uiStatus;
             }
 
-            // 화면 다시 렌더링
             renderAll();
-            
-            // mypage-company 통계 업데이트 (해당 페이지가 열려있는 경우)
+
             if (typeof window.updateCompanyStats === 'function') {
                 window.updateCompanyStats();
             }
-            
             showNotification('주문 상태가 업데이트되었습니다.', 'success');
         } else {
             showNotification(result.message || '상태 업데이트에 실패했습니다.', 'error');
@@ -566,7 +516,7 @@ async function updateOrderStatusWithServer(button, orderItem) {
     }
 }
 
-// 서버 반영 없이 프론트에서만 다음 상태로 전환 (필요 시 API 연결)
+// 프론트 전용 전환(미사용)
 function updateOrderStatusFrontOnly(button, orderItem) {
     const currentText = button.textContent.trim();
     const next = nextStatusByText(currentText);
@@ -576,29 +526,26 @@ function updateOrderStatusFrontOnly(button, orderItem) {
     button.textContent = next.text;
     orderItem?.setAttribute('data-status', mapButtonTextToKey(next.text));
 
-    // 내부 상태도 갱신
     const num = orderItem?.querySelector('.order-number')?.textContent?.replace('#', '')?.trim();
     const target = state.filtered.find(o => `#${o.orderNumber}` === `#${num}`);
     if (target) {
         target.uiStatus = mapButtonTextToKey(next.text);
-        // 원본 orders에서도 동일 변경
         const origin = state.orders.find(o => o.orderNumber === target.orderNumber);
         if (origin) origin.uiStatus = target.uiStatus;
     }
 
-    // 화면 다시 렌더링
     renderAll();
     showNotification('주문 상태가 업데이트되었습니다.', 'success');
 }
 
 function nextStatusByText(text) {
     switch (text) {
-        case '신규 주문': return STATUS_BTN.preparing;  // 신규 주문 -> 배송 준비
-        case '주문 확인': return STATUS_BTN.preparing;  // 주문 확인 -> 배송 준비
-        case '배송 준비': return STATUS_BTN.shipping;  // 배송 준비 -> 배송중
-        case '배송중':   return STATUS_BTN.completed;  // 배송중 -> 완료
-        case '완료':     return null; // 완료된 주문은 더 이상 변경 불가
-        case '재주문':   return STATUS_BTN.preparing; // 취소된 주문은 재주문 가능
+        case '신규 주문': return STATUS_BTN.preparing;
+        case '주문 확인': return STATUS_BTN.preparing;
+        case '배송 준비': return STATUS_BTN.shipping;
+        case '배송중':   return STATUS_BTN.completed;
+        case '완료':     return null;
+        case '재주문':   return STATUS_BTN.preparing;
         default: return null;
     }
 }
@@ -613,11 +560,11 @@ function mapButtonTextToKey(text) {
 function mapButtonTextToDbStatus(text) {
     switch (text) {
         case '배송 준비': return 'PREPARING';
-        case '배송중': return 'SHIPPED';
-        case '완료': return 'DELIVERED';
-        case '재주문': return 'PREPARING'; // 취소된 주문을 재주문으로 변경
-        case '취소': return 'CANCELLED';
-        default: return 'PREPARING';
+        case '배송중':   return 'SHIPPED';
+        case '완료':     return 'DELIVERED';
+        case '재주문':   return 'PREPARING';
+        case '취소':     return 'CANCELLED';
+        default:         return 'PREPARING';
     }
 }
 
@@ -649,21 +596,20 @@ function startOfDay(d) { const t = new Date(d); t.setHours(0,0,0,0); return t; }
 function endOfDay(d)   { const t = new Date(d); t.setHours(23,59,59,999); return t; }
 function startOfWeek(d){
     const t = new Date(d);
-    const day = t.getDay(); // 0(Sun)~6(Sat)
+    const day = t.getDay();
     t.setDate(t.getDate() - day);
     t.setHours(0,0,0,0);
     return t;
 }
 
 function toMonthDay(md) {
-    // 'M/D' -> 숫자 비교용 mmdd
     const [m, d] = md.split('/').map(Number);
     return m * 100 + d;
 }
 
 function renderTimeInfo(date) {
     const now = new Date();
-    const diff = now - date; // ms
+    const diff = now - date;
     const mins = Math.floor(diff / 60000);
     const hrs = Math.floor(mins / 60);
     const isToday = now.toDateString() === date.toDateString();
@@ -672,7 +618,6 @@ function renderTimeInfo(date) {
         if (hrs >= 1) return `${pad2(date.getHours())}:${pad2(date.getMinutes())} (${hrs}시간 전)`;
         return `${pad2(date.getHours())}:${pad2(date.getMinutes())} (${Math.max(mins,1)}분 전)`;
     } else {
-        // 어제/그 외
         const yday = new Date(now.getTime() - 86400000);
         const label = (yday.toDateString() === date.toDateString()) ? '어제' : `${date.getFullYear()}.${pad2(date.getMonth()+1)}.${pad2(date.getDate())}`;
         return `${label} ${pad2(date.getHours())}:${pad2(date.getMinutes())}`;
@@ -724,7 +669,7 @@ setTimeout(() => {
     updateDailySummaryText();
 }, 800);
 
-// 초기 애니메이션 (디자인 유지)
+// 초기 애니메이션
 function initializeAnimations() {
     const cards = document.querySelectorAll('.status-card, .summary-item');
     cards.forEach((card, index) => {
