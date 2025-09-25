@@ -496,6 +496,7 @@ body {
     margin-bottom: 15px;
 }
 
+
 .view-all-reviews-btn {
     background: #ff8c42;
     color: white;
@@ -601,6 +602,53 @@ body {
     color: #333;
     line-height: 1.6;
     font-size: 0.95rem;
+}
+
+/* 빈 리뷰 상태 스타일 */
+.empty-reviews {
+    text-align: center;
+    padding: 40px 20px;
+    background: #f8f9fa;
+    border-radius: 12px;
+    border: 2px dashed #dee2e6;
+}
+
+.empty-reviews-icon {
+    font-size: 3rem;
+    margin-bottom: 20px;
+    opacity: 0.6;
+}
+
+.empty-reviews h3 {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 10px;
+}
+
+.empty-reviews p {
+    font-size: 1rem;
+    color: #6c757d;
+    margin-bottom: 25px;
+}
+
+.write-review-btn {
+    background: linear-gradient(135deg, #ff8c42, #ff6b35);
+    color: white;
+    border: none;
+    border-radius: 25px;
+    padding: 12px 30px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(255, 140, 66, 0.3);
+}
+
+.write-review-btn:hover {
+    background: linear-gradient(135deg, #ff6b35, #e55a2b);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 140, 66, 0.4);
 }
 
 /* 관련 상품 섹션 */

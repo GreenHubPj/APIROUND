@@ -108,96 +108,247 @@ body {
 .review-list {
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 16px;
 }
 
-/* 작성 가능한 리뷰 아이템 */
-.review-item {
+/* 리뷰 카드 (작성 가능한 리뷰) */
+.review-card {
     display: flex;
     align-items: center;
     gap: 20px;
     padding: 20px;
-    background: #f8f9fa;
+    background: white;
     border-radius: 12px;
     border: 1px solid #e9ecef;
     transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
-.review-item:hover {
+.review-card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    border-color: #ff6b35;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    border-color: #ff8c42;
 }
 
-.product-image {
+/* 카드 왼쪽 - 상품 이미지 */
+.card-left {
     flex-shrink: 0;
-    width: 100px;
-    height: 100px;
-    border-radius: 8px;
+    width: 80px;
+    height: 80px;
+    border-radius: 10px;
     overflow: hidden;
-    background-color: #e9ecef;
+    background-color: #f8f9fa;
     display: flex;
     align-items: center;
     justify-content: center;
+    border: 1px solid #e9ecef;
+    position: relative;
 }
 
-.product-img {
+.image-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f8f9fa;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.thumb {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    transition: all 0.3s ease;
+    border-radius: 8px;
+    background: #f8f9fa;
 }
 
+.thumb:hover {
+    transform: scale(1.05);
+}
 
-.product-info {
+.image-loading {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    z-index: 10;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 0.8; }
+    50% { opacity: 1; }
+}
+
+/* 이미지 로딩 상태 */
+.thumb[data-loading="true"] {
+    opacity: 0.6;
+    filter: blur(1px);
+}
+
+/* 이미지 에러 상태 */
+.thumb[data-error="true"] {
+    opacity: 0.8;
+    filter: grayscale(30%);
+}
+
+/* 이미지 로딩 중일 때 컨테이너 스타일 */
+.image-container.loading {
+    background: linear-gradient(45deg, #f8f9fa, #e9ecef);
+    animation: shimmer 2s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+    0% { background-position: -200px 0; }
+    100% { background-position: calc(200px + 100%) 0; }
+}
+
+/* 카드 중앙 - 상품 정보 */
+.card-body {
     flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 6px;
+    min-width: 0; /* 텍스트 오버플로우 방지 */
 }
 
-.store-name {
-    font-size: 0.9rem;
-    color: #6c757d;
-    font-weight: 500;
+.name {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 4px;
+    line-height: 1.4;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
-.product-name {
-    font-size: 1.2rem;
-    font-weight: 700;
-    color: #333;
-}
-
-.product-description {
-    font-size: 0.95rem;
-    color: #666;
-    line-height: 1.5;
-}
-
-.product-details {
+.meta {
     display: flex;
-    gap: 15px;
+    gap: 12px;
     align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 4px;
+}
+
+.store {
+    font-size: 0.85rem;
+    color: #6c757d;
+    background-color: #f8f9fa;
+    padding: 3px 8px;
+    border-radius: 6px;
+    border: 1px solid #e9ecef;
+}
+
+.origin {
+    font-size: 0.85rem;
+    color: #6c757d;
+    background-color: #e3f2fd;
+    padding: 3px 8px;
+    border-radius: 6px;
+    border: 1px solid #bbdefb;
 }
 
 .price {
     font-size: 1rem;
     font-weight: 600;
-    color: #ff6b35;
+    color: #ff8c42;
 }
 
-.origin {
-    font-size: 0.9rem;
-    color: #6c757d;
-    background-color: #e9ecef;
-    padding: 4px 8px;
-    border-radius: 4px;
-}
-
-.review-actions {
+/* 카드 오른쪽 - 액션 버튼 */
+.card-right {
     flex-shrink: 0;
     display: flex;
-    flex-direction: column;
-    gap: 10px;
+    align-items: center;
+}
+
+.btn {
+    background: linear-gradient(135deg, #ff8c42, #ff6b35);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(255, 140, 66, 0.3);
+}
+
+.btn:hover {
+    background: linear-gradient(135deg, #ff6b35, #e55a2b);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(255, 140, 66, 0.4);
+    text-decoration: none;
+    color: white;
+}
+
+/* 작성한 리뷰 카드 */
+.review-card .rating {
+    margin: 6px 0;
+}
+
+.stars {
+    color: #ffc107;
+    font-size: 1rem;
+}
+
+.content {
+    font-size: 0.95rem;
+    color: #555;
+    line-height: 1.5;
+    margin-top: 4px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+/* 빈 상태 */
+.empty {
+    text-align: center;
+    padding: 60px 20px;
+    color: #6c757d;
+    font-size: 1.1rem;
+    background: white;
+    border-radius: 12px;
+    border: 2px dashed #dee2e6;
+}
+
+/* 반응형 */
+@media (max-width: 768px) {
+    .review-card {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 16px;
+    }
+    
+    .card-left {
+        width: 100%;
+        height: 120px;
+        align-self: center;
+    }
+    
+    .card-body {
+        text-align: center;
+    }
+    
+    .card-right {
+        justify-content: center;
+    }
 }
 
 .write-review-btn {
@@ -218,31 +369,7 @@ body {
     box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
 }
 
-/* 작성한 리뷰 아이템 */
-.written-review-item {
-    display: flex;
-    align-items: flex-start;
-    gap: 20px;
-    padding: 20px;
-    background: #f8f9fa;
-    border-radius: 12px;
-    border: 1px solid #e9ecef;
-    transition: all 0.3s ease;
-}
-
-.written-review-item:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.written-review-item .product-image {
-    flex-shrink: 0;
-    width: 80px;
-    height: 80px;
-    border-radius: 8px;
-    overflow: hidden;
-    background-color: #e9ecef;
-}
+/* 작성한 리뷰는 .review-card 클래스 재사용 */
 
 .review-content {
     flex: 1;

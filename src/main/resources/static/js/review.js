@@ -15,11 +15,19 @@
   });
 
   function toPrice(v){
-    try { return Number(v).toLocaleString('ko-KR')+'원'; } catch(e){ return v; }
+    try { 
+      if (!v) return v;
+      const str = String(v);
+      // 소수점이 있으면 소수점 앞까지만 가져오기
+      const price = str.includes('.') ? str.substring(0, str.indexOf('.')) : str;
+      const num = Number(price);
+      if (isNaN(num)) return v;
+      return num.toLocaleString('ko-KR')+'원'; 
+    } catch(e){ return v; }
   }
 
+
   function cardWritable(item){
-    const img = item.productImage || '/images/농산물.png';
     const name = item.productName || '상품';
     const store = item.storeName || '';
     const priceText = item.priceText || '';
@@ -28,26 +36,23 @@
     const div = document.createElement('div');
     div.className = 'review-card';
     div.innerHTML = `
-      <div class="card-left">
-        <img src="${img}" alt="${name}" class="thumb"/>
-      </div>
       <div class="card-body">
         <div class="name">${name}</div>
         <div class="meta">
           ${store? `<span class="store">${store}</span>`:``}
           ${origin? `<span class="origin">${origin}</span>`:``}
         </div>
-        <div class="price">${priceText}</div>
+        <div class="price">${toPrice(priceText)}</div>
       </div>
       <div class="card-right">
         <a class="btn" href="/reviews/write?orderItemId=${item.orderItemId}&productId=${item.productId}">리뷰 쓰기</a>
       </div>
     `;
+    
     return div;
   }
 
   function cardWritten(item){
-    const img = item.productImage || '/images/농산물.png';
     const name = item.productName || '상품';
     const rating = item.rating || 0;
     const content = item.content || '';
@@ -58,15 +63,13 @@
     const div = document.createElement('div');
     div.className = 'review-card';
     div.innerHTML = `
-      <div class="card-left">
-        <img src="${img}" alt="${name}" class="thumb"/>
-      </div>
       <div class="card-body">
         <div class="name">${name}</div>
         <div class="rating">${starHtml}</div>
         <div class="content">${content}</div>
       </div>
     `;
+    
     return div;
   }
 

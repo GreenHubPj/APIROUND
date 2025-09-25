@@ -36,17 +36,17 @@ document.addEventListener('DOMContentLoaded', function () {
         window.location.href = '/profile-edit-company';
         break;
       case 'refund':
-        window.location.href = '/refund-management';
+        showDevelopmentAlert('환불처리');
         break;
       case 'products':
         window.location.href = '/item-management';
         break;
       case 'email-notification':
-          openEmailModal();
-          break;
+        openEmailModal();
+        break;
       case 'recipe-management':
-          window.location.href = '/admin/recipe-management';
-          break;
+        window.location.href = '/admin/recipe-management';
+        break;
       default:
         console.log('알 수 없는 모듈:', moduleType);
     }

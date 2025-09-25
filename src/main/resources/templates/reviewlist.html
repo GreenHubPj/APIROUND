@@ -34,10 +34,6 @@
                     <span class="product-tag" th:text="${product != null ? product.regionText : '지역'}">지역</span>
                 </div>
             </div>
-            <div class="product-image">
-                <img th:if="${product != null}" id="productImage" class="product-thumbnail" th:src="${product.thumbnailUrl}" th:alt="${product.productName}">
-                <img th:if="${product == null}" id="productImage" class="product-thumbnail" src="" alt="상품 이미지">
-            </div>
         </div>
 
         <!-- 리뷰 통계 -->
