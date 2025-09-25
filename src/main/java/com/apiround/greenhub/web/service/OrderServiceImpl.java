@@ -16,6 +16,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import com.apiround.greenhub.cart.service.CartService;
 import com.apiround.greenhub.entity.Order;
 import com.apiround.greenhub.entity.ProductListing;
 import com.apiround.greenhub.entity.item.ProductPriceOption;
@@ -47,6 +48,7 @@ public class OrderServiceImpl implements OrderService {
     private final ProductPriceOptionRepository productPriceOptionRepository;
     private final ProductListingRepository productListingRepository;
     private final NamedParameterJdbcTemplate jdbc;
+    private final CartService cartService;
 
     @Override
     @Transactional
@@ -79,7 +81,42 @@ public class OrderServiceImpl implements OrderService {
         BigDecimal shipping = BigDecimal.valueOf(3000);
         List<OrderItem> toSaveItems = new ArrayList<>();
 
+        // CartService를 사용하여 optionId가 있는 경우 직접 변환
+        List<Integer> optionIds = req.getItems().stream()
+                .filter(item -> item.getOptionId() != null)
+                .map(CheckoutRequest.Item::getOptionId)
+                .collect(Collectors.toList());
+
+        System.out.println("=== OrderServiceImpl.createOrder 디버깅 ===");
+        System.out.println("req.getItems() 개수: " + req.getItems().size());
+        for (CheckoutRequest.Item item : req.getItems()) {
+            System.out.println("Item - cartId: " + item.getCartId() + ", optionId: " + item.getOptionId() + ", productId: " + item.getProductId());
+        }
+        System.out.println("추출된 optionIds: " + optionIds);
+
+        if (!optionIds.isEmpty()) {
+            System.out.println("CartService.convertCartsToOrderItemsByOptionIds 호출");
+            // CartService를 사용하여 CartEntity를 OrderItem으로 변환
+            List<OrderItem> cartItems = cartService.convertCartsToOrderItemsByOptionIds(optionIds, order);
+            System.out.println("변환된 OrderItem 개수: " + cartItems.size());
+            for (OrderItem item : cartItems) {
+                System.out.println("OrderItem - optionId: " + item.getOptionId() + ", productId: " + item.getProductId());
+            }
+            toSaveItems.addAll(cartItems);
+            
+            // optionId가 있는 아이템들의 총액 계산
+            for (OrderItem item : cartItems) {
+                subtotal = subtotal.add(item.getLineAmount());
+            }
+        } else {
+            System.out.println("⚠️ optionId가 있는 아이템이 없습니다. 기존 로직으로 처리됩니다.");
+        }
+
+        // optionId가 없는 아이템들은 기존 로직으로 처리
         for (CheckoutRequest.Item ci : req.getItems()) {
+            if (ci.getOptionId() != null) {
+                continue; // 이미 CartService로 처리된 아이템은 건너뛰기
+            }
             int count = (ci.getCount() != null && ci.getCount() > 0) ? ci.getCount() : 1;
 
             // 1) listing

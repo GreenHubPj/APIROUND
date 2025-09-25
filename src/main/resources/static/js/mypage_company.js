@@ -44,6 +44,9 @@ document.addEventListener('DOMContentLoaded', function () {
       case 'email-notification':
         openEmailModal();
         break;
+      case 'recipe-management':
+        window.location.href = '/admin/recipe-management';
+        break;
       default:
         console.log('알 수 없는 모듈:', moduleType);
     }
