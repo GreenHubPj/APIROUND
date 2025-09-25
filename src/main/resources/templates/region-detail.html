@@ -50,7 +50,7 @@
                 <div class="review-section" th:attr="data-product-id=${product.productId}">
                     <div class="review-header">
                         <h2 class="section-title">고객 리뷰</h2>
-                        <a class="view-all-reviews-btn" th:href="@{'/products/' + ${product.productId} + '/reviews'}">리뷰보기</a>
+                        <button class="view-all-reviews-btn" id="viewAllReviewsBtn">리뷰보기</button>
                     </div>
                     <div class="review-summary-mini">
                         <div class="mini-left">
