@@ -12,13 +12,6 @@ body {
     line-height: 1.6;
 }
 
-.container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 20px;
-    margin-top: 60px;
-}
-
 /* 사용자 프로필 섹션 */
 .user-profile-section {
     background: linear-gradient(135deg, #fff8f0 0%, #fef7ed 100%);
@@ -29,6 +22,7 @@ body {
     display: flex;
     align-items: center;
     gap: 20px;
+    margin-top: 60px;
 }
 
 .profile-avatar {

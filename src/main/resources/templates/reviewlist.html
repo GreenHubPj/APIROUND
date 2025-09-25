@@ -5,52 +5,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title th:text="${product != null ? product.productName + ' 리뷰 - GreenHub' : '상품 리뷰 - GreenHub'}">상품 리뷰 - GreenHub</title>
 
-    <!-- CSS -->
     <link rel="stylesheet" th:href="@{/css/reviewlist.css}">
     <link rel="stylesheet" th:href="@{/css/header.css}">
     <link rel="stylesheet" th:href="@{/css/footer.css}">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
 </head>
 <body>
-<!-- 헤더 include -->
 <div th:replace="~{common/header :: header}"></div>
 
-<!-- ✅ productId를 data 속성으로 ‘정확히’ 내려줌 -->
+<!-- productId를 data 속성으로 내려줌 -->
 <main class="main-content" th:attr="data-product-id=${productId}">
     <div class="container">
-        <!-- 뒤로가기 버튼 -->
+        <!-- 뒤로가기 -->
         <div class="back-button">
-            <button class="back-btn" id="backBtn" type="button">
-                <span>←</span> 상품 상세로 돌아가기
-            </button>
+            <button class="back-btn" id="backBtn" type="button"><span>←</span> 상품 상세로 돌아가기</button>
         </div>
 
-        <!-- 상품 정보 헤더 -->
-        <div class="product-header">
-            <div class="product-info">
-                <h1 class="product-title" id="productTitle" th:text="${product != null ? product.productName : '상품명'}">상품명</h1>
-                <div class="product-tags" id="productTags">
-                    <span class="product-tag" th:text="${product != null ? product.productType : '카테고리'}">카테고리</span>
-                    <span class="product-tag" th:text="${product != null ? product.regionText : '지역'}">지역</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- 리뷰 통계 -->
+        <!-- 리뷰 통계 (구글 플레이 스타일) -->
         <section class="review-stats" aria-label="리뷰 통계">
-            <div class="stats-summary">
-                <div class="average-rating">
-                    <span class="rating-number" id="averageRating">0.0</span>
-                    <div class="stars" id="averageStars" aria-hidden="true"></div>
+            <div class="stats-grid">
+                <div class="score-box">
+                    <div class="score" id="averageRating">0.0</div>
+                    <div class="score-stars" id="averageStars" aria-hidden="true"></div>
+                    <div class="score-sub" id="totalReviewText">평가 0개</div>
                 </div>
-                <div class="total-reviews">
-                    <span class="total-count" id="totalReviewCount">0</span>
-                    <span class="total-label">개 리뷰</span>
-                </div>
+                <div class="dist" id="ratingBreakdown"></div>
             </div>
-
-            <!-- ✅ 별점 분포 컨테이너(막대는 JS에서 생성) -->
-            <div class="rating-breakdown" id="ratingBreakdown"></div>
         </section>
 
         <!-- 리뷰 목록 -->
@@ -58,23 +38,15 @@
             <div class="reviews-header">
                 <h2 class="section-title">전체 리뷰</h2>
             </div>
-
-            <!-- ✅ 리뷰 카드가 동적으로 들어옴 -->
             <div class="review-list" id="reviewList"></div>
-
-            <!-- ✅ 페이지네이션 -->
             <nav class="pagination" id="pagination" aria-label="페이지 이동"></nav>
         </section>
     </div>
 </main>
 
-<!-- 푸터 include -->
 <div th:replace="~{common/footer :: footer}"></div>
 
-<!-- JS -->
 <script th:src="@{/js/reviewlist.js}"></script>
-
-<!-- (선택) 전역 변수로도 productId 주입 -->
 <script th:inline="javascript">
     window.__REVIEWLIST__ = window.__REVIEWLIST__ || {};
     /*<![CDATA[*/

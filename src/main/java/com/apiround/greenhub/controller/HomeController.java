@@ -178,5 +178,10 @@ public class HomeController {
     public String sellerDelivery() { return "sellerDelivery"; }
 
     @GetMapping("/customerOrder")
-    public String customerOrder() { return "customerOrder"; }
+    public String customerOrder(HttpSession session){
+        if(session.getAttribute("loginCompanyId")==null){
+            return "redirect:/login?redirectURL=/customerOrder";
+        }
+        return "customerOrder";
+    }
 }
