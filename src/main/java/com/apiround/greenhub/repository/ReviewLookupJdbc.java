@@ -5,6 +5,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Repository
@@ -15,14 +16,13 @@ public class ReviewLookupJdbc {
 
     /** specialty_id -> product_id 매핑 (동일 테이블/키면 그대로 리턴) */
     public Integer findProductIdBySpecialtyId(Integer specialtyId) {
-        // 대부분 specialty_product.product_id == specialty_id 라는 전제면 그대로 specialtyId 반환
-        // 혹시 별도 매핑이 필요하면 아래 쿼리 사용
         String sql = """
             SELECT p.product_id
               FROM specialty_product p
              WHERE p.product_id = ?
         """;
-        return jdbc.query(sql, rs -> rs.next() ? rs.getInt(1) : null, specialtyId);
+        List<Integer> rows = jdbc.query(sql, (rs, i) -> rs.getInt(1), specialtyId);
+        return rows.isEmpty() ? null : rows.get(0);
     }
 
     /** 특산품 카드(제목/지역/썸네일 등) */
@@ -36,19 +36,18 @@ public class ReviewLookupJdbc {
               FROM specialty_product sp
              WHERE sp.product_id = ?
         """;
-        return jdbc.query(sql, rs -> {
+
+        List<Map<String, Object>> list = jdbc.query(sql, (rs, i) -> {
+            Map<String, Object> s = new HashMap<>();
+            s.put("productName", rs.getString("productName"));
+            s.put("productType", rs.getString("productType"));
+            s.put("regionText", rs.getString("regionText"));
+            s.put("thumbnailUrl", rs.getString("thumbnailUrl"));
             Map<String, Object> m = new HashMap<>();
-            if (rs.next()) {
-                Map<String, Object> s = new HashMap<>();
-                s.put("productName", rs.getString("productName"));
-                s.put("productType", rs.getString("productType"));
-                s.put("regionText", rs.getString("regionText"));
-                s.put("thumbnailUrl", rs.getString("thumbnailUrl"));
-                m.put("specialty", s);
-            } else {
-                m.put("specialty", null);
-            }
+            m.put("specialty", s);
             return m;
         }, specialtyId);
+
+        return list.isEmpty() ? Map.of("specialty", null) : list.get(0);
     }
 }
