@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', function () {
         window.location.href = '/profile-edit-company';
         break;
       case 'refund':
-        window.location.href = '/refund-management';
+        showDevelopmentAlert('환불처리');
         break;
       case 'products':
         window.location.href = '/item-management';
