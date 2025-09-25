@@ -1,308 +1,300 @@
 /* 기본 스타일 */
 * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 body {
-    font-family: 'Noto Sans KR', sans-serif;
-    line-height: 1.6;
-    color: #333;
-    background-color: #f8f9fa;
+  font-family: 'Noto Sans KR', sans-serif;
+  line-height: 1.6;
+  color: #333;
+  background: #f8f9fa;
 }
 
 .container {
-    max-width: 1000px;
-    margin: 0 auto;
-    padding: 0 20px;
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 0 20px;
 }
 
 .main-content {
-    padding: 40px 0;
-    min-height: calc(100vh - 200px);
+  padding: 40px 0;
+  min-height: calc(100vh - 200px);
 }
 
 /* 뒤로가기 버튼 */
 .back-button {
-    margin-bottom: 20px;
+  margin-bottom: 20px;
 }
 
 .back-btn {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: #ff8c42;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    padding: 10px 16px;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #ff8c42;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: .3s;
 }
 
 .back-btn:hover {
-    background: #e67e22;
-    transform: translateY(-2px);
+  background: #e67e22;
+  transform: translateY(-2px);
 }
 
 /* 상품 헤더 */
 .product-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-    padding: 30px;
-    margin-bottom: 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0,0,0,.1);
+  padding: 30px;
+  margin-bottom: 30px;
 }
 
 .product-info {
-    flex: 1;
+  flex: 1;
 }
 
 .product-title {
-    font-size: 1.8rem;
-    font-weight: 700;
-    color: #2c3e50;
-    margin-bottom: 10px;
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #2c3e50;
+  margin-bottom: 10px;
 }
 
 .product-tags {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .product-tag {
-    background: #ff8c42;
-    color: white;
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 0.85rem;
-    font-weight: 500;
+  background: #ff8c42;
+  color: #fff;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: .85rem;
+  font-weight: 500;
 }
 
 .product-image {
-    flex-shrink: 0;
+  flex-shrink: 0;
 }
 
 .product-thumbnail {
-    width: 80px;
-    height: 80px;
-    border-radius: 8px;
-    object-fit: cover;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  width: 80px;
+  height: 80px;
+  border-radius: 8px;
+  object-fit: cover;
+  box-shadow: 0 2px 8px rgba(0,0,0,.1);
 }
 
-/* 리뷰 통계 */
+/* ─── Review Stats (구글 플레이 스타일) ───────────────────────── */
 .review-stats {
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-    padding: 30px;
-    margin-bottom: 30px;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0,0,0,.08);
+  padding: 28px;
+  margin-bottom: 30px;
 }
 
-.stats-summary {
-    display: flex;
-    align-items: center;
-    gap: 30px;
-    margin-bottom: 25px;
+.stats-grid {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 28px;
 }
 
-.average-rating {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
+.score-box {
+  min-width: 220px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
 }
 
-.rating-number {
-    font-size: 2.5rem;
-    font-weight: 700;
-    color: #ff8c42;
+.score {
+  font-size: 3rem;
+  line-height: 1;
+  font-weight: 800;
+  color: #2c3e50;
+  letter-spacing: -.02em;
 }
 
-.stars {
-    display: flex;
-    gap: 2px;
+.score-stars {
+  display: flex;
+  gap: 4px;
+  font-size: 20px;
+  color: #f6c000;
 }
 
-.star {
-    color: #ffc107;
-    font-size: 1.2rem;
+.score-sub {
+  color: #6b7280;
+  font-size: .95rem;
 }
 
-.total-reviews {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 5px;
+.dist {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
-.total-count {
-    font-size: 1.5rem;
-    font-weight: 600;
-    color: #2c3e50;
+.dist-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
-.total-label {
-    font-size: 0.9rem;
-    color: #666;
+.dist-label {
+  width: 14px;
+  text-align: left;
+  color: #6b7280;
+  font-weight: 600;
+  font-size: .95rem;
 }
 
-.rating-breakdown {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
+.meter {
+  flex: 1;
+  height: 10px;
+  background: #e5e7eb;
+  border-radius: 999px;
+  overflow: hidden;
 }
 
-.rating-bar {
-    display: flex;
-    align-items: center;
-    gap: 15px;
+.meter-fill {
+  height: 100%;
+  background: #f6c000;
+  border-radius: 999px;
+  width: 0;
+  transition: width .4s ease;
 }
 
-.rating-label {
-    width: 30px;
-    font-size: 0.9rem;
-    color: #666;
-}
-
-.bar-container {
-    flex: 1;
-    height: 8px;
-    background: #e9ecef;
-    border-radius: 4px;
-    overflow: hidden;
-}
-
-.bar-fill {
-    height: 100%;
-    background: #ff8c42;
-    border-radius: 4px;
-    transition: width 0.3s ease;
-}
-
-.rating-count {
-    width: 20px;
-    font-size: 0.9rem;
-    color: #666;
-    text-align: right;
+.dist-perc {
+  width: 40px;
+  text-align: right;
+  color: #6b7280;
+  font-weight: 600;
+  font-size: .95rem;
 }
 
 /* 리뷰 섹션 */
 .reviews-section {
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-    padding: 30px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0,0,0,.1);
+  padding: 30px;
 }
 
 .section-title {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: #2c3e50;
-    margin-bottom: 25px;
-    text-align: center;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #2c3e50;
+  margin-bottom: 25px;
+  text-align: center;
 }
 
 /* 리뷰 리스트 */
 .review-list {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
 .review-item {
-    background: #f8f9fa;
-    border-radius: 8px;
-    padding: 20px;
-    border-left: 4px solid #ff8c42;
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 20px;
+  border-left: 4px solid #ff8c42;
 }
 
 .review-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
 }
 
 .reviewer-name {
-    font-weight: 600;
-    color: #2c3e50;
-    font-size: 1rem;
+  font-weight: 600;
+  color: #2c3e50;
+  font-size: 1rem;
 }
 
 .review-date {
-    font-size: 0.85rem;
-    color: #666;
+  font-size: .85rem;
+  color: #666;
 }
 
 .review-rating {
-    display: flex;
-    gap: 2px;
-    margin-bottom: 10px;
+  display: flex;
+  gap: 2px;
+  margin-bottom: 10px;
 }
 
 .review-text {
-    color: #333;
-    line-height: 1.6;
-    font-size: 0.95rem;
+  color: #333;
+  line-height: 1.6;
+  font-size: .95rem;
 }
 
-/* 반응형 디자인 */
+/* 반응형 */
 @media (max-width: 768px) {
-    .container {
-        padding: 0 15px;
-    }
-    
-    .main-content {
-        padding: 20px 0;
-    }
-    
-    .product-header {
-        flex-direction: column;
-        gap: 20px;
-        text-align: center;
-        padding: 20px;
-    }
-    
-    .product-title {
-        font-size: 1.5rem;
-    }
-    
-    .stats-summary {
-        flex-direction: column;
-        gap: 20px;
-        text-align: center;
-    }
-    
-    .rating-number {
-        font-size: 2rem;
-    }
-    
-    .review-stats {
-        padding: 20px;
-    }
-    
-    .reviews-section {
-        padding: 20px;
-    }
-    
-    .review-item {
-        padding: 15px;
-    }
-    
-    .reviewer-name {
-        font-size: 0.95rem;
-    }
-    
-    .review-text {
-        font-size: 0.9rem;
-    }
+  .container {
+    padding: 0 15px;
+  }
+  
+  .main-content {
+    padding: 20px 0;
+  }
+  
+  .product-header {
+    flex-direction: column;
+    gap: 20px;
+    text-align: center;
+    padding: 20px;
+  }
+  
+  .product-title {
+    font-size: 1.5rem;
+  }
+  
+  .review-stats {
+    padding: 20px;
+  }
+  
+  .stats-grid {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 18px;
+  }
+  
+  .score-box {
+    align-items: center;
+  }
+  
+  .reviews-section {
+    padding: 20px;
+  }
+  
+  .review-item {
+    padding: 15px;
+  }
+  
+  .reviewer-name {
+    font-size: .95rem;
+  }
+  
+  .review-text {
+    font-size: .9rem;
+  }
 }

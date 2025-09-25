@@ -1,10 +1,7 @@
 // src/main/resources/static/js/review-write.js
 // 리뷰 작성 페이지 전용 스크립트 (검증 + 저장 + 실패 시 자동 구제 경로)
-// - YML 토글 없이도 동작하도록 구현
-// - 우선순위: orderItemId가 있으면 /api/my/reviews 로 저장 → 실패 시 /api/products/{productId}/reviews 로 1회 재시도
-// - orderItemId가 없으면 곧바로 /api/products/{productId}/reviews 사용
-// - 401(미로그인) 응답에 redirectUrl 있으면 바로 이동
-// - "이미 작성" 등 메시지는 안내 후 리뷰 목록/상세로 이동
+// - 저장 API는 기존 경로 유지(/api/my/reviews, /api/products/{productId}/reviews)
+// - 저장 성공/특정 에러 후 리다이렉트는 항상 /review 로 이동
 
 (function () {
   // fallback 스크립트가 중복 실행되지 않도록 플래그 설정
@@ -64,9 +61,11 @@
   const contentError = $("#contentError");
   const saveBtn      = $("#saveBtn");
 
+  // 성공/에러 후 이동할 고정 목적지
+  const REDIRECT_AFTER_SAVE = "/review";
+
   let currentRating = 0;
   let isDirty = false;
-
 
   // ──────────────────────────────────────────────────────────────
   // 별점 UI
@@ -154,20 +153,18 @@
           throw new Error("로그인이 필요합니다.");
         }
         if (res.ok) {
-          const body = await safeJson(res);
           isDirty = false;
-          const redirect = body?.redirectUrl || `/products/${productId}/reviews`;
-          location.href = redirect;
+          location.href = REDIRECT_AFTER_SAVE; // ← 항상 /review
           return;
         }
 
         // 409 등 실패 → 메시지 확인 후 구제 경로 시도
         const msg = (await safeJson(res))?.message || (await safeText(res)) || "";
-        // 이미 작성함 → 안내 후 리뷰 페이지로
+        // 이미 작성함 → 안내 후 /review 로
         if (msg.includes("이미") && msg.includes("리뷰")) {
           alert(msg);
           isDirty = false;
-          location.href = `/products/${productId}/reviews`;
+          location.href = REDIRECT_AFTER_SAVE;
           return;
         }
         // 그 외 → product 경로로 1회 재시도
@@ -178,10 +175,8 @@
           throw new Error("로그인이 필요합니다.");
         }
         if (retry.ok) {
-          const b = await safeJson(retry);
           isDirty = false;
-          const redirect = b?.redirectUrl || `/products/${productId}/reviews`;
-          location.href = redirect;
+          location.href = REDIRECT_AFTER_SAVE;
           return;
         }
         const retryMsg = (await safeJson(retry))?.message || (await safeText(retry)) || "";
@@ -196,18 +191,16 @@
         throw new Error("로그인이 필요합니다.");
       }
       if (res2.ok) {
-        const body = await safeJson(res2);
         isDirty = false;
-        const redirect = body?.redirectUrl || `/products/${productId}/reviews`;
-        location.href = redirect;
+        location.href = REDIRECT_AFTER_SAVE;
         return;
       }
       const msg2 = (await safeJson(res2))?.message || (await safeText(res2)) || "";
-      // 이미 작성함 → 안내 후 리뷰 페이지로
+      // 이미 작성함 → 안내 후 /review 로
       if (msg2.includes("이미") && msg2.includes("리뷰")) {
         alert(msg2);
         isDirty = false;
-        location.href = `/products/${productId}/reviews`;
+        location.href = REDIRECT_AFTER_SAVE;
         return;
       }
       throw new Error(msg2 || "리뷰 저장에 실패했습니다.");
@@ -215,7 +208,6 @@
     } catch (err) {
       const msg = (err && err.message) ? err.message : "리뷰 저장 중 오류가 발생했습니다.";
       showErr(msg);
-      // "상품을 찾을 수 없습니다"가 떠도 사용자는 작성 폼에 머물게만 함 (팝업 난사 방지)
     } finally {
       btn && (btn.disabled = false, btn.textContent = backupText || "저장하기");
     }
@@ -238,7 +230,6 @@
       }
     });
   }
-
 
   // ──────────────────────────────────────────────────────────────
   // 초기화

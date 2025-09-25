@@ -542,7 +542,7 @@ function setupReviewButton() {
     viewAllReviewsBtn.addEventListener('click', function() {
       const productId = getProductIdFromUrl();
       if (productId) {
-        window.location.href = `/reviews/list?productId=${productId}`;
+        window.location.href = `/reviewlist?productId=${productId}`;
       }
     });
   }
