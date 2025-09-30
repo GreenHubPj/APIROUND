@@ -1,0 +1,60 @@
+<!-- src/main/resources/templates/orders.html -->
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<!-- 공통 <head> -->
+<th:block th:replace="~{common/head :: siteHead('판매사 주문 - GreenHub')}"></th:block>
+
+<!-- 전용 CSS/JS -->
+<link rel="stylesheet" th:href="@{/css/vendor-orders.css}" />
+<script defer th:src="@{/js/vendor-orders.js}"></script>
+
+<body>
+<div th:replace="~{common/header :: header}"></div>
+
+<main class="vendor-main">
+    <section class="vendor-page-title">
+        <h1 class="vendor-title">판매사 주문</h1>
+        <p class="vendor-subtitle">내 상품이 포함된 주문 목록</p>
+    </section>
+
+    <section class="vendor-filter-bar">
+        <div class="vendor-filters">
+            <select id="vStatusFilter" class="v-filter-select" aria-label="주문 상태">
+                <option value="all" selected>전체 상태</option>
+                <option value="preparing">준비중</option>
+                <option value="shipping">배송중</option>
+                <option value="completed">배송완료</option>
+                <option value="cancelled">취소됨</option>
+            </select>
+
+            <div class="v-search" role="search">
+                <input id="vSearchInput" class="v-search-input" type="text" placeholder="상품명/수령인 검색" aria-label="검색" />
+                <button id="vSearchBtn" class="v-search-btn" type="button">검색</button>
+            </div>
+        </div>
+    </section>
+
+    <section class="vendor-orders-wrap">
+        <div id="vOrdersList" class="vendor-orders-list"></div>
+
+        <div id="vEmptyState" class="vendor-empty" style="display:none;">
+            <div class="empty-emoji" aria-hidden="true">📭</div>
+            <h2>표시할 주문이 없습니다</h2>
+            <p>필터/검색 조건을 조정해 보세요.</p>
+        </div>
+
+        <div id="vPagination" class="vendor-pagination" style="display:none;"></div>
+
+        <noscript>
+            <div class="vendor-empty" style="margin-top:2rem;">
+                <div class="empty-emoji" aria-hidden="true">⚠️</div>
+                <h2>자바스크립트가 비활성화되어 있습니다</h2>
+                <p>브라우저에서 JavaScript를 허용해주세요.</p>
+            </div>
+        </noscript>
+    </section>
+</main>
+
+<div th:replace="~{common/footer :: footer}"></div>
+</body>
+</html>

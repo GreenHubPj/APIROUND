@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>장바구니 - GreenHub</title>
+    <link rel="stylesheet" href="/css/header.css">
+    <link rel="stylesheet" href="/css/shoppinglist.css">
+    <link rel="stylesheet" href="/css/footer.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+<!-- 헤더 include -->
+<div th:replace="~{common/header :: header}"></div>
+
+<!-- 장바구니 메인 컨텐츠 -->
+<section class="shoppinglist-section">
+    <div class="container">
+        <!-- 장바구니 제어 버튼 (장바구니에 상품이 있을 때만 표시) -->
+        <div class="cart-controls" th:if="${!#lists.isEmpty(cartItems)}">
+            <div class="select-all">
+                <input type="checkbox" id="selectAll" class="select-all-checkbox">
+                <label for="selectAll" class="select-all-label">전체선택</label>
+            </div>
+            <button class="delete-selected-btn" id="deleteSelected">
+                <span class="delete-count">0</span> 선택삭제
+            </button>
+        </div>
+
+        <!-- 장바구니 상품 목록 -->
+        <div class="cart-items">
+            <!-- 장바구니가 비어있을 때 -->
+            <div class="empty-cart" th:if="${#lists.isEmpty(cartItems)}">
+                <div class="empty-cart-content">
+                    <img src="/images/따봉 트럭.png" alt="빈 장바구니" class="empty-cart-icon">
+                    <h3>장바구니가 비어있습니다</h3>
+                    <p>원하는 상품을 장바구니에 담아보세요!</p>
+                    <a href="/region" class="go-shopping-btn">쇼핑하러 가기</a>
+                </div>
+            </div>
+
+            <!-- 장바구니 상품 목록 (DB 데이터) -->
+            <div class="cart-item" th:each="cartItem : ${cartItems}" 
+                 th:data-cart-id="${cartItem.cartId}"
+                 th:data-option-id="${cartItem.optionId}">
+                <div class="item-checkbox">
+                    <input type="checkbox" class="item-check" th:data-cart-id="${cartItem.cartId}">
+                </div>
+                <div class="item-info">
+                    <div class="seller-info">
+                        <span class="seller-icon">🏠</span>
+                        <span class="seller-name">농가</span>
+                    </div>
+                    <div class="product-details">
+                        <img src="/images/따봉 트럭.png" alt="상품 이미지" class="product-image">
+                        <div class="product-info">
+                            <h3 class="product-name" th:text="${cartItem.optionName}">상품명</h3>
+                            <p class="product-description">신선한 농산물입니다.</p>
+                            <div class="product-price" th:text="${#numbers.formatInteger(cartItem.unitPrice, 0)} + '원/' + ${cartItem.unit}">가격</div>
+                            <div class="product-origin">
+                                <span class="origin-badge">농가 직거래</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="item-quantity">
+                    <div class="quantity-info">
+                        <span class="quantity-label">상품 주문수량 :</span>
+                        <span class="quantity-value" th:text="${cartItem.quantity} + ${cartItem.unit}">수량</span>
+                    </div>
+                    <button class="modify-order-btn" th:data-cart-id="${cartItem.cartId}">주문수정</button>
+                </div>
+                <div class="item-total">
+                    <div class="total-price">
+                        <span class="price-label">상품 금액</span>
+                        <span class="price-value" th:text="${#numbers.formatInteger(cartItem.totalPrice, 0)} + '원'">총액</span>
+                    </div>
+                    <button class="order-btn" onclick="window.orderItem('${item.cartId}')">주문하기</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 장바구니 안내사항 -->
+        <div class="cart-notice">
+            <ul class="notice-list">
+                <li>장바구니 상품은 최대 90일간 저장됩니다.</li>
+                <li>장바구니에 담긴 상품은 옵션 또는 추가상품 단위로 최대 10개의 상품만 동시 주문할 수 있습니다.</li>
+                <li>가격, 옵션 등 정보가 변경된 경우 주문이 불가할 수 있습니다.</li>
+                <li>오늘출발 정보는 판매자가 설정한 정보에 의해 제공되며, 물류위탁 상품인 경우 물류사의 사정에 따라 실제와 다를 수 있습니다.</li>
+                <li>일부 상품의 경우 카드 할부기간이 카드사 제공 기간보다 적게 제공될 수 있습니다.</li>
+                <li>장바구니에 보여지는 배송비는 최종적으로 발생하는 배송비가 아니며, 주문 주소지에 따라 도서산간 비용 등이 추가 발생할 수 있습니다.</li>
+            </ul>
+        </div>
+
+        <!-- 주문 요약 -->
+        <div class="order-summary">
+            <div class="summary-info">
+                <span class="total-items">총 <span id="totalItems">0</span>건</span>
+                <span class="total-amount">주문금액 <span id="totalAmount">0</span>원</span>
+            </div>
+            <button class="final-order-btn" id="finalOrderBtn">주문하기</button>
+        </div>
+    </div>
+</section>
+
+<!-- 푸터 include -->
+<div th:replace="common/footer :: footer"></div>
+
+<script src="/js/shoppinglist.js"></script>
+</body>
+</html>

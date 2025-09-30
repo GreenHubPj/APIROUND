@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>인기 특산품 - GreenHub</title>
+    <link rel="stylesheet" th:href="@{/css/header.css}">
+    <link rel="stylesheet" th:href="@{/css/popular.css}">
+    <link rel="stylesheet" th:href="@{/css/footer.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- 헤더 include -->
+    <div th:replace="common/header :: header"></div>
+
+    <!-- 메인 콘텐츠 -->
+    <main class="main-content">
+        <!-- 페이지 제목 -->
+        <section class="page-header">
+            <h1 class="page-title">이달의 인기 특산품!</h1>
+            
+            <!-- 인기 순위 바 -->
+            <div class="trend-bar">
+                <div class="trend-item">
+                    <span class="rank">1</span>
+                    <span class="product-name">감자</span>
+                    <span class="trend-icon up">▲</span>
+                </div>
+                <div class="trend-item">
+                    <span class="rank">2</span>
+                    <span class="product-name">새우</span>
+                    <span class="trend-icon down">▼</span>
+                </div>
+                <div class="trend-item">
+                    <span class="rank">3</span>
+                    <span class="product-name">돼지고기</span>
+                    <span class="trend-icon stable">-</span>
+                </div>
+                <div class="trend-item">
+                    <span class="rank">4</span>
+                    <span class="product-name">사과</span>
+                    <span class="trend-icon stable">-</span>
+                </div>
+                <div class="trend-item">
+                    <span class="rank">5</span>
+                    <span class="product-name">표고버섯</span>
+                    <span class="trend-icon up">▲</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- 상품 목록 -->
+        <section class="products-section">
+            <!-- 감자 상품 -->
+            <div class="product-card">
+                <div class="product-image">
+                    <video autoplay muted loop class="banner-video">
+                        <source src="/videos/인기 감자.mp4" type="video/mp4" alt="동글동글 감자" class="product-main-img">
+                    </video>
+                    <div class="product-badge">POTATTARES</div>
+                </div>
+                
+                <div class="product-info">
+                    <h2 class="product-title">동글동글 감자</h2>
+                    
+                    <div class="product-detail">
+                        <img src="/images/인기 감자.jpg" alt="감자전" class="product-detail-img">
+
+
+                        <div class="price-selector">
+                            <div class="product-status">
+                                <span class="status-badge sold-out">품절대란!!!</span>
+                            </div>
+                            <div class="price-option">
+                                <span class="price-label">1kg</span>
+                                <span class="price-amount">8,900원</span>
+                            </div>
+                            <div class="price-option">
+                                <span class="price-label">3kg</span>
+                                <span class="price-amount">24,900원</span>
+                            </div>
+                            <div class="price-option">
+                                <span class="price-label">5kg</span>
+                                <span class="price-amount">39,900원</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="recipe-recommendations">
+                        <p class="recipe-text">추천하는 감자 요리법 확인하세요</p>
+                        <div class="recipe-tags">
+                            <span class="recipe-tag">감자전</span>
+                            <span class="recipe-tag">감자 옹심이</span>
+                            <span class="recipe-tag">감자국</span>
+                        </div>
+                    </div>
+                    
+                    <div class="company-info">
+                        <p class="company-name">(주)POTATTARES</p>
+                        <p class="company-address">경상남도 진안군</p>
+                        <p class="company-phone">053-4567-5635</p>
+                        <p class="company-email">potattares@potato.co.kr</p>
+                    </div>
+                    
+                    <div class="product-actions">
+                        <button class="btn-cart" data-product-id="1" data-product-name="동글동글 감자">
+                            <span class="btn-icon">🛒</span>
+                            장바구니
+                        </button>
+                        <button class="btn-buy" data-product-id="1" data-product-name="동글동글 감자">
+                            <span class="btn-icon">💳</span>
+                            구매하기
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 귤 상품 -->
+            <div class="product-card">
+                <div class="product-image">
+                    <video autoplay muted loop class="banner-video">
+                        <source src="/videos/인기 귤.mp4" type="video/mp4" alt="달콤한 귤" class="product-main-img">
+                    </video>
+                    <div class="product-badge">CITRUS</div>
+                </div>
+                
+                <div class="product-info">
+                    <h2 class="product-title">달콤한 귤</h2>
+                    
+                    <div class="product-detail">
+                        <img src="/images/인기 귤.jpg" alt="귤 디저트" class="product-detail-img">
+
+                        <div class="price-selector">
+                            <div class="product-status">
+                                <span class="status-badge available">재고있음</span>
+                            </div>
+                            <div class="price-option">
+                                <span class="price-label">2kg</span>
+                                <span class="price-amount">12,900원</span>
+                            </div>
+                            <div class="price-option">
+                                <span class="price-label">5kg</span>
+                                <span class="price-amount">28,900원</span>
+                            </div>
+                            <div class="price-option">
+                                <span class="price-label">10kg</span>
+                                <span class="price-amount">52,900원</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="recipe-recommendations">
+                        <p class="recipe-text">추천하는 귤 요리법 확인하세요</p>
+                        <div class="recipe-tags">
+                            <span class="recipe-tag">귤 잼</span>
+                            <span class="recipe-tag">귤 케이크</span>
+                            <span class="recipe-tag">귤 차</span>
+                        </div>
+                    </div>
+                    
+                    <div class="company-info">
+                        <p class="company-name">(주)CITRUS FARM</p>
+                        <p class="company-address">제주도 서귀포시</p>
+                        <p class="company-phone">064-1234-5678</p>
+                        <p class="company-email">citrus@jeju.co.kr</p>
+                    </div>
+                    
+                    <div class="product-actions">
+                        <button class="btn-cart" data-product-id="2" data-product-name="제주 감귤">
+                            <span class="btn-icon">🛒</span>
+                            장바구니
+                        </button>
+                        <button class="btn-buy" data-product-id="2" data-product-name="제주 감귤">
+                            <span class="btn-icon">💳</span>
+                            구매하기
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 돼지고기 상품 -->
+            <div class="product-card">
+                <div class="product-image">
+                    <video autoplay muted loop class="banner-video">
+                        <source src="/videos/인기 돼지.mp4" type="video/mp4" alt="신선한 돼지" class="product-main-img">
+                    </video>
+                    <div class="product-badge">PORK</div>
+                </div>
+                
+                <div class="product-info">
+                    <h2 class="product-title">신선한 돼지고기</h2>
+                    
+                    <div class="product-detail">
+                        <img src="/images/인기 돼지.jpg" alt="돼지고기 요리" class="product-detail-img">
+
+                        <div class="price-selector">
+                            <div class="product-status">
+                                <span class="status-badge available">재고있음</span>
+                            </div>
+                            <div class="price-option">
+                                <span class="price-label">500g</span>
+                                <span class="price-amount">15,900원</span>
+                            </div>
+                            <div class="price-option">
+                                <span class="price-label">1kg</span>
+                                <span class="price-amount">28,900원</span>
+                            </div>
+                            <div class="price-option">
+                                <span class="price-label">2kg</span>
+                                <span class="price-amount">52,900원</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="recipe-recommendations">
+                        <p class="recipe-text">추천하는 돼지고기 요리법 확인하세요</p>
+                        <div class="recipe-tags">
+                            <span class="recipe-tag">돼지갈비</span>
+                            <span class="recipe-tag">돼지불고기</span>
+                            <span class="recipe-tag">돼지국밥</span>
+                        </div>
+                    </div>
+                    
+                    <div class="company-info">
+                        <p class="company-name">(주)PORK FARM</p>
+                        <p class="company-address">경기도 안성시</p>
+                        <p class="company-phone">031-9876-5432</p>
+                        <p class="company-email">pork@farm.co.kr</p>
+                    </div>
+                    
+                    <div class="product-actions">
+                        <button class="btn-cart" data-product-id="3" data-product-name="안성 돼지고기">
+                            <span class="btn-icon">🛒</span>
+                            장바구니
+                        </button>
+                        <button class="btn-buy" data-product-id="3" data-product-name="안성 돼지고기">
+                            <span class="btn-icon">💳</span>
+                            구매하기
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 새우 상품 -->
+            <div class="product-card">
+                <div class="product-image">
+                    <video autoplay muted loop class="banner-video">
+                        <source src="/videos/인기 새우.mp4" type="video/mp4" alt="신선한 새우" class="product-main-img">
+                    </video>
+                    <div class="product-badge">SHRIMP</div>
+                </div>
+                
+                <div class="product-info">
+                    <h2 class="product-title">신선한 새우</h2>
+                    
+                    <div class="product-detail">
+                        <img src="/images/인기 새우.jpg" alt="새우 요리" class="product-detail-img">
+
+                        <div class="price-selector">
+                            <div class="product-status">
+                                <span class="status-badge limited">재고부족</span>
+                            </div>
+                            <div class="price-option">
+                                <span class="price-label">300g</span>
+                                <span class="price-amount">18,900원</span>
+                            </div>
+                            <div class="price-option">
+                                <span class="price-label">500g</span>
+                                <span class="price-amount">28,900원</span>
+                            </div>
+                            <div class="price-option">
+                                <span class="price-label">1kg</span>
+                                <span class="price-amount">52,900원</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="recipe-recommendations">
+                        <p class="recipe-text">추천하는 새우 요리법 확인하세요</p>
+                        <div class="recipe-tags">
+                            <span class="recipe-tag">새우튀김</span>
+                            <span class="recipe-tag">새우볶음</span>
+                            <span class="recipe-tag">새우국</span>
+                        </div>
+                    </div>
+                    
+                    <div class="company-info">
+                        <p class="company-name">(주)SHRIMP FARM</p>
+                        <p class="company-address">전라남도 여수시</p>
+                        <p class="company-phone">061-5555-7777</p>
+                        <p class="company-email">shrimp@yeosu.co.kr</p>
+                    </div>
+                </div>
+            </div>
+
+            
+            <!-- 새우 상품 -->
+            <div class="product-card">
+                <div class="product-image">
+                    <video autoplay muted loop class="banner-video">
+                        <source src="/videos/인기 새우.mp4" type="video/mp4" alt="신선한 새우" class="product-main-img">
+                    </video>
+                    <div class="product-badge">SHRIMP</div>
+                </div>
+                
+                <div class="product-info">
+                    <h2 class="product-title">신선한 새우</h2>
+                    
+                    <div class="product-detail">
+                        <img src="/images/인기 새우.jpg" alt="새우 요리" class="product-detail-img">
+
+                        <div class="price-selector">
+                            <div class="product-status">
+                                <span class="status-badge limited">재고부족</span>
+                            </div>
+                            <div class="price-option">
+                                <span class="price-label">300g</span>
+                                <span class="price-amount">18,900원</span>
+                            </div>
+                            <div class="price-option">
+                                <span class="price-label">500g</span>
+                                <span class="price-amount">28,900원</span>
+                            </div>
+                            <div class="price-option">
+                                <span class="price-label">1kg</span>
+                                <span class="price-amount">52,900원</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="recipe-recommendations">
+                        <p class="recipe-text">추천하는 새우 요리법 확인하세요</p>
+                        <div class="recipe-tags">
+                            <span class="recipe-tag">새우튀김</span>
+                            <span class="recipe-tag">새우볶음</span>
+                            <span class="recipe-tag">새우국</span>
+                        </div>
+                    </div>
+                    
+                    <div class="company-info">
+                        <p class="company-name">(주)SHRIMP FARM</p>
+                        <p class="company-address">전라남도 여수시</p>
+                        <p class="company-phone">061-5555-7777</p>
+                        <p class="company-email">shrimp@yeosu.co.kr</p>
+                    </div>
+                </div>
+            </div>
+
+            
+            <!-- 새우 상품 -->
+            <div class="product-card">
+                <div class="product-image">
+                    <video autoplay muted loop class="banner-video">
+                        <source src="/videos/인기 새우.mp4" type="video/mp4" alt="신선한 새우" class="product-main-img">
+                    </video>
+                    <div class="product-badge">SHRIMP</div>
+                </div>
+                
+                <div class="product-info">
+                    <h2 class="product-title">신선한 새우</h2>
+                    
+                    <div class="product-detail">
+                        <img src="/images/인기 새우.jpg" alt="새우 요리" class="product-detail-img">
+
+                        <div class="price-selector">
+                            <div class="product-status">
+                                <span class="status-badge limited">재고부족</span>
+                            </div>
+                            <div class="price-option">
+                                <span class="price-label">300g</span>
+                                <span class="price-amount">18,900원</span>
+                            </div>
+                            <div class="price-option">
+                                <span class="price-label">500g</span>
+                                <span class="price-amount">28,900원</span>
+                            </div>
+                            <div class="price-option">
+                                <span class="price-label">1kg</span>
+                                <span class="price-amount">52,900원</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="recipe-recommendations">
+                        <p class="recipe-text">추천하는 새우 요리법 확인하세요</p>
+                        <div class="recipe-tags">
+                            <span class="recipe-tag">새우튀김</span>
+                            <span class="recipe-tag">새우볶음</span>
+                            <span class="recipe-tag">새우국</span>
+                        </div>
+                    </div>
+                    
+                    <div class="company-info">
+                        <p class="company-name">(주)SHRIMP FARM</p>
+                        <p class="company-address">전라남도 여수시</p>
+                        <p class="company-phone">061-5555-7777</p>
+                        <p class="company-email">shrimp@yeosu.co.kr</p>
+                    </div>
+                </div>
+            </div>
+
+            
+            <!-- 새우 상품 -->
+            <div class="product-card">
+                <div class="product-image">
+                    <video autoplay muted loop class="banner-video">
+                        <source src="/videos/인기 새우.mp4" type="video/mp4" alt="신선한 새우" class="product-main-img">
+                    </video>
+                    <div class="product-badge">SHRIMP</div>
+                </div>
+                
+                <div class="product-info">
+                    <h2 class="product-title">신선한 새우</h2>
+                    
+                    <div class="product-detail">
+                        <img src="/images/인기 새우.jpg" alt="새우 요리" class="product-detail-img">
+
+                        <div class="price-selector">
+                            <div class="product-status">
+                                <span class="status-badge limited">재고부족</span>
+                            </div>
+                            <div class="price-option">
+                                <span class="price-label">300g</span>
+                                <span class="price-amount">18,900원</span>
+                            </div>
+                            <div class="price-option">
+                                <span class="price-label">500g</span>
+                                <span class="price-amount">28,900원</span>
+                            </div>
+                            <div class="price-option">
+                                <span class="price-label">1kg</span>
+                                <span class="price-amount">52,900원</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="recipe-recommendations">
+                        <p class="recipe-text">추천하는 새우 요리법 확인하세요</p>
+                        <div class="recipe-tags">
+                            <span class="recipe-tag">새우튀김</span>
+                            <span class="recipe-tag">새우볶음</span>
+                            <span class="recipe-tag">새우국</span>
+                        </div>
+                    </div>
+                    
+                    <div class="company-info">
+                        <p class="company-name">(주)SHRIMP FARM</p>
+                        <p class="company-address">전라남도 여수시</p>
+                        <p class="company-phone">061-5555-7777</p>
+                        <p class="company-email">shrimp@yeosu.co.kr</p>
+                    </div>
+                    
+                    <div class="product-actions">
+                        <button class="btn-cart" data-product-id="7" data-product-name="신선한 새우">
+                            <span class="btn-icon">🛒</span>
+                            장바구니
+                        </button>
+                        <button class="btn-buy" data-product-id="7" data-product-name="신선한 새우">
+                            <span class="btn-icon">💳</span>
+                            구매하기
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+        
+        <!-- 더보기 버튼 -->
+        <div class="load-more-container">
+            <button class="load-more-btn" id="loadMoreBtn">더보기</button>
+        </div>
+    </main>
+
+    <!-- 푸터 include -->
+    <div th:replace="common/footer :: footer"></div>
+
+    <script src="/js/popular.js"></script>
+</body>
+</html>

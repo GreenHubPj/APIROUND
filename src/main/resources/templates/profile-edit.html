@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>정보수정 - GreenHub</title>
+    <link rel="stylesheet" th:href="@{/css/header.css}">
+    <link rel="stylesheet" th:href="@{/css/footer.css}">
+    <link rel="stylesheet" th:href="@{/css/profile-edit.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* 간단 모달 스타일 */
+        .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:1000}
+        .modal{background:#fff;border-radius:12px;max-width:460px;width:90%;padding:20px;box-shadow:0 12px 30px rgba(0,0,0,.25)}
+        .modal h3{margin:0 0 6px;font-size:20px}
+        .modal p{margin:8px 0 12px;color:#555;line-height:1.5}
+        .modal textarea{width:100%;min-height:90px;border:1px solid #ddd;border-radius:8px;padding:10px;resize:vertical}
+        .modal .actions{display:flex;gap:10px;justify-content:flex-end;margin-top:14px}
+        .btn-danger{background:#e74c3c;color:#fff;border:none;border-radius:8px;padding:10px 14px;cursor:pointer;font-weight:600}
+        .btn-outline{background:#fff;border:1px solid #ccc;border-radius:8px;padding:10px 14px;cursor:pointer}
+        .danger-zone{margin-top:24px;border-top:1px dashed #eee;padding-top:18px}
+        .danger-zone .delete-btn{width:100%;background:#e53935;color:#fff;border:none;border-radius:10px;padding:12px 16px;font-weight:700;cursor:pointer}
+        .danger-zone .desc{color:#777;margin:8px 0 0}
+        .muted{color:#777;font-size:12px}
+    </style>
+</head>
+<body>
+<!-- 헤더 include -->
+<div th:replace="~{common/header :: header}"></div>
+
+<div class="profile-edit-container"
+     th:data-is-company="${currentCompany != null}"
+     th:data-logout-url="@{/logout}"
+     th:data-delete-url="${currentCompany != null} ? @{/company/account/delete} : @{/account/delete}">
+    <div class="profile-edit-card">
+        <!-- 프로필 사진 -->
+        <div class="profile-picture-section">
+            <div class="profile-picture">
+                <div class="profile-placeholder">
+                    <span class="profile-icon">👤</span>
+                </div>
+                <div class="camera-icon"><span>📷</span></div>
+            </div>
+        </div>
+
+        <!-- 정보수정 폼 -->
+        <form class="profile-edit-form" id="profileEditForm">
+
+            <!-- ===== 개인 회원 전용 ===== -->
+            <div th:if="${currentUser != null}">
+                <!-- 이름 -->
+                <div class="form-group">
+                    <label class="form-label" for="name">이름</label>
+                    <input type="text"
+                           id="name"
+                           class="form-input"
+                           placeholder="이름을 입력해주세요"
+                           th:value="${currentUser.name}"
+                           required>
+                </div>
+
+                <!-- 아이디(loginId) -->
+                <div class="form-group">
+                    <label class="form-label" for="userId">아이디</label>
+                    <input type="text"
+                           id="userId"
+                           class="form-input"
+                           th:value="${currentUser.loginId}"
+                           readonly disabled>
+                </div>
+
+                <!-- 비밀번호(새 비번) : 선택 입력 -->
+                <div class="form-group">
+                    <label class="form-label" for="password">비밀번호</label>
+                    <input type="password"
+                           id="password"
+                           class="form-input"
+                           placeholder="새 비밀번호를 입력해주세요">
+                    <div class="muted">* 비밀번호 변경 시에만 입력하세요. (8자 이상, 영문+숫자 포함)</div>
+                </div>
+
+                <!-- 이메일 -->
+                <div class="form-group">
+                    <label class="form-label" for="email">이메일</label>
+                    <input type="email"
+                           id="email"
+                           class="form-input"
+                           th:value="${currentUser.email}"
+                           readonly disabled>
+                </div>
+            </div>
+
+            <!-- ===== 업체 전용 ===== -->
+            <div th:if="${currentCompany != null}">
+                <!-- 담당자명(화면에서는 이름) -->
+                <div class="form-group">
+                    <label class="form-label" for="name">이름</label>
+                    <input type="text"
+                           id="name"
+                           class="form-input"
+                           placeholder="담당자명을 입력해주세요"
+                           th:value="${currentCompany.managerName}"
+                           required>
+                    <div class="muted">* 업체의 경우 ‘담당자명’으로 저장됩니다.</div>
+                </div>
+
+                <!-- 아이디(loginId) -->
+                <div class="form-group">
+                    <label class="form-label" for="userId">아이디</label>
+                    <input type="text"
+                           id="userId"
+                           class="form-input"
+                           th:value="${currentCompany.loginId}"
+                           readonly disabled>
+                </div>
+
+                <!-- 비밀번호(새 비번) : 선택 입력 -->
+                <div class="form-group">
+                    <label class="form-label" for="password">비밀번호</label>
+                    <input type="password"
+                           id="password"
+                           class="form-input"
+                           placeholder="새 비밀번호를 입력해주세요">
+                    <div class="muted">* 비밀번호 변경 시에만 입력하세요. (8자 이상, 영문+숫자 포함)</div>
+                </div>
+
+                <!-- 이메일 -->
+                <div class="form-group">
+                    <label class="form-label" for="email">이메일</label>
+                    <input type="email"
+                           id="email"
+                           class="form-input"
+                           th:value="${currentCompany.email}"
+                           readonly disabled>
+                </div>
+            </div>
+
+            <!-- 위치(선택) : 공통 화면 옵션 -->
+            <div class="form-group">
+                <label class="form-label">위치</label>
+                <div class="location-inputs">
+                    <select class="form-select" id="city">
+                        <option value="">시/도 선택</option>
+                        <option value="서울">서울특별시</option>
+                        <option value="부산">부산광역시</option>
+                        <option value="대구">대구광역시</option>
+                        <option value="인천">인천광역시</option>
+                        <option value="광주">광주광역시</option>
+                        <option value="대전">대전광역시</option>
+                        <option value="울산">울산광역시</option>
+                        <option value="세종">세종특별자치시</option>
+                        <option value="경기">경기도</option>
+                        <option value="강원">강원도</option>
+                        <option value="충북">충청북도</option>
+                        <option value="충남">충청남도</option>
+                        <option value="전북">전라북도</option>
+                        <option value="전남">전라남도</option>
+                        <option value="경북">경상북도</option>
+                        <option value="경남">경상남도</option>
+                        <option value="제주">제주특별자치도</option>
+                    </select>
+                    <select class="form-select" id="district">
+                        <option value="">동 선택</option>
+                    </select>
+                    <input type="text" id="detailAddress" class="form-input" placeholder="상세주소를 입력해주세요">
+                </div>
+            </div>
+
+            <button type="submit" class="save-btn">
+                <span class="check-icon">✓</span>
+                변경 사항 저장
+            </button>
+        </form>
+
+        <!-- 위험 구역: 탈퇴 -->
+        <div class="danger-zone">
+            <h3>탈퇴하기</h3>
+            <p class="desc">계정을 영구 삭제합니다. 주문/리뷰 등 일부 기록은 법정보관 사유로 일정 기간 보관될 수 있습니다.</p>
+            <button type="button" class="delete-btn" id="openDeleteModalBtn">계정 탈퇴</button>
+        </div>
+    </div>
+</div>
+
+<!-- 탈퇴 모달 -->
+<div class="modal-backdrop" id="deleteModal">
+    <div class="modal">
+        <h3>정말 탈퇴하시겠어요?</h3>
+        <p>탈퇴 사유를 간단히 적어주세요. 더 나은 서비스 개선에 도움이 됩니다.</p>
+        <textarea id="deleteReason" placeholder="예) 더 이상 사용하지 않음, 중복 계정 등"></textarea>
+        <label style="display:flex;align-items:center;gap:8px;margin-top:10px;">
+            <input type="checkbox" id="deleteAcknowledge">
+            <span>탈퇴 시 계정 및 일부 데이터가 삭제(또는 비식별화)됨을 이해했습니다.</span>
+        </label>
+        <div class="actions">
+            <button class="btn-outline" id="cancelDeleteBtn">취소</button>
+            <button class="btn-danger" id="confirmDeleteBtn">영구 탈퇴</button>
+        </div>
+        <div class="muted" style="margin-top:6px">※ 진행 중인 주문/정산이 있을 경우 탈퇴가 제한될 수 있습니다.</div>
+    </div>
+</div>
+
+<!-- 푸터 include -->
+<div th:replace="~{common/footer :: footer}"></div>
+
+<script th:src="@{/js/profile-edit.js}"></script>
+<script>
+    // 간단 모달 동작 (필요 시)
+    const openBtn = document.getElementById('openDeleteModalBtn');
+    const modal = document.getElementById('deleteModal');
+    const cancelBtn = document.getElementById('cancelDeleteBtn');
+    const confirmBtn = document.getElementById('confirmDeleteBtn');
+    const ack = document.getElementById('deleteAcknowledge');
+
+    if (openBtn && modal) {
+        openBtn.addEventListener('click', () => { modal.style.display = 'flex'; });
+    }
+    if (cancelBtn && modal) {
+        cancelBtn.addEventListener('click', () => { modal.style.display = 'none'; });
+    }
+    if (confirmBtn) {
+        confirmBtn.addEventListener('click', () => {
+            if (!ack.checked) { alert('안내 사항에 동의해주세요.'); return; }
+            const isCompany = document.querySelector('.profile-edit-container').dataset.isCompany === 'true';
+            const url = isCompany ? '/company/account/delete' : '/account/delete';
+            // 폼 POST로 전송
+            const f = document.createElement('form');
+            f.method = 'POST';
+            f.action = url;
+            document.body.appendChild(f);
+            f.submit();
+        });
+    }
+</script>
+</body>
+</html>

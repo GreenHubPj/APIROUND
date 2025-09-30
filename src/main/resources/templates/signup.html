@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GreenHub - 회원가입</title>
+
+    <link rel="stylesheet" th:href="@{/css/style.css}" />
+    <link rel="stylesheet" th:href="@{/css/header.css}" />
+    <link rel="stylesheet" th:href="@{/css/footer.css}" />
+    <link rel="stylesheet" th:href="@{/css/signup.css}" />
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet" />
+</head>
+<body>
+<div th:replace="~{common/header :: header}"></div>
+
+<div class="signup-container">
+    <div class="signup-header">
+        <h1 class="signup-title">회원가입</h1>
+        <p class="signup-subtitle">GreenHub에 오신 것을 환영합니다!</p>
+    </div>
+
+    <div class="member-type-tabs">
+        <button type="button" class="member-type-tab active" data-type="individual">개인 회원</button>
+        <button type="button" class="member-type-tab" data-type="seller">판매 회원</button>
+    </div>
+
+    <!-- 개인 회원가입 -->
+    <form id="signupFormIndividual" th:action="@{/auth/signup}" method="post" novalidate class="signup-form">
+        <h2 class="section-title">개인 회원가입</h2>
+        <p class="required-text">*필수 입력 정보입니다.</p>
+
+        <div class="form-section">
+            <div class="form-group">
+                <label class="form-label" for="individualName">이름(실명) *</label>
+                <input type="text" id="individualName" name="name" class="form-input" placeholder="실명을 입력해주세요" required />
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="individualId">아이디 *</label>
+                <input type="text" id="individualId" name="loginId" class="form-input" placeholder="아이디를 입력해주세요" required />
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="individualPassword">비밀번호 *</label>
+                <div class="password-input-container">
+                    <input type="password" id="individualPassword" name="password" class="form-input" placeholder="비밀번호를 입력해주세요" required />
+                    <button type="button" class="password-toggle" aria-label="비밀번호 보기 전환">
+                        <img th:src="@{/images/감은눈.png}" alt="비밀번호 보기" />
+                    </button>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="individualPasswordConfirm">비밀번호 확인 *</label>
+                <div class="password-input-container">
+                    <input type="password" id="individualPasswordConfirm" class="form-input" placeholder="비밀번호를 다시 입력해주세요" required />
+                    <button type="button" class="password-toggle" aria-label="비밀번호 보기 전환">
+                        <img th:src="@{/images/감은눈.png}" alt="비밀번호 보기" />
+                    </button>
+                </div>
+            </div>
+
+            <!-- 이메일 + 인증 -->
+            <div class="form-group">
+                <label class="form-label" for="individualEmail">이메일 *</label>
+                <div class="verification-container">
+                    <div class="verification-input">
+                        <input type="email" id="individualEmail" name="email" class="form-input" placeholder="이메일을 입력해주세요" required />
+                    </div>
+                    <button type="button" class="verification-btn" id="sendEmailCodeBtn">인증번호 전송</button>
+                </div>
+                <div class="verification-container" style="margin-top:8px;">
+                    <div class="verification-input">
+                        <input type="text" id="emailCode" class="form-input" placeholder="인증번호 6자리 입력" />
+                    </div>
+                    <button type="button" class="verification-btn secondary" id="verifyEmailCodeBtn">인증 확인</button>
+                </div>
+                <div class="verification-message" id="individualEmailMessage"></div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="individualPhone">휴대폰번호 *</label>
+                <input type="tel" id="individualPhone" name="phone" class="form-input" placeholder="예) 010-1234-5678" required />
+            </div>
+
+            <!-- ✅ 성별 값은 DB 호환(M/F)으로만 전송 -->
+            <div class="form-group">
+                <label class="form-label" for="gender">성별 (선택)</label>
+                <select id="gender" name="gender" class="form-input">
+                    <option value="">선택 안함</option>
+                    <option value="M">남성</option>
+                    <option value="F">여성</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="birthDate">생년월일 (선택)</label>
+                <input type="date" id="birthDate" name="birthDate" class="form-input" />
+            </div>
+        </div>
+
+        <!-- 약관/동의 (개인) -->
+        <div class="agreement-section">
+            <div class="agreement-all">
+                <input type="checkbox" id="agreeAll" />
+                <label for="agreeAll">필수/선택 항목에 모두 동의합니다.</label>
+            </div>
+            <div class="agreement-list">
+                <div class="agreement-item">
+                    <label><input type="checkbox" class="required-agreement" /><span class="agreement-text">[필수] 만 15세 이상입니다</span></label>
+                </div>
+                <div class="agreement-item">
+                    <label><input type="checkbox" class="required-agreement" /><span class="agreement-text">[필수] 이용약관 동의</span></label>
+                    <a href="#" class="agreement-link">내용보기</a>
+                </div>
+                <div class="agreement-item">
+                    <label><input type="checkbox" class="required-agreement" /><span class="agreement-text">[필수] 개인정보 수집 및 이용 동의</span></label>
+                    <a href="#" class="agreement-link">내용보기</a>
+                </div>
+                <div class="agreement-item">
+                    <label><input type="checkbox" class="optional-agreement" data-name="marketingConsent" /><span class="agreement-text">[선택] 광고성 정보 이메일 수신 동의</span></label>
+                    <a href="#" class="agreement-link">내용보기</a>
+                </div>
+                <div class="agreement-item">
+                    <label><input type="checkbox" class="optional-agreement" data-name="smsConsent" /><span class="agreement-text">[선택] 광고성 정보 SMS 수신 동의</span></label>
+                    <a href="#" class="agreement-link">내용보기</a>
+                </div>
+            </div>
+        </div>
+
+        <input type="hidden" name="marketingConsent" id="marketingConsentHidden" />
+        <input type="hidden" name="smsConsent" id="smsConsentHidden" />
+
+        <button type="submit" class="signup-btn" id="signupBtn">가입하기</button>
+
+        <div class="flash-messages" th:if="${error} or ${success}" style="margin-top:16px;">
+            <p th:if="${error}" th:text="${error}" style="color:#d32f2f;"></p>
+            <p th:if="${success}" th:text="${success}" style="color:#2e7d32;"></p>
+        </div>
+    </form>
+
+    <!-- 판매 회원가입 (변경 없음) -->
+    <form id="signupFormSeller" th:action="@{/auth/signup-company}" method="post" novalidate class="signup-form" style="display:none;">
+        <h2 class="section-title">판매 회원가입</h2>
+        <p class="required-text">*필수 입력 정보입니다.</p>
+
+        <div class="form-section">
+            <div class="form-group">
+                <label class="form-label" for="companyName">업체명 *</label>
+                <input type="text" id="companyName" name="companyName" class="form-input" placeholder="업체명을 입력해주세요" required />
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="sellerLoginId">판매자 아이디 *</label>
+                <input type="text" id="sellerLoginId" name="loginId" class="form-input" placeholder="아이디를 입력해주세요" required />
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="sellerPassword">비밀번호 *</label>
+                <div class="password-input-container">
+                    <input type="password" id="sellerPassword" name="password" class="form-input" placeholder="비밀번호를 입력해주세요" required />
+                    <button type="button" class="password-toggle" aria-label="비밀번호 보기 전환">
+                        <img th:src="@{/images/감은눈.png}" alt="비밀번호 보기" />
+                    </button>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="sellerPasswordConfirm">비밀번호 확인 *</label>
+                <div class="password-input-container">
+                    <input type="password" id="sellerPasswordConfirm" class="form-input" placeholder="비밀번호를 다시 입력해주세요" required />
+                    <button type="button" class="password-toggle" aria-label="비밀번호 보기 전환">
+                        <img th:src="@{/images/감은눈.png}" alt="비밀번호 보기" />
+                    </button>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="businessRegistrationNumber">사업자등록번호 *</label>
+                <input type="text" id="businessRegistrationNumber" name="businessRegistrationNumber" class="form-input" placeholder="예) 123-45-67890" required />
+            </div>
+
+            <!-- 회사 이메일 + 인증 -->
+            <div class="form-group">
+                <label class="form-label" for="companyEmail">회사 이메일 *</label>
+                <div class="verification-container">
+                    <div class="verification-input">
+                        <input type="email" id="companyEmail" name="email" class="form-input" placeholder="회사 이메일을 입력해주세요" required />
+                    </div>
+                    <button type="button" class="verification-btn" id="sendCompanyEmailCodeBtn">인증번호 전송</button>
+                </div>
+                <div class="verification-container" style="margin-top:8px;">
+                    <div class="verification-input">
+                        <input type="text" id="companyEmailCode" class="form-input" placeholder="인증번호 6자리 입력" />
+                    </div>
+                    <button type="button" class="verification-btn secondary" id="verifyCompanyEmailCodeBtn">인증 확인</button>
+                </div>
+                <div class="verification-message" id="companyEmailMessage"></div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="managerName">담당자명 *</label>
+                <input type="text" id="managerName" name="managerName" class="form-input" placeholder="담당자명을 입력해주세요" required />
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="managerPhone">담당자 연락처 *</label>
+                <input type="tel" id="managerPhone" name="managerPhone" class="form-input" placeholder="예) 010-1234-5678" required />
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="companyAddress">사업장 주소 (선택)</label>
+                <input type="text" id="companyAddress" name="address" class="form-input" placeholder="주소를 입력해주세요" />
+            </div>
+        </div>
+
+        <button type="submit" class="signup-btn" id="signupSellerBtn">판매회원 가입하기</button>
+
+        <div class="flash-messages" th:if="${error} or ${success}" style="margin-top:16px;">
+            <p th:if="${error}" th:text="${error}" style="color:#d32f2f;"></p>
+            <p th:if="${success}" th:text="${success}" style="color:#2e7d32;"></p>
+        </div>
+    </form>
+</div>
+
+<div th:replace="~{common/footer :: footer}"></div>
+
+<script th:src="@{/js/signup.js}"></script>
+</body>
+</html>

@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>주문 상세 - GreenHub</title>
+    <link rel="stylesheet" href="/css/header.css">
+    <link rel="stylesheet" href="/css/orderdetails.css">
+    <link rel="stylesheet" href="/css/footer.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+<!-- 헤더 include -->
+<div th:replace="common/header :: header"></div>
+
+<!-- 메인 콘텐츠 -->
+<main class="main-content">
+    <div class="page-title-section">
+        <h1 class="page-title">주문 상세</h1>
+        <p class="page-subtitle">주문하신 상품의 상세 정보를 확인하실 수 있습니다</p>
+    </div>
+
+    <div class="order-info-card">
+        <div class="order-header">
+            <div class="order-basic-info">
+                <h2 class="order-number" id="orderNumber">주문번호: -</h2>
+                <div class="order-date" id="orderDate">주문일: -</div>
+            </div>
+            <div class="order-status" id="orderStatus">
+                <span class="status-badge">-</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="order-items-section">
+        <h3 class="section-title">주문 상품</h3>
+        <div class="order-items-list" id="orderItemsList"></div>
+    </div>
+
+    <div class="delivery-info-section">
+        <h3 class="section-title">배송 정보</h3>
+        <div class="delivery-info-card">
+            <div class="delivery-address">
+                <div class="info-row"><span class="info-label">받는 분</span><span class="info-value" id="recipientName">-</span></div>
+                <div class="info-row"><span class="info-label">연락처</span><span class="info-value" id="recipientPhone">-</span></div>
+                <div class="info-row"><span class="info-label">배송 주소</span><span class="info-value" id="deliveryAddress">-</span></div>
+                <div class="info-row"><span class="info-label">배송 요청사항</span><span class="info-value" id="deliveryNote">-</span></div>
+            </div>
+            <div class="delivery-tracking" id="deliveryTracking">
+                <h4>배송 추적</h4>
+                <div class="tracking-timeline">
+                    <div class="tracking-step completed">
+                        <div class="step-icon">📦</div>
+                        <div class="step-content">
+                            <div class="step-title">주문 접수</div>
+                            <div class="step-date">2024-01-15 14:30</div>
+                        </div>
+                    </div>
+                    <div class="tracking-step completed">
+                        <div class="step-icon">🏭</div>
+                        <div class="step-content">
+                            <div class="step-title">상품 준비</div>
+                            <div class="step-date">2024-01-16 09:15</div>
+                        </div>
+                    </div>
+                    <div class="tracking-step completed">
+                        <div class="step-icon">🚚</div>
+                        <div class="step-content">
+                            <div class="step-title">배송 시작</div>
+                            <div class="step-date">2024-01-17 08:00</div>
+                        </div>
+                    </div>
+                    <div class="tracking-step completed">
+                        <div class="step-icon">✅</div>
+                        <div class="step-content">
+                            <div class="step-title">배송 완료</div>
+                            <div class="step-date">2024-01-17 15:30</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="payment-info-section">
+        <h3 class="section-title">결제 정보</h3>
+        <div class="payment-info-card">
+            <div class="payment-method">
+                <div class="info-row"><span class="info-label">결제 방법</span><span class="info-value" id="paymentMethod">-</span></div>
+                <div class="info-row"><span class="info-label">결제 일시</span><span class="info-value" id="paymentDate">-</span></div>
+                <div class="info-row"><span class="info-label">승인 번호</span><span class="info-value" id="approvalNumber">-</span></div>
+            </div>
+            <div class="payment-summary">
+                <div class="summary-row"><span class="summary-label">상품 금액</span><span class="summary-value" id="productAmount">-</span></div>
+                <div class="summary-row"><span class="summary-label">배송비</span><span class="summary-value" id="shippingFee">-</span></div>
+                <div class="summary-row discount"><span class="summary-label">할인 금액</span><span class="summary-value" id="discountAmount">-</span></div>
+                <div class="summary-row total"><span class="summary-label">총 결제 금액</span><span class="summary-value" id="totalAmount">-</span></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="action-buttons-section">
+        <div class="action-buttons" id="actionButtons">
+            <button class="action-btn btn-secondary" onclick="window.location.href='/orderhistory'">주문 내역으로 돌아가기</button>
+            <button class="action-btn btn-primary" onclick="showReceipt()">영수증 보기</button>
+            <button class="action-btn btn-outline" onclick="reorder()">재주문</button>
+            <button class="action-btn btn-outline" onclick="writeReview()">리뷰 작성</button>
+            <button class="action-btn btn-warning" onclick="requestReturnExchange()" id="returnExchangeBtn" style="display: none;">반품/교환신청</button>
+        </div>
+    </div>
+</main>
+
+<!-- 영수증 모달 -->
+<div class="receipt-modal" id="receiptModal">
+    <div class="receipt-modal-content">
+        <div class="receipt-header">
+            <h2>영수증</h2>
+            <button class="close-btn" onclick="closeReceipt()">&times;</button>
+        </div>
+        <div class="receipt-body" id="receiptBody"></div>
+        <div class="receipt-footer">
+            <button class="btn-secondary" onclick="closeReceipt()">닫기</button>
+            <button class="btn-primary" onclick="downloadReceipt()">다운로드</button>
+        </div>
+    </div>
+</div>
+
+<!-- 푸터 include -->
+<div th:replace="common/footer :: footer"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="/js/shoppinglist.js"></script>
+<script src="/js/orderdetails.js"></script>
+</body>
+</html>

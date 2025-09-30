@@ -1,0 +1,346 @@
+/* 아이디 찾기 페이지 스타일 */
+
+.find-id-container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 40px 20px;
+    background: white;
+    min-height: calc(100vh - 200px);
+}
+
+.find-id-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.find-id-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #4CAF50;
+    margin-bottom: 10px;
+}
+
+.find-id-subtitle {
+    color: #666;
+    font-size: 1.1rem;
+}
+
+.member-type-tabs {
+    display: flex;
+    margin-bottom: 40px;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.member-type-tab {
+    flex: 1;
+    padding: 20px;
+    background: #f5f5f5;
+    color: #666;
+    border: none;
+    cursor: pointer;
+    font-size: 1.1rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.member-type-tab.active {
+    background: #4CAF50;
+    color: white;
+}
+
+.member-type-tab:hover:not(.active) {
+    background: #e8f5e8;
+    color: #4CAF50;
+}
+
+.section-title {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #4CAF50;
+}
+
+.required-text {
+    color: #ff6b35;
+    font-size: 0.9rem;
+    margin-bottom: 20px;
+    text-align: right;
+}
+
+.find-id-form-section {
+    margin-bottom: 40px;
+    padding: 40px;
+    background: #f9f9f9;
+    border-radius: 20px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.find-id-form {
+    margin-bottom: 20px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-label {
+    display: block;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 8px;
+}
+
+.form-input {
+    width: 100%;
+    padding: 15px;
+    border: 2px dashed #e0e0e0;
+    border-radius: 10px;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+    box-sizing: border-box;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: #4CAF50;
+    border-style: solid;
+}
+
+.verification-container {
+    display: flex;
+    gap: 10px;
+    align-items: end;
+}
+
+.verification-input {
+    flex: 1;
+}
+
+.verification-btn {
+    padding: 15px 20px;
+    background: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    white-space: nowrap;
+}
+
+.verification-btn:hover {
+    background: #45a049;
+}
+
+.verification-btn.secondary {
+    background: #f5f5f5;
+    color: #666;
+    border: 2px solid #e0e0e0;
+}
+
+.verification-btn.secondary:hover {
+    background: #e0e0e0;
+}
+
+.find-id-btn {
+    width: 100%;
+    padding: 15px 30px;
+    background: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+}
+
+.find-id-btn:hover {
+    background: #45a049;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+}
+
+.find-id-btn:active {
+    transform: translateY(0);
+}
+
+/* 결과 표시 영역 */
+.result-section {
+    margin-bottom: 40px;
+    padding: 30px;
+    background: #f0f8f0;
+    border-radius: 15px;
+    border: 2px solid #4CAF50;
+}
+
+.result-content {
+    text-align: center;
+}
+
+.result-icon {
+    font-size: 3rem;
+    margin-bottom: 20px;
+}
+
+.result-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #4CAF50;
+    margin-bottom: 20px;
+}
+
+.result-info {
+    margin-bottom: 30px;
+}
+
+.result-text {
+    color: #666;
+    font-size: 1rem;
+    margin-bottom: 15px;
+}
+
+.found-id {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    border: 2px solid #4CAF50;
+    margin-bottom: 15px;
+}
+
+.found-id span {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #4CAF50;
+}
+
+.result-date {
+    color: #888;
+    font-size: 0.9rem;
+}
+
+.result-actions {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+}
+
+.action-btn {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-width: 120px;
+}
+
+.action-btn.primary {
+    background: #4CAF50;
+    color: white;
+}
+
+.action-btn.primary:hover {
+    background: #45a049;
+    transform: translateY(-2px);
+}
+
+.action-btn.secondary {
+    background: #f5f5f5;
+    color: #666;
+    border: 2px solid #ddd;
+}
+
+.action-btn.secondary:hover {
+    background: #e8f5e8;
+    color: #4CAF50;
+    border-color: #4CAF50;
+}
+
+.find-id-links {
+    text-align: center;
+}
+
+.back-links {
+    margin-bottom: 20px;
+    font-size: 0.9rem;
+}
+
+.back-link {
+    color: #666;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.back-link:hover {
+    color: #4CAF50;
+}
+
+.other-find-link {
+    font-size: 1rem;
+    color: #666;
+}
+
+.find-link-text {
+    color: #4CAF50;
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.3s ease;
+}
+
+.find-link-text:hover {
+    color: #45a049;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+    .find-id-container {
+        padding: 30px 20px;
+        margin: 20px;
+    }
+    
+    .find-id-title {
+        font-size: 2rem;
+    }
+    
+    .member-type-tabs {
+        flex-direction: column;
+    }
+    
+    .member-type-tab {
+        padding: 15px;
+    }
+    
+    .result-actions {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .action-btn {
+        min-width: auto;
+    }
+}
+
+@media (max-width: 480px) {
+    .find-id-container {
+        padding: 20px 15px;
+        margin: 10px;
+    }
+    
+    .find-id-title {
+        font-size: 1.8rem;
+    }
+    
+    .find-id-form-section,
+    .result-section {
+        padding: 20px;
+    }
+}

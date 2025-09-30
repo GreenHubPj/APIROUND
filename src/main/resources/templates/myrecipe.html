@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>내 레시피 - GreenHub</title>
+    <link rel="stylesheet" href="/css/header.css">
+    <link rel="stylesheet" href="/css/myrecipe.css">
+    <link rel="stylesheet" href="/css/footer.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+<!-- 헤더 include -->
+<div th:replace="common/header :: header"></div>
+
+<!-- 메인 콘텐츠 -->
+<main class="main-content">
+    <!-- 페이지 타이틀 -->
+    <div class="page-title-section">
+        <h1 class="page-title">내 레시피</h1>
+        <p class="page-subtitle">작성한 레시피를 관리하고 새로운 레시피를 추가하세요</p>
+    </div>
+
+    <!-- 새 레시피 추가 버튼 -->
+    <div class="add-recipe-section">
+        <button class="add-recipe-btn" id="addRecipeBtn">
+            <span class="add-icon">+</span>
+            새 레시피 추가
+        </button>
+    </div>
+
+    <!-- 레시피 그리드 -->
+    <div class="recipes-grid" id="recipesGrid">
+        <!-- 작성한 레시피가 없습니다 -->
+        <div class="empty-recipes">
+            <div class="empty-recipes-icon">📝</div>
+            <h2>아직 작성한 레시피가 없습니다</h2>
+            <p>새 레시피를 추가해서 나만의 요리법을 공유해보세요!</p>
+        </div>
+    </div>
+
+    <!-- 페이징 UI (동적으로 생성됨) -->
+    <div class="pagination-container" id="paginationContainer">
+        <!-- JavaScript에서 동적으로 생성 -->
+    </div>
+</main>
+
+<!-- 푸터 include -->
+<div th:replace="common/footer :: footer"></div>
+
+<!-- userId 전역 변수 선언 (Thymeleaf가 치환함) -->
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    const currentUserId = [[${userId}]];
+    /*]]>*/
+</script>
+
+<!-- 외부 JS 로드 -->
+<script src="/js/myrecipe.js"></script>
+</body>
+</html>

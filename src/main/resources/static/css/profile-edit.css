@@ -1,0 +1,320 @@
+/* 정보수정 페이지 스타일 */
+
+.profile-edit-container {
+    min-height: 100vh;
+    background: #f5f5f5;
+    padding: 40px 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 60px;
+}
+
+.profile-edit-card {
+    background: white;
+    border-radius: 20px;
+    border: 2px solid #ffb366;
+    padding: 40px;
+    max-width: 800px;
+    width: 100%;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+/* 프로필 사진 섹션 */
+.profile-picture-section {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 40px;
+}
+
+.profile-picture {
+    position: relative;
+    width: 120px;
+    height: 120px;
+}
+
+.profile-placeholder {
+    width: 100%;
+    height: 100%;
+    background: #ffb366;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 3px solid #ff8c42;
+}
+
+.profile-icon {
+    font-size: 3rem;
+    color: white;
+}
+
+.camera-icon {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    width: 30px;
+    height: 30px;
+    background: white;
+    border: 2px solid #ff8c42;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.camera-icon:hover {
+    background: #ff8c42;
+    transform: scale(1.1);
+}
+
+.camera-icon span {
+    font-size: 0.8rem;
+}
+
+/* 폼 스타일 */
+.profile-edit-form {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-label {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 5px;
+}
+
+.form-input {
+    padding: 12px 16px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background: white;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: #ff8c42;
+    box-shadow: 0 0 0 3px rgba(255, 140, 66, 0.1);
+}
+
+.form-input:read-only,
+.form-input:disabled {
+    background: #f8f9fa;
+    color: #666;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.form-select {
+    padding: 12px 16px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 1rem;
+    background: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.form-select:focus {
+    outline: none;
+    border-color: #ff8c42;
+    box-shadow: 0 0 0 3px rgba(255, 140, 66, 0.1);
+}
+
+/* 위치 입력 그룹 */
+.location-inputs {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.location-inputs .form-select {
+    flex: 1;
+    min-width: 120px;
+}
+
+.location-inputs .form-input {
+    flex: 2;
+    min-width: 150px;
+}
+
+/* 담당자 입력 그룹 */
+.contact-inputs {
+    display: flex;
+    gap: 10px;
+}
+
+.contact-inputs .form-input {
+    flex: 1;
+}
+
+/* 저장 버튼 */
+.save-btn {
+    background: linear-gradient(135deg, #ffb366, #ff8c42);
+    color: white;
+    border: 2px solid #4a90e2;
+    padding: 15px 30px;
+    border-radius: 12px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 20px;
+    transition: all 0.3s ease;
+}
+
+.save-btn:hover {
+    background: linear-gradient(135deg, #ff8c42, #ff6b35);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(255, 140, 66, 0.3);
+}
+
+.save-btn:active {
+    transform: translateY(0);
+}
+
+.check-icon {
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+    .profile-edit-container {
+        padding: 20px 15px;
+    }
+    
+    .profile-edit-card {
+        padding: 30px 20px;
+    }
+    
+    .profile-picture {
+        width: 100px;
+        height: 100px;
+    }
+    
+    .profile-icon {
+        font-size: 2.5rem;
+    }
+    
+    .camera-icon {
+        width: 25px;
+        height: 25px;
+    }
+    
+    .location-inputs {
+        flex-direction: column;
+    }
+    
+    .location-inputs .form-select,
+    .location-inputs .form-input {
+        min-width: auto;
+    }
+    
+    .contact-inputs {
+        flex-direction: column;
+    }
+    
+    .save-btn {
+        padding: 12px 25px;
+        font-size: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .profile-edit-card {
+        padding: 25px 15px;
+    }
+    
+    .profile-picture {
+        width: 80px;
+        height: 80px;
+    }
+    
+    .profile-icon {
+        font-size: 2rem;
+    }
+    
+    .camera-icon {
+        width: 20px;
+        height: 20px;
+    }
+    
+    .camera-icon span {
+        font-size: 0.7rem;
+    }
+    
+    .form-input,
+    .form-select {
+        padding: 10px 12px;
+        font-size: 0.9rem;
+    }
+    
+    .save-btn {
+        padding: 10px 20px;
+        font-size: 0.9rem;
+    }
+}
+
+/* 애니메이션 효과 */
+.profile-edit-card {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* 폼 유효성 검사 스타일 */
+.form-input.error {
+    border-color: #e74c3c;
+    box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.1);
+}
+
+.form-input.success {
+    border-color: #27ae60;
+    box-shadow: 0 0 0 3px rgba(39, 174, 96, 0.1);
+}
+
+/* readonly/disabled 필드는 error/success 스타일 적용 안함 */
+.form-input:read-only.error,
+.form-input:disabled.error,
+.form-input:read-only.success,
+.form-input:disabled.success {
+    border-color: #ddd;
+    box-shadow: none;
+}
+
+.error-message {
+    color: #e74c3c;
+    font-size: 0.8rem;
+    margin-top: 5px;
+}
+
+.success-message {
+    color: #27ae60;
+    font-size: 0.8rem;
+    margin-top: 5px;
+}

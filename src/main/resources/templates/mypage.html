@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>마이페이지 - GreenHub</title>
+    <link rel="stylesheet" th:href="@{/css/header.css}">
+    <link rel="stylesheet" th:href="@{/css/mypage.css}">
+    <link rel="stylesheet" th:href="@{/css/footer.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+<!-- 헤더 include -->
+<div th:replace="~{common/header :: header}"></div>
+
+<section class="mypage-section">
+    <div class="container">
+        <!-- 타이틀 -->
+        <div class="mypage-title">
+            <div class="page-title-container">
+                <div class="page-icon">
+                    <span class="user-icon">🏠</span>
+                </div>
+                <div>
+                    <h1 class="page-title">마이페이지</h1>
+                    <p class="page-description">나의 주문 내역과 정보를 관리하세요.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 디버깅: 파라미터 존재만 체크 -->
+        <div th:if="${param.debug != null}"
+             style="background: yellow; padding: 10px; margin: 10px 0; border: 2px solid red;">
+            <h3>디버깅 정보</h3>
+            <p>currentUser 존재: <span th:text="${currentUser != null}">false</span></p>
+            <div th:if="${currentUser != null}">
+                <p>이름: <span th:text="${currentUser.name}">-</span></p>
+                <p>이메일: <span th:text="${currentUser.email}">-</span></p>
+                <p>전화번호: <span th:text="${currentUser.phone}">-</span></p>
+                <p>사용자 ID: <span th:text="${currentUser.userId}">-</span></p>
+            </div>
+        </div>
+
+        <!-- 로그인 상태 -->
+        <div class="user-info-section" th:if="${currentUser != null}">
+            <div class="user-profile">
+                <div class="profile-avatar">
+                    <span class="avatar-text" th:text="${currentUser.name}">?</span>
+                </div>
+                <div class="user-details">
+                    <h2 class="user-name" th:text="${currentUser.name + '님'}">사용자님</h2>
+
+                    <div class="user-info-item" th:if="${currentUser.email != null}">
+                        <span class="info-icon">📧</span>
+                        <span class="info-text" th:text="${currentUser.email}">이메일 없음</span>
+                    </div>
+
+                    <div class="user-info-item" th:if="${currentUser.phone != null}">
+                        <span class="info-icon">📱</span>
+                        <span class="info-text" th:text="${currentUser.phone}">전화번호 없음</span>
+                    </div>
+
+                    <div class="user-info-item" th:if="${currentUser.gender != null}">
+                        <span class="info-icon">👤</span>
+                        <span class="info-text"
+                              th:text="${currentUser.gender == 'M' ? '남성' :
+                                        (currentUser.gender == 'F' ? '여성' :
+                                        (currentUser.gender == 'O' ? '기타' : '성별'))}">성별</span>
+                    </div>
+
+                    <div class="user-info-item" th:if="${currentUser.birthDate != null}">
+                        <span class="info-icon">🎂</span>
+                        <span class="info-text" th:text="${#temporals.format(currentUser.birthDate, 'yyyy년 MM월 dd일')}">생년월일</span>
+                    </div>
+                </div>
+
+                <div class="vip-badge">
+                    <span class="badge-text">VIP 소비자</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 비로그인 상태 -->
+        <div class="user-info-section" th:if="${currentUser == null}">
+            <div class="user-profile">
+                <div class="profile-avatar"><span class="avatar-text">?</span></div>
+                <div class="user-details">
+                    <h2 class="user-name">로그인이 필요합니다</h2>
+                    <div class="user-info-item">
+                        <span class="info-icon">⚠️</span>
+                        <span class="info-text">마이페이지를 이용하려면 로그인해주세요.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 주문/배송조회 -->
+        <div class="order-tracking-section" th:if="${currentUser != null}">
+            <div class="section-header">
+                <h2 class="section-title">주문/배송조회</h2>
+            </div>
+
+            <div class="tracking-flow" th:if="${orderStatus != null}">
+                <!-- 주문접수 -->
+                <div class="flow-step" th:classappend="${orderStatus.orderReceived > 0} ? 'completed' : 'pending'">
+                    <div class="step-box" th:text="${orderStatus.orderReceived}">0</div>
+                    <div class="step-label">주문접수</div>
+                </div>
+                <div class="flow-arrow" th:classappend="${orderStatus.orderReceived > 0} ? 'solid' : 'dotted'">→</div>
+
+                <!-- 결제완료 -->
+                <div class="flow-step" th:classappend="${orderStatus.paymentCompleted > 0} ? 'completed' : 'pending'">
+                    <div class="step-box" th:text="${orderStatus.paymentCompleted}">0</div>
+                    <div class="step-label">결제완료</div>
+                </div>
+                <div class="flow-arrow" th:classappend="${orderStatus.paymentCompleted > 0} ? 'solid' : 'dotted'">→</div>
+
+                <!-- 상품준비중 -->
+                <div class="flow-step" th:classappend="${orderStatus.preparingProduct > 0} ? 'completed' : 'pending'">
+                    <div class="step-box" th:text="${orderStatus.preparingProduct}">0</div>
+                    <div class="step-label">상품준비중</div>
+                </div>
+                <div class="flow-arrow" th:classappend="${orderStatus.preparingProduct > 0} ? 'solid' : 'dotted'">→</div>
+
+                <!-- 배송중 -->
+                <div class="flow-step" th:classappend="${orderStatus.shipping > 0} ? 'completed' : 'pending'">
+                    <div class="step-box" th:text="${orderStatus.shipping}">0</div>
+                    <div class="step-label">배송중</div>
+                </div>
+                <div class="flow-arrow" th:classappend="${orderStatus.shipping > 0} ? 'solid' : 'dotted'">→</div>
+
+                <!-- 배송완료 -->
+                <div class="flow-step" th:classappend="${orderStatus.deliveryCompleted > 0} ? 'completed' : 'pending'">
+                    <div class="step-box" th:text="${orderStatus.deliveryCompleted}">0</div>
+                    <div class="step-label">배송완료</div>
+                </div>
+            </div>
+
+            <!-- 주문 내역이 없는 경우 -->
+            <div class="no-orders" th:if="${orderStatus == null || (orderStatus.orderReceived == 0 && orderStatus.paymentCompleted == 0 && orderStatus.preparingProduct == 0 && orderStatus.shipping == 0 && orderStatus.deliveryCompleted == 0)}">
+                <p>아직 주문 내역이 없습니다. 상품을 구매해보세요!</p>
+                <a href="/region" class="btn btn-primary">상품 구경하기</a>
+            </div>
+        </div>
+
+        <!-- 기능 모듈 (로그인 시만) -->
+        <div class="modules-grid" th:if="${currentUser != null}">
+            <div class="module-item" data-module="payment"><div class="module-icon"><span class="icon">💳</span></div><h3 class="module-title">결제 내역</h3><p class="module-description">주문 및 결제 내역을 확인하고 영수증을 다운로드할 수 있습니다.</p></div>
+            <div class="module-item" data-module="refund"><div class="module-icon"><span class="icon">🔄</span></div><h3 class="module-title">교환/환불</h3><p class="module-description">상품 교환 및 환불 신청을 하고 진행 상황을 확인할 수 있습니다.</p></div>
+
+            <!-- 🔽 여기만 변경: /review 로 이동 -->
+            <a class="module-item" data-module="review" href="/review" title="리뷰 작성으로 이동">
+                <div class="module-icon"><span class="icon">⭐</span></div>
+                <h3 class="module-title">리뷰작성</h3>
+                <p class="module-description">구매한 상품에 대한 리뷰를 작성하고 다른 고객들과 경험을 공유할 수 있습니다.</p>
+            </a>
+
+            <div class="module-item" data-module="cart"><div class="module-icon"><span class="icon">🛒</span></div><h3 class="module-title">장바구니</h3><p class="module-description">담아둔 신선한 농산물을 확인하고 주문을 진행할 수 있습니다.</p></div>
+            <div class="module-item" data-module="recipe"><div class="module-icon"><span class="icon">📖</span></div><h3 class="module-title">내 레시피</h3><p class="module-description">저장한 농산물 요리 레시피를 관리하고 새로운 레시피를 추가할 수 있습니다.</p></div>
+            <div class="module-item" data-module="profile"><div class="module-icon"><span class="icon">⚙️</span></div><h3 class="module-title">프로필 수정</h3><p class="module-description">개인정보, 배송지, 비밀번호 등을 변경할 수 있습니다.</p></div>
+        </div>
+
+        <!-- 로그인하지 않은 경우 안내 -->
+        <div class="login-required-section" th:if="${currentUser == null}">
+            <div class="login-required-content">
+                <div class="login-icon"><span>🔒</span></div>
+                <h3>로그인이 필요한 서비스입니다</h3>
+                <p>마이페이지의 모든 기능을 이용하려면 로그인해주세요.</p>
+                <div class="login-buttons">
+                    <a href="/login" class="btn btn-primary">로그인</a>
+                    <a href="/signup" class="btn btn-secondary">회원가입</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 푸터 include -->
+<div th:replace="~{common/footer :: footer}"></div>
+
+<script th:src="@{/js/mypage.js}"></script>
+</body>
+</html>

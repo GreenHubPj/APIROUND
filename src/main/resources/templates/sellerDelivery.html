@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>배송관리 - GreenHub</title>
+
+    <!-- 정적 리소스: WebConfig에서 /css/**, /js/** 매핑 -->
+    <link rel="stylesheet" href="/css/header.css" />
+    <link rel="stylesheet" href="/css/sellerDelivery.css" />
+    <link rel="stylesheet" href="/css/footer.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet" />
+</head>
+<body>
+<!-- 헤더 include -->
+<div th:replace="~{common/header :: header}"></div>
+
+<!-- 배송관리 메인 컨텐츠 -->
+<section class="delivery-management-section">
+    <div class="container">
+        <!-- 배송관리 타이틀 -->
+        <div class="delivery-title">
+            <div class="title-icon">🚚</div>
+            <h1 class="page-title">배송관리</h1>
+        </div>
+
+        <!-- 로그인한 업체 안내 -->
+        <div class="seller-hello" th:if="${currentCompany != null}">
+            <span class="hello-name" th:text="'업체: ' + ${currentCompany.companyName}">업체: (로그인 필요)</span>
+            <span class="hello-id" th:text="' / 아이디: ' + ${currentCompany.loginId}"> / 아이디: </span>
+        </div>
+
+        <!-- 비로그인(예외) 안내 -->
+        <div class="seller-hello error" th:if="${currentCompany == null}">
+            판매사 로그인이 필요합니다.
+        </div>
+
+        <!-- 배송 현황 요약 -->
+        <div class="delivery-summary" id="summaryCards">
+            <div class="summary-card">
+                <div class="summary-icon">📦</div>
+                <div class="summary-content">
+                    <div class="summary-number" data-summary="preparing">0</div>
+                    <div class="summary-label">배송 준비중</div>
+                </div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-icon">🚚</div>
+                <div class="summary-content">
+                    <div class="summary-number" data-summary="shipping">0</div>
+                    <div class="summary-label">배송중</div>
+                </div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-icon">✅</div>
+                <div class="summary-content">
+                    <div class="summary-number" data-summary="completed">0</div>
+                    <div class="summary-label">배송 완료</div>
+                </div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-icon">🔄</div>
+                <div class="summary-content">
+                    <div class="summary-number" data-summary="return">0</div>
+                    <div class="summary-label">반품/교환</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 주문 배송 현황 -->
+        <div class="order-delivery-section">
+            <div class="section-header">
+                <div class="section-icon">☑️</div>
+                <h2 class="section-title">주문 배송 현황</h2>
+            </div>
+
+            <!-- 탭 메뉴 -->
+            <div class="delivery-tabs">
+                <button class="tab-button active" data-tab="all">전체</button>
+                <button class="tab-button" data-tab="preparing">배송 준비</button>
+                <button class="tab-button" data-tab="shipping">배송중</button>
+                <button class="tab-button" data-tab="completed">배송 완료</button>
+                <button class="tab-button" data-tab="return">교환/환불</button>
+            </div>
+
+            <!-- 로더 / 에러 -->
+            <div id="loader" class="loader" style="display:none;">불러오는 중...</div>
+            <div id="errorBox" class="error-box" style="display:none;"></div>
+
+            <!-- 주문 목록 (동적 렌더링) -->
+            <div class="order-list" id="orderList"></div>
+        </div>
+    </div>
+</section>
+
+<!-- 푸터 include -->
+<div th:replace="~{common/footer :: footer}"></div>
+
+<!-- 판매사 배송 JS (상태 저장 & 요약 연동) -->
+<script src="/js/sellerDelivery.js"></script>
+</body>
+</html>

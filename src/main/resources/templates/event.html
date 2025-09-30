@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>이벤트 - GreenHub</title>
+    <link rel="stylesheet" href="/css/header.css">
+    <link rel="stylesheet" href="/css/footer.css">
+    <link rel="stylesheet" href="/css/event.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- 헤더 include -->
+    <div th:replace="common/header :: header"></div>
+
+    <div class="event-container">
+        <!-- 진행중인 혜택 배너 (호버 효과 있음) -->
+        <div class="event-banner benefits-banner">
+            <div class="banner-image">
+                <img src="/images/진행중인혜택.jpg" alt="진행중인 혜택">
+            </div>
+            <div class="banner-overlay">
+                <div class="banner-content">
+                    <h2 class="banner-title">진행중인 혜택</h2>
+                    <p class="banner-subtitle">신선한 농산물과 함께하는 특별한 혜택을 만나보세요</p>
+                </div>
+            </div>
+            <!-- 호버/클릭 시 나타나는 혜택 리스트 -->
+            <div class="benefits-list">
+                <div class="benefits-content">
+                    <h3 class="benefits-title">진행중인 혜택 리스트</h3>
+                    <ul class="benefits-items">
+                        <li class="benefit-item">신규 가입 회원 10% 할인권 제공</li>
+                        <li class="benefit-item">25000원 이상 주문 시 무료배송</li>
+                        <li class="benefit-item">카드사별 추가 할인</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- 가을의 인기 특산품 배너 -->
+        <a href="/seasonal" class="event-banner-link">
+            <div class="event-banner">
+                <div class="banner-image">
+                    <img src="/images/9월의인기특산품.jpg" alt="가을의 인기 특산품">
+                </div>
+                <div class="banner-overlay">
+                    <div class="banner-content">
+                        <h2 class="banner-title">가을의 인기 특산품</h2>
+                        <p class="banner-subtitle">가을 제철 농산물로 맛있는 요리를 만들어보세요</p>
+                    </div>
+                </div>
+            </div>
+        </a>
+
+        <!-- 푸릇푸릇한 채소 배너 -->
+        <div class="event-banner">
+            <div class="banner-image">
+                <img src="/images/채소할인.jpg" alt="푸릇푸릇한 채소">
+            </div>
+            <div class="banner-overlay">
+                <div class="banner-content">
+                    <h2 class="banner-title">푸릇푸릇한 채소</h2>
+                    <div class="discount-badge">15% 할인</div>
+                    <p class="banner-subtitle">신선한 채소로 건강한 식탁을 완성하세요</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 한 상 가득 고기밥상 배너 -->
+        <div class="event-banner">
+            <div class="banner-image">
+                <img src="/images/돼지고기할인.jpg" alt="한 상 가득 고기밥상">
+            </div>
+            <div class="banner-overlay">
+                <div class="banner-content">
+                    <h2 class="banner-title">한 상 가득 고기밥상!</h2>
+                    <div class="discount-badge">20% 할인</div>
+                    <p class="banner-subtitle">프리미엄 고기로 풍성한 식탁을 차려보세요</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 싱싱한 활꽃게 직거래  -->
+        <div class="event-banner">
+            <div class="banner-image">
+                <img src="/images/꽃게이벤트배너.jpg" alt="싱싱한 활꽃게 신규입점">
+            </div>
+            <div class="banner-overlay">
+                <div class="banner-content">
+                    <h2 class="banner-title">싱싱한 활꽃게 신규입점 기념!</h2>
+                    <div class="discount-badge">10% 할인</div>
+                    <p class="banner-subtitle">싱싱한 활꽃게로 활기찬 식탁을 차려보세요</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- 푸터 include -->
+    <div th:replace="common/footer :: footer"></div>
+
+    <script src="/js/event.js"></script>
+</body>
+</html>

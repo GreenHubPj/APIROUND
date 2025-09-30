@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>리뷰 관리 - GreenHub</title>
+    <link rel="stylesheet" th:href="@{/css/header.css}">
+    <link rel="stylesheet" th:href="@{/css/footer.css}">
+    <link rel="stylesheet" th:href="@{/css/review-management.css}">
+    <link rel="icon" th:href="@{/images/favicon.ico}">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+    <!-- 서버에서 내려준 companyId 주입 -->
+    <script th:inline="javascript">
+        window.__ctx = {
+          companyId: [[${companyId}]]
+        };
+    </script>
+</head>
+<body th:attr="data-company-id=${companyId}">
+<!-- 헤더 include (경고 없애는 최신 문법) -->
+<div th:replace="~{common/header :: header}"></div>
+
+<!-- 리뷰 관리 메인 컨텐츠 -->
+<section class="review-management-section">
+    <div class="container">
+        <!-- 페이지 타이틀 -->
+        <div class="page-header">
+            <div class="page-title-container">
+                <div class="page-icon">
+                    <span class="star-icon">⭐</span>
+                </div>
+                <div>
+                    <h1 class="page-title">리뷰 관리</h1>
+                    <p class="page-description">고객 리뷰를 관리하고 신고를 처리하세요.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 필터 및 검색 영역 -->
+        <div class="filter-section">
+            <div class="filter-row">
+                <!-- 키워드 검색 -->
+                <div class="filter-group search-group">
+                    <label for="searchInput">키워드 검색</label>
+                    <div class="search-input-container">
+                        <select id="searchType" class="search-type-select">
+                            <option value="content">내용</option>
+                            <option value="author">작성자</option>
+                            <option value="orderNumber">주문번호</option>
+                            <option value="productName">상품명</option>
+                        </select>
+                        <input type="text" id="searchInput" class="search-input" placeholder="검색어를 입력하세요">
+                        <button type="button" class="search-btn">검색</button>
+                    </div>
+                </div>
+
+                <!-- 평점 범위 -->
+                <div class="filter-group">
+                    <label for="ratingFilter">평점 범위</label>
+                    <select id="ratingFilter" class="filter-select">
+                        <option value="">전체</option>
+                        <option value="5">5점</option>
+                        <option value="4">4점 이상</option>
+                        <option value="3">3점 이상</option>
+                        <option value="2">2점 이상</option>
+                        <option value="1">1점</option>
+                    </select>
+                </div>
+
+                <!-- 상태 필터 -->
+                <div class="filter-group">
+                    <label for="statusFilter">상태</label>
+                    <select id="statusFilter" class="filter-select">
+                        <option value="">전체</option>
+                        <option value="게시">게시</option>
+                        <option value="숨김">숨김</option>
+                        <option value="삭제">삭제</option>
+                        <option value="신고됨">신고됨</option>
+                    </select>
+                </div>
+
+                <!-- 사진 여부 -->
+                <div class="filter-group">
+                    <label for="photoFilter">사진 여부</label>
+                    <select id="photoFilter" class="filter-select">
+                        <option value="">전체</option>
+                        <option value="true">사진 있음</option>
+                        <option value="false">사진 없음</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="filter-row">
+                <!-- 날짜 범위 -->
+                <div class="filter-group">
+                    <label for="dateFilter">작성일 범위</label>
+                    <select id="dateFilter" class="filter-select">
+                        <option value="">전체</option>
+                        <option value="today">오늘</option>
+                        <option value="week">1주일</option>
+                        <option value="month">1개월</option>
+                        <option value="custom">직접입력</option>
+                    </select>
+                </div>
+
+                <!-- 신고건수 -->
+                <div class="filter-group">
+                    <label for="reportFilter">신고건수</label>
+                    <select id="reportFilter" class="filter-select">
+                        <option value="">전체</option>
+                        <option value="1">1건 이상</option>
+                        <option value="3">3건 이상</option>
+                        <option value="5">5건 이상</option>
+                        <option value="10">10건 이상</option>
+                    </select>
+                </div>
+
+                <!-- 컬럼 표시/숨김 -->
+                <div class="filter-group">
+                    <label>컬럼 표시</label>
+                    <div class="column-toggle">
+                        <button type="button" class="toggle-btn" data-column="rating">평점</button>
+                        <button type="button" class="toggle-btn" data-column="photos">사진</button>
+                        <button type="button" class="toggle-btn" data-column="reports">신고</button>
+                        <button type="button" class="toggle-btn" data-column="processor">처리자</button>
+                    </div>
+                </div>
+
+                <!-- 엑셀 내보내기 -->
+                <div class="filter-group">
+                    <button type="button" class="export-btn" id="exportExcel">엑셀 내보내기</button>
+                </div>
+            </div>
+
+            <!-- 직접입력 날짜 선택 -->
+            <div class="custom-date-range" id="customDateRange" style="display: none;">
+                <div class="date-input-group">
+                    <input type="date" id="startDate" class="date-input">
+                    <span class="date-separator">~</span>
+                    <input type="date" id="endDate" class="date-input">
+                    <button type="button" class="apply-date-btn">적용</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 일괄 처리 버튼 -->
+        <div class="bulk-actions" style="display:none">
+            <button type="button" class="bulk-btn hide-btn" id="bulkHide">선택 항목 숨김</button>
+            <button type="button" class="bulk-btn delete-btn" id="bulkDelete">선택 항목 삭제</button>
+            <button type="button" class="bulk-btn status-btn" id="bulkStatus">상태 변경</button>
+            <button type="button" class="bulk-btn report-btn" id="bulkReport">신고 처리</button>
+        </div>
+
+        <!-- 리뷰 목록 테이블 -->
+        <div class="table-container">
+            <table class="review-table">
+                <thead>
+                <tr>
+                    <th class="checkbox-col">
+                        <input type="checkbox" id="selectAll" class="checkbox">
+                    </th>
+                    <th class="date-col sortable" data-column="date">작성일시</th>
+                    <th class="order-col sortable" data-column="order">주문번호</th>
+                    <th class="product-col sortable" data-column="product">상품명</th>
+                    <th class="author-col sortable" data-column="author">작성자</th>
+                    <th class="rating-col sortable" data-column="rating">평점</th>
+                    <th class="content-col">내용</th>
+                    <th class="photo-col" data-column="photos">사진</th>
+                    <th class="status-col sortable" data-column="status">상태</th>
+                    <th class="report-col" data-column="reports">신고</th>
+                    <th class="processor-col" data-column="processor">처리자</th>
+                    <th class="action-col">액션</th>
+                </tr>
+                </thead>
+                <tbody id="reviewTableBody">
+                <!-- 리뷰 데이터가 동적으로 삽입됩니다 -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 페이지네이션 -->
+        <div class="pagination-container">
+            <div class="pagination">
+                <button type="button" class="page-btn prev-btn" id="prevPage">이전</button>
+                <div class="page-numbers" id="pageNumbers"></div>
+                <button type="button" class="page-btn next-btn" id="nextPage">다음</button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 리뷰 상세보기 모달 -->
+<div class="modal-overlay" id="reviewDetailModal">
+    <div class="modal-content large-modal">
+        <div class="modal-header">
+            <h2 class="modal-title">리뷰 상세 정보</h2>
+            <button type="button" class="modal-close" id="closeModal">&times;</button>
+        </div>
+
+        <div class="modal-body">
+            <!-- 기본 정보 -->
+            <div class="info-section">
+                <h3 class="section-title">기본 정보</h3>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="info-label">리뷰 ID:</span>
+                        <span class="info-value" id="modalReviewId">-</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">작성일:</span>
+                        <span class="info-value" id="modalWriteDate">-</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">IP 주소:</span>
+                        <span class="info-value" id="modalIpAddress">-</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">User Agent:</span>
+                        <span class="info-value" id="modalUserAgent">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 주문/상품 정보 -->
+            <div class="info-section">
+                <h3 class="section-title">주문/상품 정보</h3>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="info-label">주문번호:</span>
+                        <span class="info-value" id="modalOrderNumber">-</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">상품명:</span>
+                        <span class="info-value" id="modalProductName">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 작성자 정보 -->
+            <div class="info-section">
+                <h3 class="section-title">작성자 정보</h3>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="info-label">작성자:</span>
+                        <span class="info-value" id="modalAuthor">-</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">평점:</span>
+                        <span class="info-value" id="modalRating">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 리뷰 내용 -->
+            <div class="info-section">
+                <h3 class="section-title">리뷰 내용</h3>
+                <div class="review-content" id="modalContent">-</div>
+            </div>
+
+            <!-- 리뷰 사진 -->
+            <div class="info-section">
+                <h3 class="section-title">리뷰 사진</h3>
+                <div class="photo-gallery" id="modalPhotos">
+                    <p class="no-photo">첨부된 사진이 없습니다.</p>
+                </div>
+            </div>
+
+            <!-- 관리자 메모 -->
+            <div class="info-section">
+                <h3 class="section-title">관리자 메모</h3>
+                <div class="memo-section">
+                    <textarea id="adminMemo" class="memo-textarea" rows="3" placeholder="관리자 메모를 입력하세요."></textarea>
+                    <button type="button" class="memo-save-btn">저장</button>
+                </div>
+            </div>
+
+            <!-- 처리 이력 -->
+            <div class="info-section">
+                <h3 class="section-title">처리 이력</h3>
+                <div class="history-section" id="modalHistorySection"></div>
+            </div>
+
+            <!-- 관리자 답글 -->
+            <div class="info-section">
+                <h3 class="section-title">관리자 답글</h3>
+                <div class="reply-section">
+                    <div class="existing-reply" id="existingReply" style="display: none;">
+                        <div class="reply-content">
+                            <span class="official-badge">공식 답변</span>
+                            <p id="replyText"></p>
+                            <div class="reply-actions">
+                                <button type="button" class="reply-edit-btn">수정</button>
+                                <button type="button" class="reply-delete-btn">삭제</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="reply-form" id="replyForm">
+                        <textarea id="replyContent" class="reply-textarea" rows="3" placeholder="관리자 답글을 작성하세요."></textarea>
+                        <div class="reply-actions">
+                            <button type="button" class="reply-save-btn">답글 등록</button>
+                            <button type="button" class="reply-cancel-btn" style="display: none;">취소</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-footer">
+            <button type="button" class="modal-btn status-btn" id="modalStatus">상태 변경</button>
+            <button type="button" class="modal-btn hide-btn" id="modalHide">숨김</button>
+            <button type="button" class="modal-btn delete-btn" id="modalDelete">삭제</button>
+            <button type="button" class="modal-btn close-btn" id="modalClose">닫기</button>
+        </div>
+    </div>
+</div>
+
+<!-- 상태 변경 모달 -->
+<div class="modal-overlay" id="statusChangeModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 class="modal-title">상태 변경</h2>
+            <button type="button" class="modal-close" id="closeStatusModal">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label for="newStatus" class="form-label">새로운 상태</label>
+                <select id="newStatus" class="form-select">
+                    <option value="게시">게시</option>
+                    <option value="숨김">숨김</option>
+                    <option value="삭제">삭제</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="statusReason" class="form-label">변경 사유</label>
+                <textarea id="statusReason" class="form-textarea" rows="3" placeholder="상태 변경 사유를 입력하세요."></textarea>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="modal-btn confirm-btn" id="confirmStatusChange">확인</button>
+            <button type="button" class="modal-btn cancel-btn" id="cancelStatusChange">취소</button>
+        </div>
+    </div>
+</div>
+
+<!-- 신고 처리 모달 -->
+<div class="modal-overlay" id="reportModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 class="modal-title">신고 처리</h2>
+            <button type="button" class="modal-close" id="closeReportModal">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label class="form-label">신고 사유</label>
+                <div class="report-reasons">
+                    <label class="radio-label"><input type="radio" name="reportReason" value="spam"><span>스팸</span></label>
+                    <label class="radio-label"><input type="radio" name="reportReason" value="abuse"><span>욕설</span></label>
+                    <label class="radio-label"><input type="radio" name="reportReason" value="false"><span>허위 정보</span></label>
+                    <label class="radio-label"><input type="radio" name="reportReason" value="other"><span>기타</span></label>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="reportAction" class="form-label">조치 방법</label>
+                <select id="reportAction" class="form-select">
+                    <option value="warning">경고</option>
+                    <option value="hide">숨김 처리</option>
+                    <option value="delete">삭제</option>
+                    <option value="block">자동 블라인드</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="reportMemo" class="form-label">처리 메모</label>
+                <textarea id="reportMemo" class="form-textarea" rows="3" placeholder="신고 처리 내용을 입력하세요."></textarea>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="modal-btn confirm-btn" id="confirmReport">확인</button>
+            <button type="button" class="modal-btn cancel-btn" id="cancelReport">취소</button>
+        </div>
+    </div>
+</div>
+
+<!-- 푸터 include -->
+<div th:replace="~{common/footer :: footer}"></div>
+
+<script src="/js/review-management.js"></script>
+</body>
+</html>

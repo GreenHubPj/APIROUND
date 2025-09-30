@@ -1,0 +1,1179 @@
+/* =========================
+Reset & Base
+========================= */
+* {
+margin: 0;
+padding: 0;
+box-sizing: border-box;
+}
+
+html, body {
+width: 100%;
+margin: 0;
+padding: 0;
+overflow-x: hidden;
+}
+
+body {
+font-family: 'Malgun Gothic', '맑은 고딕', sans-serif;
+background-color: #f5f5f5;
+color: #333;
+line-height: 1.6;
+}
+
+/* =========================
+Global Layout
+========================= */
+.main-content {
+width: 100%;
+max-width: 100%;
+margin: 0;
+padding: 0;
+}
+
+/* Desktop: 본문(main) - 지도(map) 2열 */
+.content {
+display: grid;
+grid-template-columns: minmax(0, 900px) auto;
+gap: 20px;
+grid-template-areas: "main map";
+justify-content: center;
+max-width: 1200px;
+margin: 0 auto;
+}
+.content-wrapper { grid-area: main; }
+.map-section     { grid-area: map; }
+
+/* =========================
+Banner
+========================= */
+.banner-section {
+padding: 30px 40px;
+}
+
+.banner-content {
+max-width: 1200px;
+margin: 0 auto;
+display: flex;
+align-items: center;
+justify-content: flex-start;
+}
+
+.banner-icon {
+height: 80px;
+width: auto;
+}
+
+.banner-title {
+display: flex;
+align-items: baseline;
+flex-direction: column;
+}
+
+.title-underground {
+margin-top: -25px;
+margin-left: 30px;
+color: #bbbbbb;
+font-weight: bold;
+font-size: 20px;
+}
+
+.title-name {
+font-size: 15px;
+font-weight: bold;
+color: #333;
+}
+
+/* =========================
+Search
+========================= */
+.search-container {
+max-width: 1200px;
+margin: 0 auto;
+padding: 0 20px;
+}
+
+.search-section {
+width: 1400px;            /* 기존 고정폭 유지(요청대로 의미 변경 없음) */
+padding: 40px 0;
+}
+
+.search-bar {
+max-width: 100%;
+margin: 0 auto;
+position: relative;
+display: flex;
+align-items: center;
+background-color: white;
+border-radius: 50px;
+box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+overflow: hidden;
+}
+
+.search-input {
+flex: 1;
+padding: 20px 30px;
+border: none;
+outline: none;
+font-size: 16px;
+background-color: transparent;
+}
+
+.search-btn {
+background-color: #ff6b35;
+border: none;
+padding: 20px 30px;
+cursor: pointer;
+transition: background-color 0.3s ease;
+}
+
+.search-btn:hover {
+background-color: #e55a2b;
+}
+
+.search-icon {
+width: 20px;
+height: 20px;
+filter: brightness(0) invert(1);
+}
+
+/* =========================
+Selected Region
+========================= */
+.selected-region-section {
+max-width: 300px;
+margin: 10px auto;
+padding: 0 20px;
+}
+
+.selected-region-container {
+max-width: 100%;
+margin: 0 auto;
+display: flex;
+align-items: center;
+justify-content: space-between;
+padding: 10px 0;
+}
+
+.selected-region-info {
+display: flex;
+align-items: center;
+gap: 10px;
+}
+
+.selected-label {
+color: #666;
+font-size: 14px;
+font-weight: 500;
+}
+
+.selected-region-name {
+color: #ff8c42;
+font-size: 16px;
+font-weight: 600;
+}
+
+.clear-selection-btn {
+background: none;
+color: #999;
+border: none;
+padding: 5px;
+font-size: 16px;
+cursor: pointer;
+transition: all 0.3s ease;
+display: flex;
+align-items: center;
+justify-content: center;
+width: 24px;
+height: 24px;
+border-radius: 50%;
+}
+
+.clear-selection-btn:hover {
+background: #f0f0f0;
+color: #666;
+}
+
+.clear-icon {
+font-size: 12px;
+font-weight: bold;
+}
+
+/* =========================
+Products
+========================= */
+.content-wrapper {
+max-width: 900px;
+}
+
+.products-section {
+display: flex;
+flex-direction: column;
+gap: 30px;
+margin: 0 25px 25px 25px;
+max-width: 800px;
+}
+
+.product-card {
+display: flex;
+background-color: white;
+border-radius: 12px;
+padding: 25px;
+box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+gap: 25px;
+transition: transform 0.3s ease, box-shadow 0.3s ease;
+align-items: flex-start;
+}
+
+.product-card:hover {
+transform: translateY(-2px);
+box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+}
+
+.product-card.hidden {
+display: none;
+}
+
+.product-image {
+display: flex;
+flex-direction: column;
+flex-shrink: 0;
+width: 250px;
+height: 180px;
+border-radius: 8px;
+overflow: hidden;
+}
+
+.product-image img {
+width: 100%;
+height: 100%;
+object-fit: cover;
+}
+
+.product-place { display: none; }
+
+.product-content {
+flex: 1;
+display: flex;
+flex-direction: column;
+}
+
+.product-info {
+gap: 12px;
+align-items: flex-start;
+}
+
+.title-info {
+display: flex;
+flex-direction: column;
+}
+
+.product-title {
+font-size: 15px;
+font-weight: bold;
+color: #333;
+margin-bottom: 8px;
+}
+
+.product-description {
+color: #666;
+font-size: 14px;
+line-height: 1.5;
+margin-bottom: 15px;
+}
+
+.product-prices {
+display: flex;
+gap: 6px;
+margin-bottom: 20px;
+flex-direction: column;
+max-height: 100px;
+overflow-y: auto;
+}
+
+.price-item {
+display: flex;
+justify-content: space-between;
+align-items: center;
+background-color: #f8f9fa;
+padding: 6px 10px;
+border-radius: 4px;
+margin-bottom: 4px;
+border: 1px solid #e9ecef;
+font-size: 13px;
+}
+
+.price-label {
+font-size: 12px;
+color: #666;
+font-weight: 500;
+}
+
+.price-value {
+font-size: 13px;
+color: #ff6b35;
+font-weight: 600;
+}
+
+.price-more {
+display: flex;
+justify-content: center;
+align-items: center;
+padding: 4px 8px;
+background-color: #e9ecef;
+border-radius: 4px;
+margin-top: 2px;
+}
+
+.more-text {
+font-size: 11px;
+color: #666;
+font-weight: 500;
+}
+
+.price-loading {
+font-size: 12px;
+color: #999;
+text-align: center;
+padding: 8px;
+}
+
+.no-price {
+font-size: 12px;
+color: #666;
+text-align: center;
+padding: 8px;
+}
+
+.price {
+background-color: #f8f9fa;
+padding: 6px 12px;
+border-radius: 4px;
+}
+
+.price-option {
+display: flex;
+justify-content: space-between;
+align-items: center;
+background-color: #f8f9fa;
+padding: 6px 10px;
+border-radius: 4px;
+margin-bottom: 4px;
+border: 1px solid #e9ecef;
+font-size: 13px;
+}
+
+.price-option-info {
+font-size: 12px;
+color: #666;
+font-weight: 500;
+}
+
+.price-option-amount {
+font-size: 13px;
+color: #ff6b35;
+font-weight: 600;
+}
+
+.price-amount {
+font-size: 13px;
+color: #ff6b35;
+font-weight: 600;
+}
+
+.price-label {
+font-size: 12px;
+color: #666;
+font-weight: 500;
+}
+
+.company-info {
+border-radius: 8px;
+text-align: right;
+flex-shrink: 0;
+width: 200px;
+min-height: 180px;
+display: flex;
+flex-direction: column;
+justify-content: flex-start;
+}
+
+.company-info h4 {
+color: #333;
+font-size: 16px;
+margin-bottom: 50px;
+font-weight: 600;
+}
+
+.company-info p {
+color: #666;
+font-size: 14px;
+margin-bottom: 3px;
+}
+
+.company-info p:last-child {
+margin-bottom: 0;
+font-weight: 500;
+color: #ff6b35;
+}
+
+/* =========================
+Map & Labels
+========================= */
+.map-section {
+border-radius: 12px;
+height: fit-content;
+position: sticky;
+top: 20px;
+margin: 0;
+width: fit-content;
+margin-top: 200px;
+margin-left: 40px;
+}
+
+/* 중복 없이 하나로 합침 */
+.map-wrap {
+width: fit-content;
+display: flex;
+justify-content: center;
+align-items: center;
+position: relative; /* 기준 좌표 */
+}
+
+.korea-map {
+width: 300px;
+height: auto;
+cursor: pointer;
+transition: all 0.3s ease;
+filter: brightness(1) contrast(1);
+margin: 0;
+}
+
+/* 이미지 hover 확대 (기존 유지) */
+.korea-map:hover {
+transform: scale(1.05);
+}
+
+.region-labels {
+position: absolute;
+top: 10px; left: 0;
+width: 100%; height: 100%;
+pointer-events: none;
+margin: 0;
+}
+
+.region-label {
+position: absolute;
+background-color: rgba(255, 107, 53, 0.9);
+color: white;
+padding: 4px 8px;
+border-radius: 12px;
+font-size: 12px;
+font-weight: 600;
+white-space: nowrap;
+box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+transition: all 0.3s ease;
+cursor: pointer;
+pointer-events: auto; /* 클릭 가능 */
+}
+
+.region-label:hover {
+background-color: rgba(255, 107, 53, 1);
+transform: scale(1.1);
+box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* 좌표 */
+.seoul-label { top: 90px; left: 70px; }
+.gyeonggi-label { top: 130px; left: 90px; }
+.incheon-label { top: 100px; left: 30px; }
+.gangwon-label { top: 100px; left: 180px; }
+.chungbuk-label { top: 180px; left: 120px; }
+.chungnam-label { top: 190px; left: 60px; }
+.daejeon-label { top: 200px; left: 100px; }
+.jeonbuk-label { top: 270px; left: 90px; }
+.jeonnam-label { top: 370px; left: 80px; }
+.gwangju-label { top: 330px; left: 80px; }
+.gyeongbuk-label { top: 200px; left: 200px; }
+.gyeongnam-label { top: 310px; left: 180px; }
+.daegu-label { top: 270px; left: 200px; }
+.busan-label { top: 340px; left: 250px; }
+.ulsan-label { top: 300px; left: 250px; }
+.jeju-label { top: 505px; left: 40px; }
+
+/* 활성 라벨 */
+.region-label.active {
+background: linear-gradient(135deg, #ff6b35, #e55a2b);
+color: white;
+transform: scale(1.1);
+box-shadow: 0 4px 15px rgba(255, 107, 53, 0.4);
+}
+
+.region-label.active::before {
+background: rgba(255, 255, 255, 0.2);
+}
+
+/* =========================
+Category Filter
+========================= */
+.category-filter-section {
+padding: 25px;
+border-radius: 12px;
+}
+
+.category-filter-container {
+max-width: 800px;
+margin: 0 auto;
+}
+
+.filter-title {
+font-size: 1.2rem;
+font-weight: 600;
+color: #2c3e50;
+margin-bottom: 15px;
+text-align: center;
+}
+
+.category-buttons {
+display: flex;
+justify-content: space-between;
+gap: 15px;
+flex-wrap: wrap;
+}
+
+.category-btn {
+display: flex;
+flex-direction: column;
+align-items: center;
+gap: 8px;
+padding: 15px 50px;
+background: white;
+border: 2px solid #e1e8ed;
+border-radius: 12px;
+cursor: pointer;
+transition: all 0.3s ease;
+min-width: 100px;
+text-decoration: none;
+color: #2c3e50;
+}
+
+.category-btn:hover {
+border-color: #ff8c42;
+transform: translateY(-3px);
+box-shadow: 0 6px 20px rgba(255, 140, 66, 0.2);
+}
+
+.category-btn.active {
+background: linear-gradient(135deg, #ff8c42, #ff6b35);
+border-color: #ff8c42;
+color: white;
+transform: translateY(-3px);
+box-shadow: 0 6px 20px rgba(255, 140, 66, 0.3);
+}
+
+.category-btn-icon {
+width: 40px;
+height: 40px;
+border-radius: 50%;
+object-fit: cover;
+border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.category-btn.active .category-btn-icon {
+border-color: rgba(255, 255, 255, 0.8);
+}
+
+.category-btn span {
+font-size: 0.9rem;
+font-weight: 500;
+text-align: center;
+}
+
+/* =========================
+Pagination (중복 통합)
+========================= */
+.pagination-container {
+margin: 30px auto;
+text-align: center;
+max-width: 1200px;
+padding: 0 20px;
+}
+
+.pagination-info {
+margin-bottom: 15px;
+font-size: 14px;
+color: #666;
+}
+
+.pagination {
+display: flex;
+justify-content: center;
+align-items: center;
+gap: 5px;
+flex-wrap: wrap;
+}
+
+.page-btn {
+display: inline-flex;
+align-items: center;
+padding: 8px 16px;
+background: #f8f9fa;
+border: 1px solid #dee2e6;
+border-radius: 6px;
+color: #495057;
+text-decoration: none;
+font-size: 14px;
+font-weight: 500;
+transition: all 0.2s ease;
+cursor: pointer;
+}
+
+.page-btn:hover:not(.disabled) {
+background: #e9ecef;
+border-color: #adb5bd;
+color: #212529;
+}
+
+.page-btn.disabled {
+opacity: 0.5;
+cursor: not-allowed;
+background: #f8f9fa;
+color: #6c757d;
+}
+
+.page-numbers {
+display: flex;
+gap: 5px;
+}
+
+.page-number {
+display: inline-flex;
+align-items: center;
+justify-content: center;
+min-width: 40px;
+height: 40px;
+padding: 8px 12px;
+background: #f8f9fa;
+border: 1px solid #dee2e6;
+border-radius: 6px;
+color: #495057;
+text-decoration: none;
+font-size: 14px;
+font-weight: 500;
+transition: all 0.2s ease;
+cursor: pointer;
+}
+
+.page-number:hover:not(.active) {
+background: #e9ecef;
+border-color: #adb5bd;
+color: #212529;
+}
+
+.page-number.active {
+background: #4CAF50;
+color: white;
+border-color: #4CAF50;
+}
+
+/* =========================
+Transitions / States
+========================= */
+.product-card {
+transition: all 0.3s ease-in-out;
+opacity: 1;
+transform: translateY(0);
+}
+
+.product-card.fade-out {
+opacity: 0;
+transform: translateY(-10px);
+}
+
+.product-card.fade-in {
+opacity: 1;
+transform: translateY(0);
+}
+
+.content-wrapper {
+transition: opacity 0.3s ease-in-out;
+}
+
+.content-wrapper.loading {
+opacity: 0.7;
+}
+
+/* =========================
+Responsive (정리 통합)
+========================= */
+
+/* ≤1024px */
+@media (max-width: 1024px) {
+/* 레이아웃: 지도 위로 */
+.content {
+grid-template-columns: 1fr;
+grid-template-areas:
+  "map"
+  "main";
+gap: 20px;
+}
+
+.map-section {
+position: static;
+margin: 10px 0 0;
+width: 100%;
+}
+
+.map-wrap {
+width: 100%;
+max-width: 480px;
+margin: 0 auto;
+position: relative;
+}
+
+.korea-map {
+max-width: 480px;
+margin: 0 auto;
+}
+
+.region-labels {
+position: absolute;
+left: 0;
+width: 100%;
+height: 100%;
+pointer-events: none;
+margin-left: 20px;
+}
+
+.region-label {
+padding: 8px 16px;
+font-size: 14px;
+}
+
+.nav-container { padding: 12px 30px; }
+.nav-menu { gap: 30px; }
+.nav-link { font-size: 15px; }
+
+.search-container { padding: 20px; }
+.search-bar {
+flex-direction: column;
+gap: 15px;
+width: 30%;
+border-radius: 20px;
+}
+.search-input { width: 100%; font-size: 16px; }
+.search-btn { width: 100%; padding: 12px; }
+
+.category-btn { padding: 8px 16px; font-size: 14px; }
+
+/* Product Cards */
+.product-card { 
+    padding: 15px; 
+    gap: 20px;
+}
+.product-image { 
+    height: 180px; 
+    width: 200px;
+}
+.product-title { 
+    font-size: 1.1rem; 
+    margin-bottom: 8px;
+}
+.product-description { 
+    font-size: 0.9rem; 
+    margin-bottom: 12px;
+}
+.product-prices {
+    max-height: 80px;
+}
+
+.product-content {
+    gap: 20px;
+    text-align: left;
+    align-items: flex-start;
+}
+}
+
+/* ≤768px */
+@media (max-width: 768px) {
+.nav-container {
+padding: 10px 20px;
+flex-direction: column;
+gap: 10px;
+}
+
+.nav-menu {
+gap: 20px;
+flex-wrap: wrap;
+justify-content: center;
+}
+
+.nav-link {
+font-size: 14px;
+padding: 8px 12px;
+}
+
+.search-container { padding: 15px; }
+.search-bar { gap: 10px; }
+.search-input { padding: 12px 15px; font-size: 16px; } /* iOS 줌 방지 */
+.search-btn { padding: 12px 20px; }
+
+.banner-content {
+flex-direction: column;
+gap: 20px;
+text-align: center;
+}
+
+.search-container { min-width: 250px; }
+
+.content {
+width: 100%;
+max-width: 100%;
+padding: 0 20px;
+margin: 0;
+}
+
+.content-wrapper {
+grid-template-columns: 1fr;
+gap: 20px;
+padding: 0;
+width: 100%;
+}
+
+/* Map & Labels */
+.map-wrap { 
+    position: relative;
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.region-labels {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    margin-left: 20px;
+}
+
+.region-label { padding: 6px 12px; font-size: 13px; }
+
+.category-btn { padding: 6px 12px; font-size: 13px; }
+
+/* Product Cards */
+.products-grid { 
+    grid-template-columns: repeat(2, 1fr); 
+    gap: 15px; 
+}
+
+.product-card { 
+    padding: 12px; 
+    flex-direction: column;
+    text-align: center;
+    gap: 15px;
+}
+
+.product-image { 
+    width: 100%;
+    height: 150px; 
+}
+
+.product-title { 
+    font-size: 1rem; 
+    margin-bottom: 8px; 
+}
+
+.product-description { 
+    font-size: 0.85rem; 
+    margin-bottom: 10px; 
+}
+
+.product-prices {
+    justify-content: center;
+    flex-wrap: wrap;
+    max-height: 70px;
+}
+
+.product-content {
+    gap: 20px;
+    text-align: left;
+    align-items: flex-start;
+}
+
+.company-info { 
+    padding: 8px; 
+    width: 100%;
+    min-height: auto;
+}
+
+.company-info h4 {
+    font-size: 0.9rem;
+    margin-bottom: 8px;
+}
+
+.company-info p {
+    font-size: 0.8rem;
+    margin-bottom: 2px;
+}
+
+.price-display { 
+    margin-top: 10px; 
+}
+
+.price-label { 
+    font-size: 0.8rem; 
+    color: #666;
+    font-weight: 500;
+}
+
+.price-amount { 
+    font-size: 1rem; 
+    color: #ff6b35;
+    font-weight: 600;
+}
+
+.pagination-container { margin: 20px auto; padding: 0 15px; }
+.pagination { gap: 3px; }
+.page-btn, .page-number { padding: 8px 12px; font-size: 14px; }
+}
+
+/* ≤480px */
+@media (max-width: 480px) {
+.banner-section { padding: 20px; }
+.content {
+width: 100%;
+max-width: 100%;
+padding: 0 15px;
+margin: 0;
+}
+
+.content-wrapper { 
+padding: 0; 
+width: 100%;
+}
+
+.nav-container { padding: 8px 15px; }
+.nav-menu { gap: 15px; }
+.nav-link { font-size: 13px; padding: 6px 10px; }
+
+.search-container { padding: 12px; }
+.search-input { padding: 10px 12px; font-size: 16px; }
+.search-btn { padding: 10px 15px; font-size: 14px; }
+
+.map-wrap {
+    position: relative;
+    max-width: 350px;
+    margin: 0 auto;
+}
+
+.region-labels {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    margin-left: 20px;
+}
+.region-label { padding: 5px 10px; font-size: 12px; }
+
+/* Category Filter */
+.category-filter-section { 
+    margin: 15px; 
+    padding: 20px 15px; 
+}
+
+.category-buttons { 
+    gap: 8px; 
+}
+
+.category-btn { 
+    min-width: 70px; 
+    padding: 10px 12px; 
+}
+
+.category-btn-icon { 
+    width: 30px; 
+    height: 30px; 
+}
+
+/* Product Cards */
+.products-grid { 
+    grid-template-columns: 1fr; 
+    gap: 12px; 
+}
+
+.product-card { 
+    padding: 10px; 
+    gap: 12px;
+}
+
+.product-image { 
+    height: 200px; 
+}
+
+.product-title { 
+    font-size: 0.95rem; 
+    margin-bottom: 6px; 
+}
+
+.product-description { 
+    font-size: 0.8rem; 
+    margin-bottom: 8px; 
+}
+
+.product-prices {
+    max-height: 60px;
+}
+
+.product-content {
+    gap: 20px;
+    text-align: left;
+    align-items: flex-start;
+}
+
+.company-info { 
+    padding: 6px; 
+    width: 100%;
+    min-height: auto;
+}
+
+.company-info h4 {
+    font-size: 0.85rem;
+    margin-bottom: 6px;
+}
+
+.company-info p {
+    font-size: 0.75rem;
+    margin-bottom: 1px;
+}
+
+.price-display { 
+    margin-top: 8px; 
+}
+
+.price-label { 
+    font-size: 0.75rem; 
+    color: #666;
+    font-weight: 500;
+}
+
+.price-amount { 
+    font-size: 0.9rem; 
+    color: #ff6b35;
+    font-weight: 600;
+}
+
+.pagination-container { margin: 15px auto; padding: 0 10px; }
+.pagination { gap: 2px; }
+.page-btn, .page-number { padding: 6px 10px; font-size: 12px; }
+}
+
+/* ≤360px */
+@media (max-width: 360px) {
+    .nav-container {
+        padding: 6px 10px;
+    }
+
+    .nav-menu {
+        gap: 10px;
+    }
+
+    .nav-link {
+        font-size: 12px;
+        padding: 5px 8px;
+    }
+
+    .content {
+        width: 100%;
+        max-width: 100%;
+        padding: 0 10px;
+        margin: 0;
+    }
+
+    .content-wrapper {
+        width: 100%;
+        padding: 0;
+    }
+
+    .search-container { padding: 10px; }
+    .search-input { padding: 8px 10px; font-size: 16px; }
+    .search-btn { padding: 8px 12px; font-size: 13px; }
+
+    .map-wrap {
+        position: relative;
+        max-width: 300px;
+        margin: 0 auto;
+    }
+
+    .region-labels {
+        position: absolute;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        margin-left: 20px;
+    }
+    .region-label { padding: 4px 8px; font-size: 11px; }
+
+    /* Product Cards */
+    .products-grid { 
+        gap: 10px; 
+    }
+    
+    .product-card { 
+        padding: 8px; 
+        gap: 10px;
+    }
+    
+    .product-image { 
+        height: 180px; 
+    }
+    
+    .product-title { 
+        font-size: 0.9rem; 
+        margin-bottom: 4px;
+    }
+    
+    .product-description { 
+        font-size: 0.75rem; 
+        margin-bottom: 6px;
+    }
+    
+    .product-prices {
+        max-height: 50px;
+    }
+    
+    .product-content {
+        gap: 20px;
+        text-align: left;
+        align-items: flex-start;
+    }
+    
+    .company-info {
+        padding: 4px;
+    }
+    
+    .company-info h4 {
+        font-size: 0.8rem;
+        margin-bottom: 4px;
+    }
+    
+    .company-info p {
+        font-size: 0.7rem;
+        margin-bottom: 1px;
+    }
+    
+    .price-label { 
+        font-size: 0.7rem; 
+        color: #666;
+        font-weight: 500;
+    }
+    
+    .price-amount { 
+        font-size: 0.85rem; 
+        color: #ff6b35;
+        font-weight: 600;
+    }
+
+    .page-btn, .page-number { padding: 5px 8px; font-size: 11px; }
+    }

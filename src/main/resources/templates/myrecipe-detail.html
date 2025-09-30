@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>내 요리법 - GreenHub</title>
+    <link rel="stylesheet" href="/css/header.css" />
+    <link rel="stylesheet" href="/css/myrecipe-detail.css" />
+    <link rel="stylesheet" href="/css/footer.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet" />
+</head>
+<body>
+<!-- 헤더 include -->
+<div th:replace="common/header :: header"></div>
+
+<main class="main-content">
+    <section class="recipe-section">
+        <div class="recipe-card" data-recipe-id="${recipe.recipeId}" data-user-id="${userId}">
+            <div class="recipe-header">
+                <h1 class="recipe-title" contenteditable="false" id="recipeTitle">${recipe.title}</h1>
+                <div class="recipe-meta">
+                    <div class="recipe-servings" contenteditable="false" id="recipeServings">${recipe.servings}</div>
+                    <div class="recipe-time-difficulty">
+                        <div class="time-display">
+                            <span class="time-label">조리시간</span>
+                            <span class="time-value" id="cookingTimeDisplay">
+                                <span th:if="${recipe != null and recipe.cookMinutes != null}" th:text="${recipe.cookMinutes + '분'}"></span>
+                                <span th:unless="${recipe != null and recipe.cookMinutes != null}">미설정</span>
+                            </span>
+                            <div class="time-selection" id="timeSelection" style="display: none;">
+                                <select id="cookMinutes" name="cookMinutes" class="time-select">
+                                    <option value="">시간 선택</option>
+                                    <option value="15">15분 이하</option>
+                                    <option value="30">30분 이하</option>
+                                    <option value="60">1시간 이하</option>
+                                    <option value="90">1시간 30분 이하</option>
+                                    <option value="120">2시간 이하</option>
+                                    <option value="180">3시간 이상</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="difficulty-display">
+                            <span class="difficulty-label">난이도</span>
+                            <span class="difficulty-value" id="difficultyDisplay">
+                                <span th:if="${recipe != null and recipe.difficulty != null and recipe.difficulty == 'EASY'}">쉬움 ⭐</span>
+                                <span th:if="${recipe != null and recipe.difficulty != null and recipe.difficulty == 'MEDIUM'}">보통 ⭐⭐</span>
+                                <span th:if="${recipe != null and recipe.difficulty != null and recipe.difficulty == 'HARD'}">어려움 ⭐⭐⭐</span>
+                                <span th:unless="${recipe != null and recipe.difficulty != null}">미설정</span>
+                            </span>
+                            <div class="difficulty-selection" id="difficultySelection" style="display: none;">
+                                <select id="difficulty" name="difficulty" class="difficulty-select">
+                                    <option value="">난이도 선택</option>
+                                    <option value="EASY">쉬움 ⭐</option>
+                                    <option value="MEDIUM">보통 ⭐⭐</option>
+                                    <option value="HARD">어려움 ⭐⭐⭐</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="edit-controls">
+                    <button class="edit-btn" id="editModeBtn">수정 모드</button>
+                    <button class="delete-recipe-btn" id="deleteRecipeBtn">삭제하기</button>
+                    <button class="save-btn" id="saveBtn" style="display: none;">저장</button>
+                    <button class="cancel-btn" id="cancelBtn" style="display: none;">취소</button>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="book-layout">
+            <!-- 왼쪽 페이지 - 재료와 이미지 -->
+            <div class="left-page">
+                <div class="recipe-image">
+                    <img src="" alt="" class="recipe-main-image" id="recipeMainImage" />
+                    <div class="image-upload" style="display: none;">
+                        <input type="file" id="imageUpload" accept="image/*" />
+                        <label for="imageUpload" class="upload-btn">이미지 변경</label>
+                    </div>
+                </div>
+
+                <div class="ingredients-section">
+                    <h3 class="ingredients-title">재료</h3>
+                    <ul class="ingredients-list" id="ingredientsList">
+                        <!-- 재료 항목은 JS에서 동적으로 추가 -->
+                    </ul>
+                    <button class="add-ingredient" id="addIngredientBtn" style="display: none;">+ 재료 추가</button>
+                    <div class="ingredient-note" id="ingredientNote" contenteditable="false" style="display:none;">
+                        <img src="" alt="" class="recipe-product-image" id="recipeProductImage" />
+                        <p id="ingredientNoteText"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 오른쪽 페이지 - 요리법 설명 -->
+            <div class="right-page">
+                <div class="recipe-instructions" id="recipeInstructions">
+                    <!-- 조리법 섹션들은 JS에서 동적으로 추가 -->
+                </div>
+                <button class="add-section" id="addSectionBtn" style="display: none;">+ 요리법 섹션 추가</button>
+            </div>
+        </div>
+        </div>
+    </section>
+</main>
+
+<!-- 푸터 include -->
+<div th:replace="common/footer :: footer"></div>
+
+<script src="/js/myrecipe-detail.js"></script>
+</body>
+</html>

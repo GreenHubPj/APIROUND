@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>로그인 - GreenHub</title>
+
+    <link rel="stylesheet" th:href="@{/css/header.css}">
+    <link rel="stylesheet" th:href="@{/css/footer.css}">
+    <link rel="stylesheet" th:href="@{/css/login.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+<div th:replace="~{common/header :: header}"></div>
+
+<div class="login-container">
+    <div class="login-header">
+        <h1 class="login-title">로그인</h1>
+        <p class="login-subtitle">GreenHub에 오신 것을 환영합니다!</p>
+    </div>
+
+    <div class="message" th:if="${error}" th:text="${error}" style="color:#d33; margin-bottom:12px;"></div>
+    <div class="message success" th:if="${success}" th:text="${success}" style="color:#2c7; margin-bottom:12px;"></div>
+
+    <div class="member-type-tabs">
+        <button type="button" class="member-type-tab active" data-type="individual">개인 회원</button>
+        <button type="button" class="member-type-tab" data-type="seller">판매 회원</button>
+    </div>
+
+    <!-- ✅ 소셜 로그인 -->
+    <div class="social-login-section" id="socialLoginSection">
+        <h2 class="section-title">소셜로 간편하게 로그인하세요</h2>
+        <p class="social-login-text">소셜로 간편하게 로그인하세요</p>
+        <div class="social-buttons">
+            <button type="button" class="social-btn kakao-btn" id="kakaoLoginBtn"><span>💬</span>카카오 로그인</button>
+            <button type="button" class="social-btn google-btn" id="googleLoginBtn"><span>G</span>구글 로그인</button>
+        </div>
+    </div>
+
+    <!-- 일반 로그인 -->
+    <div class="login-form-section">
+        <h2 class="section-title">일반 로그인</h2>
+        <form id="loginForm" class="login-form" th:action="@{/auth/login}" method="post">
+            <input type="hidden" id="accountType" name="accountType" value="PERSONAL"/>
+            <div class="form-group">
+                <label class="form-label" for="loginId">아이디 *</label>
+                <input type="text" id="loginId" name="loginId" class="form-input" placeholder="아이디를 입력해주세요" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="loginPassword">비밀번호 *</label>
+                <div class="password-input-container">
+                    <input type="password" id="loginPassword" name="password" class="form-input" placeholder="비밀번호를 입력해주세요" required>
+                    <button type="button" class="password-toggle" aria-label="비밀번호 보기 전환">
+                        <img th:src="@{/images/감은눈.png}" alt="비밀번호 보기">
+                    </button>
+                </div>
+            </div>
+
+            <!-- 서버에서 내려준 redirectURL 유지 -->
+            <input type="hidden" id="redirectURL" name="redirectURL" th:value="${redirectURL}">
+
+            <button type="submit" class="login-btn">로그인</button>
+        </form>
+    </div>
+
+    <div class="login-links">
+        <div class="forgot-links">
+            <a th:href="@{/find-id}" class="forgot-link">아이디 찾기</a>
+            <span>|</span>
+            <a th:href="@{/find-password}" class="forgot-link">비밀번호 찾기</a>
+        </div>
+
+        <div class="signup-link">
+            <p>아직 계정이 없으신가요? <a th:href="@{/signup}" class="signup-link-text">회원가입</a></p>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{common/footer :: footer}"></div>
+
+<script>
+    (function () {
+      const tabs = document.querySelectorAll('.member-type-tab');
+      const social = document.getElementById('socialLoginSection');
+      const accountTypeInput = document.getElementById('accountType');
+      const redirectInput = document.getElementById('redirectURL');
+
+      function getRedirect() {
+        const v = redirectInput?.value?.trim();
+        return v && v.length > 0 ? v : '/';
+      }
+
+      // 탭 전환
+      tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+          tabs.forEach(t => t.classList.remove('active'));
+          tab.classList.add('active');
+          const type = tab.getAttribute('data-type');
+          if (type === 'seller') {
+            accountTypeInput.value = 'COMPANY';
+            social.style.display = 'none';
+          } else {
+            accountTypeInput.value = 'PERSONAL';
+            social.style.display = '';
+          }
+        });
+      });
+
+      if (window.location.search.includes('type=seller')) {
+        document.querySelector('[data-type="seller"]').click();
+      } else {
+        document.querySelector('[data-type="individual"]').click();
+      }
+
+      // 비밀번호 보기
+      const toggleBtn = document.querySelector('.password-toggle');
+      if (toggleBtn) {
+        toggleBtn.addEventListener('click', () => {
+          const input = document.getElementById('loginPassword');
+          input.type = (input.type === 'password') ? 'text' : 'password';
+        });
+      }
+
+      // ★ 카카오/구글 버튼 실제 동작
+      document.getElementById('kakaoLoginBtn')?.addEventListener('click', () => {
+        const r = encodeURIComponent(getRedirect());
+        location.href = `/oauth/kakao/start?redirectURL=${r}`;
+      });
+      document.getElementById('googleLoginBtn')?.addEventListener('click', () => {
+        const r = encodeURIComponent(getRedirect());
+        location.href = `/oauth/google/start?redirectURL=${r}`;
+      });
+
+      // 일반 로그인 submit 안전망
+      document.getElementById('loginForm')?.addEventListener('submit', () => {
+        const active = document.querySelector('.member-type-tab.active');
+        accountTypeInput.value = (active && active.getAttribute('data-type') === 'seller') ? 'COMPANY' : 'PERSONAL';
+      });
+    })();
+</script>
+</body>
+</html>

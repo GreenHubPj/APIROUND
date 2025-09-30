@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${recipe.title}">요리법 - GreenHub</title>
+    <link rel="stylesheet" href="/css/header.css">
+    <link rel="stylesheet" href="/css/recipe-detail.css">
+    <link rel="stylesheet" href="/css/footer.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+<!-- 헤더 include (최신 문법) -->
+<div th:replace="~{common/header :: header}"></div>
+
+<main class="main-content">
+    <section class="recipe-section">
+        <div class="recipe-card">
+
+            <div class="recipe-header">
+                <h1 class="recipe-title" th:text="${recipe.title}">레시피 제목</h1>
+                <div class="recipe-servings" th:text="${recipe.servings != null ? recipe.servings : '인분 미정'}">인분</div>
+            </div>
+
+            <div class="book-layout">
+                <!-- 왼쪽: 메인 이미지 + 재료 -->
+                <div class="left-page">
+                    <div class="recipe-image">
+                        <!-- 메인 이미지: heroImageUrl 폴백/에러 처리 -->
+                        <img class="recipe-main-image"
+                             th:alt="${recipe.title}"
+                             th:with="imgUrl=${#strings.isEmpty(recipe.heroImageUrl)} ? '/images/placeholder.jpg' : ${recipe.heroImageUrl}"
+                             th:src="@{${imgUrl}}"
+                             loading="lazy"
+                             onerror="this.onerror=null;this.src='/images/placeholder.jpg';">
+                    </div>
+
+                    <div class="ingredients-section">
+                        <h3 class="ingredients-title">재료</h3>
+                        <ul class="ingredients-list">
+                            <li class="ingredient-item" th:each="ing : ${ingredients}">
+                                <span class="ingredient-name" th:text="${ing.nameText}">재료명</span>
+                                <span class="ingredient-amount">
+                                    <span th:if="${ing.qtyValue != null}" th:text="|${#numbers.formatDecimal(ing.qtyValue,0,'COMMA',2,'POINT')} ${ing.unitCode != null ? ing.unitCode : ''}|"></span>
+                                    <small th:if="${ing.note != null}" th:text="'(' + ${ing.note} + ')'"></small>
+                                </span>
+                            </li>
+                        </ul>
+
+                        <!-- 연결 상품(옵션) -->
+                        <div class="ingredient-note" th:if="${products != null and !#lists.isEmpty(products)}">
+                            <img src="/images/상품샘플.jpg" alt="연결 상품" class="recipe-product-image">
+                            <p th:text="'product_id: ' + ${products.get(0).productId} + ' • ' + ${products.get(0).relationType}">상품</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 오른쪽: 조리 단계 -->
+                <div class="right-page">
+                    <div class="recipe-instructions">
+                        <div class="instruction-section">
+                            <h3 class="instruction-title">조리 순서</h3>
+                            <ol class="instruction-steps">
+                                <li th:each="st : ${steps}">
+                                    <div th:text="${st.stepNo} + '. ' + ${st.instruction}">1. 설명</div>
+                                    <div th:if="${!#strings.isEmpty(st.stepImageUrl)}" style="margin-top:6px;">
+                                        <img th:with="imgUrl=${st.stepImageUrl}"
+                                             th:src="@{${imgUrl}}"
+                                             alt="step"
+                                             class="step-image"
+                                             loading="lazy"
+                                             onerror="this.style.display='none'">
+                                    </div>
+                                </li>
+                            </ol>
+                        </div>
+                    </div>
+
+                    <!-- 메타 정보 -->
+                    <div class="recipe-meta">
+                        <span class="chip" th:text="'난이도: ' + (${recipe.difficulty} != null ? ${recipe.difficulty} : '정보 없음')">난이도</span>
+                        <span class="chip" th:text="'조리 ' + (${recipe.cookMinutes} != null ? ${recipe.cookMinutes} : '-') + '분'">조리 시간</span>
+                    </div>
+
+                    <div class="back-to-list">
+                        <a href="/recipe">← 목록으로</a>
+                        <span style="margin-left:8px;">
+              <a th:href="@{/recipes/{id}(id=${recipe.recipeId})}"></a>
+            </span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+</main>
+
+<!-- 푸터 include -->
+<div th:replace="~{common/footer :: footer}"></div>
+
+<script src="/js/recipe-detail.js" defer></script>
+</body>
+</html>

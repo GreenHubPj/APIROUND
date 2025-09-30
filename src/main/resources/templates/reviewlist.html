@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${product != null ? product.productName + ' 리뷰 - GreenHub' : '상품 리뷰 - GreenHub'}">상품 리뷰 - GreenHub</title>
+
+    <link rel="stylesheet" th:href="@{/css/reviewlist.css}">
+    <link rel="stylesheet" th:href="@{/css/header.css}">
+    <link rel="stylesheet" th:href="@{/css/footer.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+<div th:replace="~{common/header :: header}"></div>
+
+<!-- productId를 data 속성으로 내려줌 -->
+<main class="main-content" th:attr="data-product-id=${productId}">
+    <div class="container">
+        <!-- 뒤로가기 -->
+        <div class="back-button">
+            <button class="back-btn" id="backBtn" type="button"><span>←</span> 상품 상세로 돌아가기</button>
+        </div>
+
+        <!-- 리뷰 통계 (구글 플레이 스타일) -->
+        <section class="review-stats" aria-label="리뷰 통계">
+            <div class="stats-grid">
+                <div class="score-box">
+                    <div class="score" id="averageRating">0.0</div>
+                    <div class="score-stars" id="averageStars" aria-hidden="true"></div>
+                    <div class="score-sub" id="totalReviewText">평가 0개</div>
+                </div>
+                <div class="dist" id="ratingBreakdown"></div>
+            </div>
+        </section>
+
+        <!-- 리뷰 목록 -->
+        <section class="reviews-section" aria-label="전체 리뷰">
+            <div class="reviews-header">
+                <h2 class="section-title">전체 리뷰</h2>
+            </div>
+            <div class="review-list" id="reviewList"></div>
+            <nav class="pagination" id="pagination" aria-label="페이지 이동"></nav>
+        </section>
+    </div>
+</main>
+
+<div th:replace="~{common/footer :: footer}"></div>
+
+<script th:src="@{/js/reviewlist.js}"></script>
+<script th:inline="javascript">
+    window.__REVIEWLIST__ = window.__REVIEWLIST__ || {};
+    /*<![CDATA[*/
+    window.__REVIEWLIST__.productId = /*[[${productId}]]*/ 0;
+    /*]]>*/
+</script>
+</body>
+</html>

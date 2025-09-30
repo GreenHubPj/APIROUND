@@ -1,0 +1,196 @@
+<!-- src/main/resources/templates/mypage_company.html -->
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>업체 마이페이지 - GreenHub</title>
+
+    <!-- 기존 공용 CSS -->
+    <link rel="stylesheet" th:href="@{/css/header.css}" />
+    <link rel="stylesheet" th:href="@{/css/mypage_company.css}" />
+    <link rel="stylesheet" th:href="@{/css/footer.css}" />
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet" />
+
+</head>
+<body>
+<!-- 헤더 -->
+<div th:replace="~{common/header :: header}"></div>
+
+<!-- 업체 마이페이지 -->
+<section class="mypage-company-section">
+    <div class="container">
+        <!-- 타이틀 -->
+        <div class="mypage-title">
+            <div class="page-title-container">
+                <div class="page-icon">
+                    <!-- 아이콘 고정 (원하시면 이미지로 바꿔도 됩니다) -->
+                    <span class="store-icon">🏪</span>
+                </div>
+                <div>
+                    <h1 class="page-title">업체 마이페이지</h1>
+                    <p class="page-description">업체 정보와 주문 관리를 할 수 있습니다.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 업체 정보 -->
+        <div class="company-info-section">
+            <div class="company-profile">
+                <div class="company-avatar">
+                    <span class="avatar-text" th:text="${comp != null ? comp.companyName : '업체명'}"></span>
+                </div>
+
+                <div class="company-details">
+                    <h2 class="company-name" th:text="${comp != null ? comp.companyName : '업체명'}">업체명</h2>
+
+                    <div class="company-info-item">
+                        <span class="info-icon">📧</span>
+                        <span class="info-text" th:text="${comp != null ? comp.email : 'example@greenhub.com'}">example@greenhub.com</span>
+                    </div>
+
+                    <div class="company-info-item">
+                        <span class="info-icon">📱</span>
+                        <span class="info-text" th:text="${comp != null ? comp.managerPhone : '010-0000-0000'}">010-0000-0000</span>
+                    </div>
+
+                    <div class="company-info-item">
+                        <span class="info-icon">🏠</span>
+                        <span class="info-text" th:text="${comp != null ? comp.address : '주소 정보 없음'}">주소 정보 없음</span>
+                    </div>
+
+                    <div class="company-info-item">
+                        <span class="info-icon">🏪</span>
+                        <span class="info-text">
+                사업자등록번호: <span th:text="${comp != null ? comp.businessRegistrationNumber : '미등록'}">미등록</span>
+              </span>
+                    </div>
+                </div>
+
+                <div class="company-badge">
+                    <span class="badge-text" th:text="${comp != null && comp.rating != null ? '평점 ' + comp.rating : '인증 업체'}">인증 업체</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 업체 통계 -->
+        <div class="company-stats" style="grid-template-columns: repeat(4, 1fr);">
+            <div class="stat-item">
+                <div class="stat-number"
+                     th:text="${stats != null ? stats.totalOrders : 0}">0</div>
+                <div class="stat-label">총 주문건</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number"
+                     th:text="${stats != null ? stats.completedDeliveries : 0}">0</div>
+                <div class="stat-label">배송완료</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number"
+                     th:text="${stats != null ? stats.pendingOrders : 0}">0</div>
+                <div class="stat-label">대기중</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number"
+                     th:text="${stats != null ? stats.rating : 0.0}">0.0</div>
+                <div class="stat-label">평점</div>
+            </div>
+        </div>
+
+
+        <!-- 기능 모듈 -->
+        <div class="modules-grid">
+            <div class="module-item" data-module="orders" tabindex="0" role="button" aria-label="고객 주문건">
+                <div class="module-icon"><span class="icon">📋</span></div>
+                <h3 class="module-title">고객 주문건</h3>
+                <p class="module-description">고객들의 주문 내역을 확인하고 주문 상태를 관리할 수 있습니다.</p>
+            </div>
+
+            <div class="module-item" data-module="delivery" tabindex="0" role="button" aria-label="배송건">
+                <div class="module-icon"><span class="icon">🚚</span></div>
+                <h3 class="module-title">배송건</h3>
+                <p class="module-description">배송 현황을 확인하고 배송 상태를 업데이트할 수 있습니다.</p>
+            </div>
+
+            <div class="module-item" data-module="refund" tabindex="0" role="button" aria-label="환불처리">
+                <div class="module-icon"><span class="icon">💸</span></div>
+                <h3 class="module-title">환불처리</h3>
+                <p class="module-description">고객의 환불 요청을 확인하고 환불 처리를 진행할 수 있습니다.</p>
+            </div>
+
+            <div class="module-item" data-module="products" tabindex="0" role="button" aria-label="상품관리">
+                <div class="module-icon"><span class="icon">🌾</span></div>
+                <h3 class="module-title">상품관리</h3>
+                <p class="module-description">판매 상품을 등록하고 재고, 가격 등을 관리할 수 있습니다.</p>
+            </div>
+
+            <div class="module-item" data-module="reviews" tabindex="0" role="button" aria-label="리뷰관리">
+                <div class="module-icon"><span class="icon">⭐</span></div>
+                <h3 class="module-title">리뷰관리</h3>
+                <p class="module-description">판매한 상품에 대한 리뷰를 관리하고 다른 고객들의 경험을 확인할 수 있습니다.</p>
+            </div>
+
+            <div class="module-item" data-module="company-edit" tabindex="0" role="button" aria-label="업체정보수정">
+                <div class="module-icon"><span class="icon">🏢</span></div>
+                <h3 class="module-title">업체정보수정</h3>
+                <p class="module-description">농장 정보, 연락처, 주소 등 업체 정보를 수정할 수 있습니다.</p>
+            </div>
+
+            <!-- 레시피 관리 모듈 (company_id = 3인 회사에게만 표시) -->
+            <div th:if="${comp != null && comp.companyId != null && comp.companyId == 3}" class="module-item" data-module="recipe-management" tabindex="0" role="button" aria-label="레시피관리">
+                <div class="module-icon"><span class="icon">🍳</span></div>
+                <h3 class="module-title">레시피관리</h3>
+                <p class="module-description">레시피를 승인, 거부, 게시, 삭제할 수 있는 관리자 기능입니다.</p>
+            </div>
+
+            <!-- 업체 로그인 사용자에게만 표시되는 알림 메일 전송 버튼 -->
+            <div th:if="${currentCompany != null}" class="module-item" data-module="email-notification" tabindex="0" role="button" aria-label="알림 메일 전송">
+                <div class="module-icon"><span class="icon">📧</span></div>
+                <h3 class="module-title">알림 메일 전송</h3>
+                <p class="module-description">SMS 동의한 고객들에게 특별 할인이나 신상품 알림 메일을 발송할 수 있습니다.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 이메일 발송 모달 -->
+<div id="emailModal" class="email-modal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>📧 알림 메일 전송</h3>
+            <button class="modal-close" onclick="closeEmailModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="recipients-info">
+                <p>SMS 동의한 고객 <span id="recipientCount">-</span>명에게 메일을 발송합니다.</p>
+                <button type="button" id="checkRecipientsBtn" class="btn-secondary">수신자 확인</button>
+            </div>
+
+            <form id="emailForm">
+                <div class="form-group">
+                    <label for="emailSubject">제목</label>
+                    <input type="text" id="emailSubject" name="subject" placeholder="메일 제목을 입력하세요" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="emailMessage">내용</label>
+                    <textarea id="emailMessage" name="message" rows="6" placeholder="메일 내용을 입력하세요&#10;&#10;" required></textarea>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" onclick="closeEmailModal()" class="btn-cancel">취소</button>
+                    <button type="submit" class="btn-send">메일 발송</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- 푸터 -->
+<div th:replace="~{common/footer :: footer}"></div>
+
+<script th:src="@{/js/mypage_company.js}"></script>
+
+
+</body>
+</html>

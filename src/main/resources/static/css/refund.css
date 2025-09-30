@@ -1,0 +1,335 @@
+/* 환불/교환 페이지 스타일 */
+
+.refund-container {
+    min-height: 100vh;
+    background: #f8f9fa;
+    padding: 40px 20px;
+    margin-top: 60px;
+}
+
+.refund-content {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* 페이지 제목 */
+.page-title {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.page-title h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #333;
+    margin: 0;
+}
+
+/* 탭 메뉴 */
+.tab-menu {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 40px;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.tab-btn {
+    background: none;
+    border: none;
+    padding: 15px 30px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #666;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.3s ease;
+    border-bottom: 3px solid transparent;
+}
+
+.tab-btn:hover {
+    color: #ff8c42;
+}
+
+.tab-btn.active {
+    color: #ff8c42;
+    border-bottom-color: #ff8c42;
+}
+
+/* 탭 컨텐츠 */
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* 주문 목록 */
+.order-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* 주문 아이템 */
+.order-item {
+    background: white;
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+    padding: 25px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+}
+
+.order-item:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+/* 주문 헤더 */
+.order-header {
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #f1f3f4;
+}
+
+.order-info {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.order-info span {
+    font-size: 0.9rem;
+    color: #666;
+    font-weight: 500;
+}
+
+.return-date {
+    color: #ff8c42 !important;
+    font-weight: 600 !important;
+}
+
+.order-date {
+    color: #333 !important;
+}
+
+.order-number {
+    color: #666 !important;
+}
+
+/* 주문 상세 */
+.order-details {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+    flex-wrap: wrap;
+}
+
+.product-info {
+    flex: 1;
+    min-width: 200px;
+}
+
+.product-name {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 5px;
+}
+
+.product-desc {
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.product-quantity {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    min-width: 80px;
+}
+
+.quantity {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #333;
+}
+
+.price {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #ff8c42;
+}
+
+.order-status {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 10px;
+    min-width: 120px;
+}
+
+.status {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #28a745;
+    padding: 5px 12px;
+    background: #d4edda;
+    border-radius: 20px;
+    text-align: center;
+}
+
+.exchange-status {
+    color: #007bff;
+    background: #cce7ff;
+}
+
+.detail-btn {
+    background: white;
+    border: 2px solid #ff8c42;
+    color: #ff8c42;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.detail-btn:hover {
+    background: #ff8c42;
+    color: white;
+    transform: translateY(-1px);
+}
+
+/* 빈 상태 */
+.empty-state {
+    text-align: center;
+    padding: 80px 20px;
+    color: #666;
+}
+
+.empty-icon {
+    font-size: 4rem;
+    margin-bottom: 20px;
+    opacity: 0.5;
+}
+
+.empty-message {
+    font-size: 1.2rem;
+    font-weight: 500;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+    .refund-container {
+        padding: 20px 15px;
+    }
+    
+    .page-title h1 {
+        font-size: 2rem;
+    }
+    
+    .tab-btn {
+        padding: 12px 20px;
+        font-size: 1rem;
+    }
+    
+    .order-item {
+        padding: 20px;
+    }
+    
+    .order-info {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .order-details {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 20px;
+    }
+    
+    .product-quantity {
+        flex-direction: row;
+        align-items: center;
+        gap: 15px;
+    }
+    
+    .order-status {
+        align-items: flex-start;
+        width: 100%;
+    }
+    
+    .detail-btn {
+        width: 100%;
+        padding: 12px;
+    }
+}
+
+@media (max-width: 480px) {
+    .page-title h1 {
+        font-size: 1.8rem;
+    }
+    
+    .tab-btn {
+        padding: 10px 15px;
+        font-size: 0.9rem;
+    }
+    
+    .order-item {
+        padding: 15px;
+    }
+    
+    .product-name {
+        font-size: 1.1rem;
+    }
+    
+    .product-desc {
+        font-size: 0.8rem;
+    }
+    
+    .price {
+        font-size: 1rem;
+    }
+}
+
+/* 애니메이션 */
+.order-item {
+    animation: fadeInUp 0.5s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* 로딩 상태 */
+.loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 60px 20px;
+}
+
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #ff8c42;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}

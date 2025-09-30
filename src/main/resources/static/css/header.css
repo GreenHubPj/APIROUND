@@ -1,0 +1,359 @@
+/* 헤더 스타일 */
+
+/* 기본 스타일 리셋 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Noto Sans KR', sans-serif;
+    line-height: 1.6;
+    color: #333;
+    background-color: #fff;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* 헤더 스타일 */
+.header {
+    background: linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(248,249,250,0.9) 100%);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+    position: sticky;
+    top: 20px;
+    z-index: 10;
+    backdrop-filter: blur(10px);
+    border-radius: 50px;
+    margin: 0 20px;
+    border: 1px solid rgba(255,255,255,0.3);
+}
+
+.header .container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 20px;
+    max-width: 1400px;
+}
+
+.nav-brand {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 8px 0;
+}
+
+.logo {
+    width: auto;
+    height: 55px;
+    object-fit: contain;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+}
+
+.brand-text {
+    font-size: 26px;
+    font-weight: 800;
+    color: #2c5530;
+    letter-spacing: -0.5px;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+.nav-menu {
+    display: flex;
+    gap: 35px;
+    align-items: center;
+}
+
+.nav-link {
+    text-decoration: none;
+    color: #555;
+    font-weight: 600;
+    font-size: 15px;
+    padding: 8px 16px;
+    border-radius: 20px;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.nav-link:hover {
+    color: #ff6b35;
+    background-color: rgba(255, 107, 53, 0.1);
+    transform: translateY(-1px);
+}
+
+.nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 50%;
+    width: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #ff6b35, #e55a2b);
+    transition: all 0.3s ease;
+    transform: translateX(-50%);
+}
+
+.nav-link:hover::after {
+    width: 80%;
+}
+
+.nav-auth {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.btn-mypage,
+.btn-login {
+    background: linear-gradient(135deg, #ff6b35 0%, #e55a2b 100%);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 30px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3);
+    position: relative;
+    overflow: hidden;
+    text-decoration: none;
+}
+
+.btn-mypage,
+.btn-login:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 107, 53, 0.4);
+}
+
+.btn-mypage,
+.btn-login:active {
+    transform: translateY(0);
+}
+.btn-logout,
+.btn-signup {
+    background-color: transparent;
+    color: #ff6b35;
+    border: 2px solid #ff6b35;
+    padding: 10px 22px;
+    border-radius: 30px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    text-decoration: none;
+}
+
+.btn-logout:hover,
+.btn-signup:hover {
+    background: linear-gradient(135deg, #ff6b35 0%, #e55a2b 100%);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3);
+}
+
+.btn-logout:active,
+.btn-signup:active {
+    transform: translateY(0);
+}
+
+
+/* 헤더 반응형 디자인 */
+@media (max-width: 768px) {
+    .header {
+        margin: 0 10px;
+        top: 10px;
+        border-radius: 30px;
+    }
+
+    .header .container {
+        flex-direction: column;
+        gap: 20px;
+        padding: 20px;
+    }
+
+    .nav-menu {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 20px;
+    }
+
+    .nav-link {
+        font-size: 14px;
+    }
+
+    .btn-logout,
+    .btn-mypage,
+    .btn-login,
+    .btn-signup {
+        padding: 8px 16px;
+        font-size: 14px;
+    }
+}
+
+/* 추가 반응형 디자인 - 태블릿 */
+@media (max-width: 1024px) {
+    .header {
+        margin: 0 15px;
+        top: 15px;
+    }
+    
+    .header .container {
+        padding: 15px 20px;
+    }
+    
+    .nav-menu {
+        gap: 20px;
+    }
+    
+    .nav-link {
+        font-size: 15px;
+    }
+    
+    .btn-logout,
+    .btn-mypage,
+    .btn-login,
+    .btn-signup {
+        padding: 10px 18px;
+        font-size: 15px;
+    }
+}
+
+/* 추가 반응형 디자인 - 모바일 대형 */
+@media (max-width: 768px) {
+    .header {
+        margin: 0 10px;
+        top: 10px;
+        border-radius: 30px;
+    }
+    
+    .header .container {
+        padding: 12px 15px;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+    
+    .nav-brand {
+        gap: 10px;
+    }
+    
+    .brand-logo {
+        width: 35px;
+        height: 35px;
+    }
+    
+    .brand-text {
+        font-size: 1.2rem;
+    }
+    
+    .nav-menu {
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+    
+    .nav-link {
+        font-size: 14px;
+        padding: 8px 12px;
+    }
+    
+    .nav-actions {
+        gap: 8px;
+    }
+    
+    .btn-logout,
+    .btn-mypage,
+    .btn-login,
+    .btn-signup {
+        padding: 8px 14px;
+        font-size: 13px;
+    }
+}
+
+@media (max-width: 480px) {
+    .header {
+        margin: 0 5px;
+        top: 5px;
+        border-radius: 25px;
+    }
+
+    .header .container {
+        padding: 10px 12px;
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .nav-brand {
+        gap: 8px;
+    }
+    
+    .brand-logo {
+        width: 30px;
+        height: 30px;
+    }
+    
+    .brand-text {
+        font-size: 1rem;
+    }
+
+    .nav-menu {
+        gap: 10px;
+        justify-content: center;
+        width: 100%;
+    }
+
+    .nav-link {
+        font-size: 13px;
+        padding: 6px 10px;
+    }
+    
+    .nav-actions {
+        gap: 6px;
+        justify-content: center;
+        width: 100%;
+    }
+
+    .btn-logout,
+    .btn-mypage,
+    .btn-login,
+    .btn-signup {
+        padding: 6px 12px;
+        font-size: 12px;
+    }
+}
+
+/* 추가 반응형 디자인 - 모바일 초소형 */
+@media (max-width: 360px) {
+    .header {
+        margin: 0 3px;
+        top: 3px;
+        border-radius: 20px;
+    }
+    
+    .header .container {
+        padding: 8px 10px;
+    }
+    
+    .nav-menu {
+        gap: 8px;
+    }
+    
+    .nav-link {
+        font-size: 12px;
+        padding: 5px 8px;
+    }
+    
+    .btn-logout,
+    .btn-mypage,
+    .btn-login,
+    .btn-signup {
+        padding: 5px 10px;
+        font-size: 11px;
+    }
+}

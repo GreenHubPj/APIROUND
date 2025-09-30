@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>구매하기 - GreenHub</title>
+    <link rel="stylesheet" th:href="@{/css/header.css}">
+    <link rel="stylesheet" th:href="@{/css/footer.css}">
+    <link rel="stylesheet" th:href="@{/css/buying.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+<!-- 헤더 -->
+<div th:replace="common/header :: header"></div>
+
+<!-- 로그인 사용자 id를 전역 변수로 주입 -->
+<script th:inline="javascript">
+    window.__USER_ID__ = /*[[${session.loginUserId}]]*/ null;
+</script>
+
+<!-- 메인 컨텐츠 -->
+<div class="buying-container">
+    <div class="buying-content">
+        <!-- 뒤로가기 버튼 -->
+        <div class="back-button">
+            <button onclick="goBack()" class="back-btn">
+                <span class="back-icon">←</span>
+                뒤로가기
+            </button>
+        </div>
+
+        <!-- 페이지 제목 -->
+        <div class="page-title">
+            <h1>구매하기</h1>
+            <p class="page-subtitle">주문 정보를 확인하고 결제를 진행해주세요</p>
+        </div>
+
+        <!-- 주문 상품 정보 -->
+        <div class="order-summary-card">
+            <div class="card-header">
+                <h2>주문 상품</h2>
+            </div>
+            <div class="card-content">
+                <div class="product-item" id="orderProductItem"></div>
+            </div>
+        </div>
+
+        <!-- 배송 정보 -->
+        <div class="delivery-info-card">
+            <div class="card-header">
+                <h2>배송 정보</h2>
+            </div>
+            <div class="card-content">
+                <div class="form-group">
+                    <label for="recipientName">받는 사람</label>
+                    <input type="text" id="recipientName" placeholder="이름을 입력해주세요" required>
+                </div>
+                <div class="form-group">
+                    <label for="recipientPhone">연락처</label>
+                    <input type="tel" id="recipientPhone" placeholder="010-0000-0000" required>
+                </div>
+                <div class="form-group">
+                    <label for="deliveryAddress">배송 주소</label>
+                    <div class="address-input-group">
+                        <input type="text" id="postcode" placeholder="우편번호" readonly>
+                        <button type="button" class="address-search-btn" onclick="searchAddress()">주소 검색</button>
+                    </div>
+                    <input type="text" id="deliveryAddress" placeholder="주소를 입력해주세요" readonly>
+                    <input type="text" id="detailAddress" placeholder="상세 주소를 입력해주세요" class="detail-address">
+                    <div id="wrap" style="display:none;border:1px solid #ddd;width:100%;max-width:500px;height:400px;margin:10px 0;position:relative;border-radius:8px;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,0.1);">
+                        <img src="//t1.daumcdn.net/postcode/resource/images/close.png" id="btnFoldWrap" style="cursor:pointer;position:absolute;right:0px;top:-1px;z-index:1" onclick="foldDaumPostcode()" alt="접기 버튼">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="deliveryMemo">배송 메모</label>
+                    <select id="deliveryMemo">
+                        <option value="">배송 메모를 선택해주세요</option>
+                        <option value="문 앞에 놓아주세요">문 앞에 놓아주세요</option>
+                        <option value="경비실에 맡겨주세요">경비실에 맡겨주세요</option>
+                        <option value="부재시 연락주세요">부재시 연락주세요</option>
+                        <option value="직접 수령하겠습니다">직접 수령하겠습니다</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- 결제 정보 -->
+        <div class="payment-info-card">
+            <div class="card-header">
+                <h2>결제 정보</h2>
+            </div>
+            <div class="card-content">
+                <div class="form-group">
+                    <label>결제 방법</label>
+                    <div class="payment-methods">
+                        <label class="payment-option">
+                            <input type="radio" name="paymentMethod" value="card" checked>
+                            <span class="payment-icon">💳</span>
+                            <span class="payment-text">신용카드</span>
+                        </label>
+                        <label class="payment-option">
+                            <input type="radio" name="paymentMethod" value="bank">
+                            <span class="payment-icon">🏦</span>
+                            <span class="payment-text">계좌이체</span>
+                        </label>
+                        <label class="payment-option">
+                            <input type="radio" name="paymentMethod" value="kakao">
+                            <span class="payment-icon">💛</span>
+                            <span class="payment-text">카카오페이</span>
+                        </label>
+                        <label class="payment-option">
+                            <input type="radio" name="paymentMethod" value="naver">
+                            <span class="payment-icon">💚</span>
+                            <span class="payment-text">네이버페이</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 주문 요약 -->
+        <div class="order-summary-card">
+            <div class="card-header">
+                <h2>주문 요약</h2>
+            </div>
+            <div class="card-content">
+                <div class="summary-row">
+                    <span class="summary-label">상품 금액</span>
+                    <span class="summary-value" id="productAmount">0원</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">배송비</span>
+                    <span class="summary-value" id="deliveryFee">3,000원</span>
+                </div>
+                <div class="summary-row total">
+                    <span class="summary-label">총 결제 금액</span>
+                    <span class="summary-value" id="totalAmount">0원</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 주문 버튼 -->
+        <div class="order-actions">
+            <button class="order-btn" id="orderBtn" onclick="processOrder()">
+                <span class="order-icon">💳</span>
+                <span class="order-text">주문하기</span>
+                <span class="order-amount" id="orderAmount">0원</span>
+            </button>
+        </div>
+
+        <!-- 약관 동의 -->
+        <div class="terms-agreement">
+            <label class="terms-checkbox">
+                <input type="checkbox" id="termsAgreement" required>
+                <span class="checkmark"></span>
+                <span class="terms-text">
+                        <a href="#" class="terms-link">구매약관</a> 및
+                        <a href="#" class="terms-link">개인정보처리방침</a>에 동의합니다.
+                    </span>
+            </label>
+        </div>
+    </div>
+</div>
+
+<!-- 푸터 -->
+<div th:replace="common/footer :: footer"></div>
+
+<script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+<script th:src="@{/js/header.js(v=${#dates.createNow().time})}" defer></script>
+<script th:src="@{/js/buying.js(v=${#dates.createNow().time})}" defer></script>
+</body>
+</html>

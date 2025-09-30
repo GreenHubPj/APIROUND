@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>레시피 상세 관리 - GreenHub</title>
+    <link rel="stylesheet" href="/css/header.css">
+    <link rel="stylesheet" href="/css/recipe.css">
+    <link rel="stylesheet" href="/css/footer.css">
+    <link rel="stylesheet" href="/css/admin-recipe.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+<!-- 헤더 include (최신 문법) -->
+<div th:replace="~{common/header :: header}"></div>
+
+<main class="main-content">
+    <!-- 관리자 네비게이션 -->
+    <div class="admin-nav">
+        <a href="/admin/recipe-management" class="back-btn">← 레시피 관리로 돌아가기</a>
+    </div>
+
+    <!-- 레시피 상세 정보 -->
+    <div class="admin-recipe-detail" th:if="${recipe}">
+        <div class="recipe-detail-header">
+            <div class="recipe-main-info">
+                <h1 class="recipe-title" th:text="${recipe.title}">레시피 제목</h1>
+                <div class="recipe-meta-info">
+                    <div class="recipe-status">
+                        <span class="status-badge" th:class="'status-' + ${recipe.status}" th:text="${recipe.status}"></span>
+                    </div>
+                    <div class="recipe-times">
+                        <span th:if="${recipe.cookMinutes != null}" th:text="'조리시간: ' + ${recipe.cookMinutes} + '분'"></span>
+                        <span th:if="${recipe.totalMinutes != null}" th:text="'총 소요시간: ' + ${recipe.totalMinutes} + '분'"></span>
+                    </div>
+                    <div class="recipe-servings" th:if="${recipe.servings != null}" th:text="'인분: ' + ${recipe.servings}"></div>
+                    <div class="recipe-difficulty" th:if="${recipe.difficulty != null}" th:text="'난이도: ' + ${recipe.difficulty}"></div>
+                </div>
+            </div>
+            
+            <!-- 관리자 액션 버튼들 -->
+            <div class="admin-detail-actions">
+                <button class="action-btn approve-btn" th:if="${recipe.status == 'PENDING'}" th:onclick="|approveRecipe(${recipe.recipeId})|">승인</button>
+                <button class="action-btn reject-btn" th:if="${recipe.status == 'PENDING'}" th:onclick="|rejectRecipe(${recipe.recipeId})|">거부</button>
+                <button class="action-btn publish-btn" th:if="${recipe.status == 'APPROVED'}" th:onclick="|publishRecipe(${recipe.recipeId})|">게시</button>
+                <button class="action-btn unpublish-btn" th:if="${recipe.status == 'PUBLISHED'}" th:onclick="|unpublishRecipe(${recipe.recipeId})|">게시 중단</button>
+                <button class="action-btn re-publish-btn" th:if="${recipe.status == 'STOP'}" th:onclick="|rePublishRecipe(${recipe.recipeId})|">게시 재개</button>
+                <button class="action-btn delete-btn" th:onclick="|deleteRecipe(${recipe.recipeId})|">삭제</button>
+            </div>
+        </div>
+
+        <!-- 레시피 이미지 -->
+        <div class="recipe-image-section" th:if="${recipe.heroImageUrl != null}">
+            <img class="recipe-hero-image"
+                 th:src="${recipe.heroImageUrl}"
+                 th:alt="${recipe.title}"
+                 th:onerror="|this.onerror=null;this.src='/images/고기 트럭.png'|">
+        </div>
+
+        <!-- 레시피 요약 -->
+        <div class="recipe-summary" th:if="${recipe.summary != null}">
+            <h3>레시피 요약</h3>
+            <p th:text="${recipe.summary}"></p>
+        </div>
+
+        <!-- 재료 목록 -->
+        <div class="recipe-ingredients" th:if="${ingredients != null and !ingredients.isEmpty()}">
+            <h3>필요한 재료</h3>
+            <ul class="ingredients-list">
+                <li th:each="ingredient : ${ingredients}" class="ingredient-item">
+                    <span class="ingredient-name" th:text="${ingredient.nameText}"></span>
+                    <span class="ingredient-amount" th:text="${ingredient.qtyValue != null ? ingredient.qtyValue + (ingredient.unitCode != null ? ' ' + ingredient.unitCode : '') : ''}"></span>
+                </li>
+            </ul>
+        </div>
+
+        <!-- 조리 단계 -->
+        <div class="recipe-steps" th:if="${steps != null and !steps.isEmpty()}">
+            <h3>조리 방법</h3>
+            <ol class="steps-list">
+                <li th:each="step : ${steps}" class="step-item">
+                    <div class="step-number" th:text="${step.stepNo}"></div>
+                    <div class="step-content">
+                        <p th:text="${step.instruction}"></p>
+                        <img th:if="${step.stepImageUrl != null}" 
+                             th:src="${step.stepImageUrl}" 
+                             th:alt="'단계 ' + ${step.stepNo} + ' 이미지'"
+                             class="step-image">
+                    </div>
+                </li>
+            </ol>
+        </div>
+
+        <!-- 관련 상품 -->
+        <div class="recipe-products" th:if="${products != null and !products.isEmpty()}">
+            <h3>관련 상품</h3>
+            <div class="products-grid">
+                <div th:each="product : ${products}" class="product-item">
+                    <div class="product-id">상품 ID: <span th:text="${product.productId}"></span></div>
+                    <div class="product-role" th:text="${product.relationType}"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 레시피 정보 (생성일, 수정일 등) -->
+        <div class="recipe-info-section">
+            <h3>레시피 정보</h3>
+            <div class="info-grid">
+                <div class="info-item">
+                    <span class="info-label">생성일:</span>
+                    <span class="info-value" th:text="${#temporals.format(recipe.createdAt, 'yyyy-MM-dd HH:mm')}"></span>
+                </div>
+                <div class="info-item" th:if="${recipe.updatedAt != null}">
+                    <span class="info-label">수정일:</span>
+                    <span class="info-value" th:text="${#temporals.format(recipe.updatedAt, 'yyyy-MM-dd HH:mm')}"></span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">상태:</span>
+                    <span class="status-badge" th:class="'status-' + ${recipe.status}" th:text="${recipe.status}"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 레시피가 없는 경우 -->
+    <div th:unless="${recipe}" class="no-recipe">
+        <p>레시피를 찾을 수 없습니다.</p>
+        <a href="/admin/recipe-management" class="back-link">레시피 관리로 돌아가기</a>
+    </div>
+</main>
+
+<!-- 푸터 include -->
+<div th:replace="~{common/footer :: footer}"></div>
+
+<!-- 페이지 스크립트 -->
+<script>
+    // 레시피 승인
+    function approveRecipe(recipeId) {
+        if (confirm('이 레시피를 승인하시겠습니까?')) {
+            fetch('/admin/recipe-management/' + recipeId + '/approve', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.text())
+            .then(data => {
+                alert(data);
+                location.reload();
+            })
+            .catch(error => {
+                alert('승인 처리 중 오류가 발생했습니다: ' + error);
+            });
+        }
+    }
+
+    // 레시피 거부
+    function rejectRecipe(recipeId) {
+        if (confirm('이 레시피를 거부하시겠습니까?')) {
+            fetch('/admin/recipe-management/' + recipeId + '/reject', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.text())
+            .then(data => {
+                alert(data);
+                location.reload();
+            })
+            .catch(error => {
+                alert('거부 처리 중 오류가 발생했습니다: ' + error);
+            });
+        }
+    }
+
+    // 레시피 게시
+    function publishRecipe(recipeId) {
+        if (confirm('이 레시피를 게시하시겠습니까?')) {
+            fetch('/admin/recipe-management/' + recipeId + '/publish', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.text())
+            .then(data => {
+                alert(data);
+                location.reload();
+            })
+            .catch(error => {
+                alert('게시 처리 중 오류가 발생했습니다: ' + error);
+            });
+        }
+    }
+
+    // 레시피 게시중단
+    function unpublishRecipe(recipeId) {
+        if (confirm('이 레시피를 게시중단하시겠습니까?')) {
+            fetch('/admin/recipe-management/' + recipeId + '/stop', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.text())
+            .then(data => {
+                alert(data);
+                location.reload();
+            })
+            .catch(error => {
+                alert('게시중단 처리 중 오류가 발생했습니다: ' + error);
+            });
+        }
+    }
+
+    // 레시피 게시 재개
+    function rePublishRecipe(recipeId) {
+        if (confirm('이 레시피를 다시 게시하시겠습니까?')) {
+            fetch('/admin/recipe-management/' + recipeId + '/re-publish', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.text())
+            .then(data => {
+                alert(data);
+                location.reload();
+            })
+            .catch(error => {
+                alert('게시 재개 처리 중 오류가 발생했습니다: ' + error);
+            });
+        }
+    }
+
+    // 레시피 삭제
+    function deleteRecipe(recipeId) {
+        if (confirm('이 레시피를 삭제하시겠습니까? 삭제된 레시피는 복구할 수 없습니다.')) {
+            fetch('/admin/recipe-management/' + recipeId + '/delete', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.text())
+            .then(data => {
+                alert(data);
+                window.location.href = '/admin/recipe-management';
+            })
+            .catch(error => {
+                alert('삭제 처리 중 오류가 발생했습니다: ' + error);
+            });
+        }
+    }
+</script>
+</body>
+</html>
